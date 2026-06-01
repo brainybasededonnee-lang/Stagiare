@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainy LMS - Espace Stagiaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .badge-notif {
+            position: absolute; top: -5px; right: -5px;
+            background-color: red; color: white;
+            border-radius: 50%; padding: 2px 6px;
+            font-size: 10px; font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div id="notif-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-gray-800"> Vos Notifications & Messages</h2>
+                <button id="btn-close-notifs" class="text-gray-500 hover:text-red-500 font-bold text-2xl leading-none">&times;</button>
+            </div>
+            <ul id="modal-annonces-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                <li class="text-gray-500 italic">Aucune notification.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="docs-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-gray-800"> Historique des Documents</h2>
+                <button id="btn-close-docs" class="text-gray-500 hover:text-red-500 font-bold text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-sm font-bold text-gray-700 mr-2">Trier par :</label>
+                <select id="doc-filter" class="border p-2 rounded bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="all">Tous les documents</option>
+                    <option value="recu">📥 Documents Reçus (Administration)</option>
+                    <option value="envoye">📤 Documents Envoyés (Moi)</option>
+                </select>
+            </div>
+
+            <div id="modal-docs-list" class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                <div class="text-gray-500 text-sm italic text-center py-4">Chargement de vos documents...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-2xl font-bold text-indigo-800"> Mon Profil et Paramètres</h2>
+                <button id="btn-close-profile" class="text-gray-500 hover:text-red-500 font-bold text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold text-gray-700 border-b pb-1 mb-3">Informations Générales</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex flex-col">
+                            <label class="text-xs text-gray-500 mb-1">📸 Photo de profil</label>
+                            <input type="file" id="prof-photo" accept="image/*" class="border p-1.5 rounded bg-gray-50 text-xs">
+                        </div>
+                        <input type="email" id="prof-email" placeholder="Email personnel" class="border p-2 rounded w-full bg-gray-50">
+                        <input type="text" id="prof-tel" placeholder="Téléphone / WhatsApp" class="border p-2 rounded w-full bg-gray-50">
+                        
+                        <div class="flex gap-2">
+                            <select id="prof-sexe" class="border p-2 rounded w-1/3 bg-gray-50">
+                                <option value="">Sexe</option>
+                                <option value="M">Masculin</option>
+                                <option value="F">Féminin</option>
+                            </select>
+                            <div class="flex items-center border p-2 rounded w-2/3 bg-gray-50">
+                                <label class="text-gray-500 text-xs w-1/2">Date Naiss.</label>
+                                <input type="date" id="prof-dob" class="bg-transparent w-full text-xs outline-none">
+                            </div>
+                        </div>
+
+                        <input type="text" id="prof-pob" placeholder="Lieu de naissance" class="border p-2 rounded w-full bg-gray-50">
+                        <input type="text" id="prof-profession" placeholder="Profession" class="border p-2 rounded w-full bg-gray-50">
+                        <input type="text" id="prof-residence" placeholder="Résidence actuelle" class="border p-2 rounded w-full bg-gray-50">
+                        <select id="prof-marital" class="border p-2 rounded w-full bg-gray-50">
+                            <option value="">-- Situation Matrimoniale --</option>
+                            <option value="Célibataire">Célibataire</option>
+                            <option value="Marié(e)">Marié(e)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-red-700 border-b pb-1 mb-3 mt-4 md:mt-0">En cas d'urgence (Personne à prévenir)</h3>
+                    <div class="space-y-3 text-sm">
+                        <input type="text" id="prof-em-name" placeholder="Nom Complet de la personne" class="border p-2 rounded w-full bg-red-50">
+                        <input type="text" id="prof-em-tel" placeholder="Contact (Téléphone)" class="border p-2 rounded w-full bg-red-50">
+                        <select id="prof-em-rel" class="border p-2 rounded w-full bg-red-50">
+                            <option value="">-- Relation avec le stagiaire --</option>
+                            <option value="Père">Père</option>
+                            <option value="Mère">Mère</option>
+                            <option value="Tante">Tante</option>
+                            <option value="Oncle">Oncle</option>
+                            <option value="Autre">Autre (A précisé)</option>
+                        </select>
+                        <input type="text" id="prof-em-rel-autre" placeholder="Précisez la relation..." class="hidden w-full border p-2 rounded bg-red-50 mt-1">
+                    </div>
+
+                    <h3 class="font-bold text-gray-800 border-b pb-1 mb-3 mt-6"> Sécurité (Mot de passe)</h3>
+                    <div class="space-y-3 text-sm">
+                        <input type="password" id="new-password" placeholder="Nouveau mot de passe" class="w-full border p-2 rounded bg-gray-50">
+                        <p class="text-xs text-gray-500 italic">Laissez vide si vous ne souhaitez pas le changer.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 border-t pt-4">
+                <button id="btn-update-profil" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg w-full font-bold shadow-md transition duration-200">
+                    Sauvegarder mon profil et paramètres
+                </button>
+                <p id="prof-status" class="text-green-600 text-center font-bold text-sm hidden mt-2">Profil mis à jour avec succès !</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="stagiaire-section" class="min-h-screen bg-gray-100 pb-10">
+        <nav class="bg-green-700 p-4 text-white flex justify-between items-center shadow-md sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <div id="nav-photo-profil" class="w-12 h-12 bg-white rounded-full overflow-hidden border-2 border-green-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:border-white transition-all duration-200 flex items-center justify-center" title="Modifier mon profil">
+                    <span class="text-gray-400 text-xs">Profil</span>
+                </div>
+                <h1 class="font-bold text-xl hidden sm:block">
+                    Bonjour <span id="user-display-name" class="font-light text-green-200 ml-1"></span>
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <button id="btn-open-docs" class="text-2xl hover:scale-110 transition drop-shadow-md" title="Mes Documents">
+                    📂
+                </button>
+                
+                <button id="btn-open-notifs" class="relative text-2xl hover:scale-110 transition drop-shadow-md" title="Notifications">
+                    🔔
+                    <span id="notif-badge" class="badge-notif hidden">0</span>
+                </button>
+
+                <button id="btn-logout-stagiaire" class="bg-red-500 px-3 py-1.5 rounded hover:bg-red-600 font-bold shadow-md">Déconnexion</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto mt-6 p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-blue-500">
+                    <div><p class="text-gray-500 text-sm">Statut</p><p id="stg-statut" class="font-bold text-lg">-</p></div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-gray-500">
+                    <div><p class="text-gray-500 text-sm">Total Formations</p><p id="stg-total-form" class="font-bold text-lg">0 FCFA</p></div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-green-500">
+                    <div><p class="text-gray-500 text-sm">Déjà Payé</p><p id="stg-total-paye" class="font-bold text-lg text-green-600">0 FCFA</p></div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-red-500">
+                    <div><p class="text-gray-500 text-sm">Reste à payer</p><p id="stg-reste" class="font-bold text-xl text-red-600">0 FCFA</p></div>
+                </div>
+            </div>
+
+            <div class="space-y-6 lg:col-span-2">
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-blue-800"> Mes Messages & Annonces</h3>
+                    <ul id="stagiaire-annonces-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <li class="text-gray-500 italic">Aucune annonce.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-purple-800">🎓 Mes Formations Actives</h3>
+                    <ul id="stagiaire-formations-list" class="space-y-2"></ul>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-gray-800">
+                    <div class="flex justify-between items-center border-b pb-2 mb-4">
+                        <h3 class="text-lg font-bold">Aperçu Documents de l'Administration</h3>
+                        <button class="text-xs font-bold text-blue-600 hover:underline" onclick="document.getElementById('btn-open-docs').click()">Voir tout</button>
+                    </div>
+                    <ul id="stagiaire-documents-list" class="space-y-2">
+                        <li class="text-gray-500 text-sm italic">Aucun document reçu.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-green-800">📤 Envoyer un document à l'admin</h3>
+                    <input type="text" id="stg-doc-titre" placeholder="Titre du document" class="w-full border p-2 mb-2 rounded text-sm">
+                    <input type="file" id="stg-doc-file" class="w-full border p-2 mb-2 rounded text-sm bg-gray-50">
+                    <button id="btn-stg-send-doc" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer le document</button>
+                    <p id="stg-upload-status" class="text-xs text-center mt-1 text-green-600 font-bold hidden">Envoi en cours...</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4"> Demander un document</h3>
+                    <select id="req-doc-type" class="w-full border p-2 mb-2 rounded text-sm bg-gray-50">
+                        <option value="Attestation">Attestation de formation</option>
+                        <option value="Bulletin">Bulletin de notes</option>
+                        <option value="Reçu">Reçu de paiement</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                    <textarea id="req-doc-motif" placeholder="Précision..." class="w-full border p-2 mb-2 rounded h-12 text-sm"></textarea>
+                    <button id="btn-req-doc" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer la demande</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4"> Demander une permission</h3>
+                    <textarea id="perm-motif" placeholder="Raison de l'absence..." class="w-full border p-2 mb-2 rounded h-16 text-sm"></textarea>
+                    <div class="flex gap-2 mb-2">
+                        <div class="w-1/2">
+                            <label class="text-xs text-gray-500">Du</label>
+                            <input type="date" id="perm-debut" class="w-full border p-1 text-sm rounded bg-gray-50">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-xs text-gray-500">Au</label>
+                            <input type="date" id="perm-fin" class="w-full border p-1 text-sm rounded bg-gray-50">
+                        </div>
+                    </div>
+                    <button id="btn-demander-perm" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full text-sm font-bold shadow mt-1">Soumettre la demande</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, updatePassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5FKEZ4KhKwHJu_oWBm--qPy7wEmmeRLo",
+            authDomain: "site-de-suivi-c31be.firebaseapp.com",
+            projectId: "site-de-suivi-c31be",
+            storageBucket: "site-de-suivi-c31be.firebasestorage.app",
+            messagingSenderId: "152056159364",
+            appId: "1:152056159364:web:a6f44e1f7078b032c4b6d1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let currentStagProfile = {};
+        let unreadCount = 0;
+        let localReadNotifs = [];
+        let allUserDocs = []; // Stockage de tous les docs (reçus et envoyés)
+
+        // Gestion du champ Relation Autre
+        document.getElementById('prof-em-rel').addEventListener('change', (e) => {
+            const autreField = document.getElementById('prof-em-rel-autre');
+            if(e.target.value === 'Autre') autreField.classList.remove('hidden');
+            else { autreField.classList.add('hidden'); autreField.value = ''; }
+        });
+
+        // MODALS CLICS
+        document.getElementById('nav-photo-profil').addEventListener('click', () => {
+            document.getElementById('profile-modal').classList.remove('hidden');
+        });
+        document.getElementById('btn-close-profile').addEventListener('click', () => {
+            document.getElementById('profile-modal').classList.add('hidden');
+        });
+
+        document.getElementById('btn-open-docs').addEventListener('click', () => {
+            document.getElementById('docs-modal').classList.remove('hidden');
+            afficherDocumentsFiltres();
+        });
+        document.getElementById('btn-close-docs').addEventListener('click', () => {
+            document.getElementById('docs-modal').classList.add('hidden');
+        });
+
+        // SECURITE ET ROUTAGE
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+            } else if (user.email === "admin@brainy.com") {
+                window.location.href = "admin.html";
+            } else {
+                initStagiaire(user);
+            }
+        });
+
+        document.getElementById('btn-logout-stagiaire').addEventListener('click', () => signOut(auth));
+
+        async function initStagiaire(user) {
+            localReadNotifs = JSON.parse(localStorage.getItem('read_notifs_' + user.uid) || "[]");
+
+            const qU = query(collection(db, "users"), where("uid", "==", user.uid));
+            const snapU = await getDocs(qU);
+            if(!snapU.empty) {
+                const docSnap = snapU.docs[0];
+                currentStagProfile = { id: docSnap.id, ...docSnap.data() };
+                
+                document.getElementById('user-display-name').textContent = currentStagProfile.nom;
+                
+                // Remplissage Finances
+                document.getElementById('stg-statut').textContent = currentStagProfile.statut || "Actif";
+                document.getElementById('stg-total-form').textContent = (currentStagProfile.totalFormations || 0) + " FCFA";
+                document.getElementById('stg-total-paye').textContent = (currentStagProfile.totalPaye || 0) + " FCFA";
+                document.getElementById('stg-reste').textContent = ((currentStagProfile.totalFormations || 0) - (currentStagProfile.totalPaye || 0)) + " FCFA";
+
+                // Remplissage Profil Formulaire
+                document.getElementById('prof-email').value = currentStagProfile.adresseEmail || '';
+                document.getElementById('prof-tel').value = currentStagProfile.telephone || '';
+                document.getElementById('prof-sexe').value = currentStagProfile.sexe || '';
+                document.getElementById('prof-dob').value = currentStagProfile.dateNaissance || '';
+                document.getElementById('prof-pob').value = currentStagProfile.lieuNaissance || '';
+                document.getElementById('prof-profession').value = currentStagProfile.profession || '';
+                document.getElementById('prof-residence').value = currentStagProfile.residence || '';
+                document.getElementById('prof-marital').value = currentStagProfile.situationMatrimoniale || '';
+                
+                // Remplissage Urgences
+                document.getElementById('prof-em-name').value = currentStagProfile.urgenceNom || '';
+                document.getElementById('prof-em-tel').value = currentStagProfile.urgenceTel || '';
+                
+                const relVal = currentStagProfile.urgenceRel || '';
+                if(['Père', 'Mère', 'Tante', 'Oncle', ''].includes(relVal)) {
+                    document.getElementById('prof-em-rel').value = relVal;
+                } else {
+                    document.getElementById('prof-em-rel').value = 'Autre';
+                    document.getElementById('prof-em-rel-autre').classList.remove('hidden');
+                    document.getElementById('prof-em-rel-autre').value = relVal;
+                }
+
+                if(currentStagProfile.photoProfil) {
+                    document.getElementById('nav-photo-profil').innerHTML = `<img src="${currentStagProfile.photoProfil}" class="w-full h-full object-cover">`;
+                }
+            }
+
+            chargerNotificationsStagiaire(user.uid);
+            chargerTousLesDocuments(user.uid);
+
+            const listF = document.getElementById('stagiaire-formations-list');
+            listF.innerHTML = '';
+            const qF = query(collection(db, "formations"), where("userId", "==", user.uid));
+            const snapF = await getDocs(qF);
+            snapF.forEach(doc => {
+                const d = doc.data();
+                listF.innerHTML += `<li class="border p-2 rounded flex justify-between bg-gray-50"><span class="font-bold">${d.nom}</span><span class="text-blue-600 font-bold">${d.prix} FCFA</span></li>`;
+            });
+        }
+
+        // --- GESTION DES DOCUMENTS (RECUS ET ENVOYES) ---
+        async function chargerTousLesDocuments(uid) {
+            allUserDocs = [];
+            
+            // Docs Reçus (Admin -> Stagiaire)
+            const qD = query(collection(db, "documents"), where("userId", "==", uid));
+            const snapD = await getDocs(qD);
+            snapD.forEach(doc => allUserDocs.push({ id: doc.id, ...doc.data(), typeDoc: 'recu' }));
+
+            // Docs Envoyés (Stagiaire -> Admin)
+            const qDS = query(collection(db, "documents_stagiaires"), where("userId", "==", uid));
+            const snapDS = await getDocs(qDS);
+            snapDS.forEach(doc => allUserDocs.push({ id: doc.id, ...doc.data(), typeDoc: 'envoye' }));
+
+            // Tri par date décroissante (Plus récent en haut)
+            allUserDocs.sort((a, b) => {
+                let tA = a.date ? a.date.toMillis() : Date.now();
+                let tB = b.date ? b.date.toMillis() : Date.now();
+                return tB - tA;
+            });
+
+            // Affichage Aperçu Page Principale (Seulement reçus)
+            const listPreview = document.getElementById('stagiaire-documents-list');
+            listPreview.innerHTML = '';
+            const recuDocs = allUserDocs.filter(d => d.typeDoc === 'recu');
+            if(recuDocs.length === 0) {
+                listPreview.innerHTML = '<li class="text-sm italic text-gray-500">Aucun document reçu.</li>';
+            } else {
+                recuDocs.slice(0, 3).forEach(d => { // Affiche les 3 derniers
+                    listPreview.innerHTML += `
+                        <div class="flex items-center justify-between bg-gray-50 p-2 border rounded mb-2">
+                            <span class="text-sm font-bold text-gray-700 truncate pr-2">📥 ${d.titre}</span>
+                            <a href="${d.url}" target="_blank" download class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 whitespace-nowrap shadow">Ouvrir</a>
+                        </div>`;
+                });
+            }
+        }
+
+        document.getElementById('doc-filter').addEventListener('change', afficherDocumentsFiltres);
+
+        function afficherDocumentsFiltres() {
+            const filter = document.getElementById('doc-filter').value;
+            const list = document.getElementById('modal-docs-list');
+            list.innerHTML = '';
+            
+            const filtered = allUserDocs.filter(d => filter === 'all' || d.typeDoc === filter);
+            
+            if(filtered.length === 0) {
+                list.innerHTML = '<div class="text-sm italic text-gray-500 text-center py-4">Aucun document trouvé.</div>';
+                return;
+            }
+
+            filtered.forEach(d => {
+                const icon = d.typeDoc === 'recu' ? '📥' : '📤';
+                const color = d.typeDoc === 'recu' ? 'text-blue-700' : 'text-green-700';
+                const label = d.typeDoc === 'recu' ? "Reçu de l'administration" : "Envoyé à l'administration";
+                
+                list.innerHTML += `
+                    <div class="flex items-center justify-between bg-gray-50 p-3 border rounded mb-3 shadow-sm hover:shadow transition">
+                        <div class="overflow-hidden pr-3">
+                            <span class="text-sm font-bold text-gray-800 block truncate">${icon} ${d.titre}</span>
+                            <span class="text-xs ${color} font-semibold">${label}</span>
+                        </div>
+                        <a href="${d.url}" target="_blank" download class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs hover:bg-gray-700 shadow whitespace-nowrap font-bold">Télécharger</a>
+                    </div>`;
+            });
+        }
+
+        // --- NOTIFICATIONS ---
+        async function chargerNotificationsStagiaire(uid) {
+            const listMsg = document.getElementById('modal-annonces-list');
+            const previewList = document.getElementById('stagiaire-annonces-list');
+            listMsg.innerHTML = ''; previewList.innerHTML = '';
+            unreadCount = 0;
+
+            const qM = query(collection(db, "notifications"), orderBy("date", "desc"));
+            const snapM = await getDocs(qM);
+            
+            snapM.forEach(docSnap => {
+                const d = docSnap.data();
+                const id = docSnap.id;
+                
+                if(d.destinataire === 'all' || d.destinataire === uid) {
+                    const isRead = localReadNotifs.includes(id);
+                    if(!isRead) unreadCount++;
+
+                    const bg = isRead ? 'bg-gray-50 opacity-70' : 'bg-blue-50 border-l-4 border-blue-500';
+                    const tag = d.destinataire === 'all' ? '📢 Annonce' : '✉ Administration';
+                    const html = `
+                        <li class="${bg} p-3 rounded shadow-sm mb-2" data-id="${id}">
+                            <span class="text-xs font-bold text-gray-500">${tag}</span>
+                            <strong class="block text-gray-900">${d.titre}</strong>
+                            <span class="text-sm text-gray-700">${d.message}</span>
+                        </li>`;
+                    
+                    listMsg.innerHTML += html;
+                    if(previewList.children.length < 5) previewList.innerHTML += html; // Max 5 in preview
+                }
+            });
+
+            if(previewList.innerHTML === '') previewList.innerHTML = '<li class="text-gray-500 italic">Aucune annonce.</li>';
+
+            const badge = document.getElementById('notif-badge');
+            if(unreadCount > 0) { badge.textContent = unreadCount; badge.classList.remove('hidden'); } 
+            else { badge.classList.add('hidden'); }
+        }
+
+        document.getElementById('btn-open-notifs').addEventListener('click', () => {
+            document.getElementById('notif-modal').classList.remove('hidden');
+            const items = document.querySelectorAll('#modal-annonces-list li');
+            items.forEach(li => {
+                const id = li.getAttribute('data-id');
+                if(id && !localReadNotifs.includes(id)) localReadNotifs.push(id);
+            });
+            localStorage.setItem('read_notifs_' + auth.currentUser.uid, JSON.stringify(localReadNotifs));
+            document.getElementById('notif-badge').classList.add('hidden');
+        });
+
+        document.getElementById('btn-close-notifs').addEventListener('click', () => {
+            document.getElementById('notif-modal').classList.add('hidden');
+            chargerNotificationsStagiaire(auth.currentUser.uid);
+        });
+
+        // --- UPDATE PROFIL ET MOT DE PASSE (MODAL) ---
+        document.getElementById('btn-update-profil').addEventListener('click', async () => {
+            if(!currentStagProfile.id) return;
+            
+            // 1. GESTION DU MOT DE PASSE (Si rempli)
+            const pwd = document.getElementById('new-password').value;
+            if(pwd) {
+                if(pwd.length < 6) return alert("Le mot de passe doit faire au moins 6 caractères.");
+                try { 
+                    await updatePassword(auth.currentUser, pwd); 
+                    document.getElementById('new-password').value = '';
+                } catch (e) { 
+                    return alert("Erreur mot de passe: Par mesure de sécurité, veuillez vous déconnecter puis vous reconnecter avant de changer votre mot de passe."); 
+                }
+            }
+
+            // 2. GESTION DES INFORMATIONS DU PROFIL
+            const btn = document.getElementById('btn-update-profil');
+            btn.textContent = "Sauvegarde...";
+
+            let photoUrl = currentStagProfile.photoProfil || "";
+            const fileInput = document.getElementById('prof-photo');
+            
+            if(fileInput.files.length > 0) {
+                const sRef = storageRef(storage, `profiles/${auth.currentUser.uid}`);
+                await uploadBytes(sRef, fileInput.files[0]);
+                photoUrl = await getDownloadURL(sRef);
+            }
+
+            let relValue = document.getElementById('prof-em-rel').value;
+            if(relValue === 'Autre') relValue = document.getElementById('prof-em-rel-autre').value.trim();
+
+            const updates = {
+                adresseEmail: document.getElementById('prof-email').value,
+                telephone: document.getElementById('prof-tel').value,
+                sexe: document.getElementById('prof-sexe').value,
+                dateNaissance: document.getElementById('prof-dob').value,
+                lieuNaissance: document.getElementById('prof-pob').value,
+                profession: document.getElementById('prof-profession').value,
+                residence: document.getElementById('prof-residence').value,
+                situationMatrimoniale: document.getElementById('prof-marital').value,
+                urgenceNom: document.getElementById('prof-em-name').value,
+                urgenceTel: document.getElementById('prof-em-tel').value,
+                urgenceRel: relValue,
+                photoProfil: photoUrl
+            };
+
+            await updateDoc(doc(db, "users", currentStagProfile.id), updates);
+            currentStagProfile = { ...currentStagProfile, ...updates }; 
+            
+            if(photoUrl) document.getElementById('nav-photo-profil').innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+
+            btn.textContent = "Sauvegarder mon profil et paramètres";
+            document.getElementById('prof-status').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('prof-status').classList.add('hidden');
+                document.getElementById('profile-modal').classList.add('hidden');
+            }, 2000);
+        });
+
+        // --- ENVOYER UN DOCUMENT A L'ADMIN ---
+        document.getElementById('btn-stg-send-doc').addEventListener('click', async () => {
+            const titre = document.getElementById('stg-doc-titre').value;
+            const fileInput = document.getElementById('stg-doc-file');
+            const status = document.getElementById('stg-upload-status');
+            
+            if(!titre || fileInput.files.length === 0) return alert("Titre et fichier requis.");
+            
+            status.classList.remove('hidden');
+            try {
+                const sRef = storageRef(storage, `documents_stagiaires/${auth.currentUser.uid}/${Date.now()}_${fileInput.files[0].name}`);
+                await uploadBytes(sRef, fileInput.files[0]);
+                const url = await getDownloadURL(sRef);
+                
+                await addDoc(collection(db, "documents_stagiaires"), { 
+                    userId: auth.currentUser.uid, titre: titre, url: url, date: serverTimestamp() 
+                });
+                
+                status.classList.add('hidden');
+                alert("Document envoyé à l'administration !");
+                document.getElementById('stg-doc-titre').value = ''; fileInput.value = '';
+                chargerTousLesDocuments(auth.currentUser.uid); // Maj direct
+            } catch(e) { status.classList.add('hidden'); alert("Erreur."); console.error(e); }
+        });
+
+        // --- DEMANDER UN DOCUMENT ---
+        document.getElementById('btn-req-doc').addEventListener('click', async () => {
+            const type = document.getElementById('req-doc-type').value;
+            const motif = document.getElementById('req-doc-motif').value;
+            
+            await addDoc(collection(db, "doc_requests"), { 
+                userId: auth.currentUser.uid, userName: currentStagProfile.nom, type: type, motif: motif, date: serverTimestamp() 
+            });
+            alert("Demande de document envoyée !");
+            document.getElementById('req-doc-motif').value = '';
+        });
+
+        // --- DEMANDER UNE PERMISSION ---
+        document.getElementById('btn-demander-perm').addEventListener('click', async () => {
+            const m = document.getElementById('perm-motif').value;
+            const d = document.getElementById('perm-debut').value;
+            const f = document.getElementById('perm-fin').value;
+            if(!m || !d || !f) return alert("Veuillez remplir tous les champs de la permission.");
+            
+            await addDoc(collection(db, "permissions"), { 
+                userId: auth.currentUser.uid, 
+                userEmail: auth.currentUser.email || currentStagProfile.matricule, 
+                motif: m, 
+                debut: d, 
+                fin: f, 
+                statut: "En attente", 
+                date: serverTimestamp() 
+            });
+            
+            alert("Demande de permission soumise !");
+            document.getElementById('perm-motif').value = '';
+            document.getElementById('perm-debut').value = '';
+            document.getElementById('perm-fin').value = '';
+        });
+
+    </script>
+</body>
+</html>
