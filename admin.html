@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainy Hub - Administration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div id="dashboard-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b pb-3">
+                <h2 class="text-2xl font-extrabold text-gray-800">📊 Tableau de Bord Global</h2>
+                <button id="btn-close-dashboard" class="text-gray-500 hover:text-red-500 font-bold text-3xl leading-none">&times;</button>
+            </div>
+            
+            <h3 class="font-bold text-gray-600 mb-3 uppercase text-sm tracking-wider">Statistiques des Stagiaires</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Total Inscrits</p>
+                    <p id="stat-total-stag" class="text-3xl font-black text-blue-700 mt-1">0</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Actifs</p>
+                    <p id="stat-actif" class="text-3xl font-black text-green-700 mt-1">0</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Terminés</p>
+                    <p id="stat-termine" class="text-3xl font-black text-purple-700 mt-1">0</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg border border-red-200 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Abandons</p>
+                    <p id="stat-abandon" class="text-3xl font-black text-red-700 mt-1">0</p>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-gray-600 mb-3 uppercase text-sm tracking-wider">Bilan Financier Global</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-gray-100 p-4 rounded-lg border border-gray-300 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Total Attendu</p>
+                    <p id="stat-total-frais" class="text-2xl font-black text-gray-800 mt-1">0 FCFA</p>
+                </div>
+                <div class="bg-green-100 p-4 rounded-lg border border-green-300 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Total Collecté</p>
+                    <p id="stat-total-encaisse" class="text-2xl font-black text-green-700 mt-1">0 FCFA</p>
+                </div>
+                <div class="bg-red-100 p-4 rounded-lg border border-red-300 text-center shadow-sm">
+                    <p class="text-sm text-gray-600 font-semibold">Total Restant</p>
+                    <p id="stat-total-reste" class="text-2xl font-black text-red-600 mt-1">0 FCFA</p>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-gray-600 mb-3 uppercase text-sm tracking-wider">Répartition par Formation</h3>
+            <ul id="stat-formations-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner mb-8">
+            </ul>
+
+            <h3 class="font-bold text-gray-600 mb-3 uppercase text-sm tracking-wider">💰 Revenus Mensuels (Frais Collectés)</h3>
+            <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden shadow-inner">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-200 text-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 font-bold border-b">Mois / Année</th>
+                            <th class="px-4 py-2 font-bold text-right border-b">Montant Total Collecté</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dash-revenus-mensuels-body" class="divide-y divide-gray-200 bg-white">
+                        <tr><td colspan="2" class="px-4 py-3 text-center text-gray-500 italic">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-section" class="min-h-screen pb-10">
+        <nav class="bg-gray-900 p-4 text-white flex justify-between items-center shadow-lg">
+            <h1 class="font-bold text-xl tracking-wide flex items-center gap-4">
+                Brainy Agency <span class="text-blue-400">Admin</span>
+                <button id="btn-dashboard-admin" class="ml-4 bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-1.5 rounded-full shadow transition flex items-center gap-2">
+                    📊 Tableau de Bord
+                </button>
+            </h1>
+            <button id="btn-logout-admin" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600 transition font-semibold">Déconnexion</button>
+        </nav>
+        
+        <div class="container mx-auto mt-6 p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="space-y-6 lg:col-span-1">
+                <div class="bg-white p-5 rounded-lg shadow border-t-4 border-blue-500">
+                    <h3 class="font-bold text-lg mb-3">🧑‍💼 Nouveau Stagiaire</h3>
+                    <input type="text" id="add-stag-nom" placeholder="Nom complet" class="w-full border p-2 mb-2 rounded bg-gray-50">
+                    <input type="text" id="add-stag-matricule" placeholder="Matricule (ex: STG001)" class="w-full border p-2 mb-3 rounded bg-gray-50">
+                    <button id="btn-ajouter-stagiaire" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full font-bold">Créer le compte</button>
+                </div>
+
+                <div class="bg-white p-5 rounded-lg shadow border-t-4 border-green-500">
+                    <h3 class="font-bold text-lg mb-3">📢 Annonce Globale</h3>
+                    <input type="text" id="annonce-titre" placeholder="Titre global" class="w-full border p-2 mb-2 rounded bg-gray-50">
+                    <textarea id="annonce-message" placeholder="Message pour TOUS les stagiaires..." class="w-full border p-2 mb-2 rounded bg-gray-50 h-20"></textarea>
+                    <button id="btn-publier-annonce" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full font-bold">Publier</button>
+                </div>
+                
+                <div class="bg-white p-5 rounded-lg shadow border-t-4 border-yellow-500">
+                    <h3 class="font-bold text-lg mb-3">📝 Demandes (Permissions & Docs)</h3>
+                    <ul id="admin-permissions-list" class="space-y-2 max-h-60 overflow-y-auto text-sm">
+                        <li class="text-gray-500 italic">Chargement...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow lg:col-span-2 border-t-4 border-purple-500 flex flex-col h-fit">
+                <h3 class="font-bold text-xl mb-4 text-purple-700">⚙️ Gérer un Stagiaire Spécifique</h3>
+                
+                <div class="mb-6">
+                    <label class="font-semibold text-gray-700">Sélectionner un stagiaire :</label>
+                    <select id="select-stagiaire" class="w-full border p-3 rounded mt-1 mb-2 bg-gray-50 font-semibold text-blue-800 focus:ring-2 focus:ring-purple-500">
+                        <option value="">-- Choisissez un stagiaire --</option>
+                    </select>
+                    <input type="text" id="search-stagiaire" placeholder="🔍 Rechercher par nom ou matricule..." class="w-full border p-2 rounded bg-white text-sm focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div id="panel-gestion-stagiaire" class="hidden space-y-6">
+                    
+                    <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex flex-col md:flex-row items-start gap-4 shadow-sm">
+                        <div id="admin-view-photo" class="w-20 h-20 bg-white rounded-full flex-shrink-0 overflow-hidden border-2 border-indigo-500 flex items-center justify-center text-gray-400 text-2xl">👤</div>
+                        <div class="flex-1 w-full">
+                            <h4 class="font-bold text-indigo-900 border-b border-indigo-200 pb-1 mb-2 text-sm uppercase tracking-wide">📋 Informations Personnelles</h4>
+                            <div class="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mb-4">
+                                <p><strong>Email:</strong> <span id="view-email" class="text-gray-800">-</span></p>
+                                <p><strong>Téléphone:</strong> <span id="view-tel" class="text-gray-800 font-bold">-</span></p>
+                                <p><strong>Sexe:</strong> <span id="view-sexe" class="text-gray-800">-</span></p>
+                                <p><strong>Né(e) le:</strong> <span id="view-dob">-</span> à <span id="view-pob">-</span></p>
+                                <p><strong>Profession:</strong> <span id="view-prof" class="text-gray-800">-</span></p>
+                                <p><strong>Résidence:</strong> <span id="view-res" class="text-gray-800">-</span></p>
+                                <p><strong>Situation:</strong> <span id="view-mat" class="text-gray-800">-</span></p>
+                            </div>
+                            
+                            <h4 class="font-bold text-red-800 border-b border-red-200 pb-1 mb-2 mt-3 text-sm uppercase tracking-wide">🚨 En cas d'urgence</h4>
+                            <div class="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-red-50 p-2 rounded border border-red-100">
+                                <p><strong>Personne à prévenir:</strong> <span id="view-em-name" class="font-bold text-gray-900">-</span></p>
+                                <p><strong>Contact (Tel):</strong> <span id="view-em-tel" class="font-bold text-red-700">-</span></p>
+                                <p><strong>Relation:</strong> <span id="view-em-rel" class="text-gray-800">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 p-4 rounded-lg shadow-sm">
+                        <h4 class="font-bold mb-3 text-gray-800 border-l-4 border-yellow-500 pl-2">✏️ Modifier les accès du Stagiaire</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Nom Complet</label>
+                                <input type="text" id="edit-nom" class="w-full border p-2 rounded bg-gray-50 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Matricule</label>
+                                <input type="text" id="edit-matricule" class="w-full border p-2 rounded bg-gray-50 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Nouveau Mot de Passe</label>
+                                <input type="password" id="edit-password" placeholder="Laissez vide si inchangé" class="w-full border p-2 rounded bg-gray-50 text-sm">
+                            </div>
+                        </div>
+                        <button id="btn-save-edit" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm transition w-full md:w-auto">
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-100 p-4 rounded border">
+                            <h4 class="font-bold mb-2">Statut de la formation</h4>
+                            <select id="update-statut" class="w-full border p-2 rounded mb-2">
+                                <option value="Actif">🟢 Actif</option>
+                                <option value="Terminé">🔵 Terminé</option>
+                                <option value="Abandonné">🔴 Abandonné</option>
+                            </select>
+                            <button id="btn-update-statut" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1 rounded text-sm w-full">Mettre à jour statut</button>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                            <h4 class="font-bold mb-2 text-blue-800">Bilan Financier</h4>
+                            <div class="text-sm space-y-1">
+                                <p>Total Formations : <span id="lbl-total-formations" class="font-bold">0</span> FCFA</p>
+                                <p>Déjà Payé : <span id="lbl-total-paye" class="font-bold text-green-600">0</span> FCFA</p>
+                                <p class="pt-2 border-t border-blue-200 mt-2">Reste à payer : <span id="lbl-reste-payer" class="font-bold text-red-600 text-lg">0</span> FCFA</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border p-4 rounded bg-gray-50">
+                            <h4 class="font-bold text-sm mb-2">➕ Ajouter une Formation</h4>
+                            
+                            <select id="form-nom" class="w-full border p-1 mb-1 text-sm rounded bg-white">
+                                <option value="" disabled selected>Choisir une formation...</option>
+                                <option value="Initiation à l’informatique">Initiation à l’informatique</option>
+                                <option value="Initiation à l’informatique Industrielle">Initiation à l’informatique Industrielle</option>
+                                <option value="Initiation à l’intelligence artificielle (IA)">Initiation à l’intelligence artificielle (IA)</option>
+                                <option value="Initiation en Electronique">Initiation en Electronique</option>
+                                <option value="Initiation en maintenance informatique">Initiation en maintenance informatique</option>
+                                <option value="Secrétariat bureautique + Intelligence artificielle (IA) + commande en chine">Secrétariat bureautique + Intelligence artificielle (IA) + commande en chine</option>
+                                <option value="Secrétariat bureautique + Intelligence artificielle (IA) + Initiation en maintenance informatique + commande en chine">Secrétariat bureautique + Intelligence artificielle (IA) + Initiation en maintenance informatique + commande en chine</option>
+                                <option value="Informatique Industrielle">Informatique Industrielle</option>
+                                <option value="Electronique + Informatique Industrielle">Electronique + Informatique Industrielle</option>
+                                <option value="Intelligence artificielle (IA) + Initiation en maintenance informatique">Intelligence artificielle (IA) + Initiation en maintenance informatique</option>
+                                <option value="Réparation d’Appareils">Réparation d’Appareils</option>
+                                <option value="Réseaux Informatique">Réseaux Informatique</option>
+                                <option value="E-commerce (Alibaba et Facebook Ads)">E-commerce (Alibaba et Facebook Ads)</option>
+                                <option value="Installation de caméra de surveillance">Installation de caméra de surveillance</option>
+                                <option value="Montage des Antennes parabolique">Montage des Antennes parabolique</option>
+                                <option value="Word">Word</option>
+                                <option value="Excel">Excel</option>
+                                <option value="Publisher">Publisher</option>
+                                <option value="Powerpoint">Powerpoint</option>
+                                <option value="Initiation à l’internet">Initiation à l’internet</option>
+                                <option value="Vacances utiles (Module1)">Vacances utiles (Module1)</option>
+                                <option value="Vacances utiles (Module2)">Vacances utiles (Module2)</option>
+                                <option value="Internet complet">Internet complet</option>
+                                <option value="Infographie">Infographie</option>
+                                <option value="Canva">Canva</option>
+                                <option value="Alibaba">Alibaba</option>
+                                <option value="Atelier des grands">Atelier des grands</option>
+                                <option value="Atelier Gratuit">Atelier Gratuit</option>
+                                <option value="Autre">Autre (A précisé)</option>
+                            </select>
+                            
+                            <input type="text" id="custom-form-nom" placeholder="Précisez la formation" class="w-full border p-1 mb-1 text-sm rounded hidden bg-yellow-50">
+                            
+                            <input type="number" id="form-prix" placeholder="Prix total" class="w-full border p-1 mb-1 text-sm rounded">
+                            <input type="text" id="form-duree" placeholder="Durée (ex: 3 mois)" class="w-full border p-1 mb-2 text-sm rounded">
+                            <button id="btn-add-formation" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-sm w-full">Ajouter Formation</button>
+                        </div>
+                        <div class="border p-4 rounded bg-gray-50">
+                            <h4 class="font-bold text-sm mb-2">💰 Enregistrer un Paiement</h4>
+                            <input type="number" id="pay-montant" placeholder="Montant payé" class="w-full border p-2 mb-2 rounded">
+                            <button id="btn-add-paiement" class="bg-green-600 hover:bg-green-700 text-white px-2 py-2 rounded text-sm w-full font-bold">Valider paiement</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-6">
+                        <div class="border p-4 rounded bg-gray-50">
+                            <h4 class="font-bold text-sm mb-2">✉️ Message Privé</h4>
+                            <input type="text" id="msg-titre" placeholder="Titre" class="w-full border p-1 mb-1 text-sm rounded">
+                            <textarea id="msg-texte" placeholder="Message privé..." class="w-full border p-1 mb-2 text-sm rounded h-12"></textarea>
+                            <button id="btn-send-msg" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm w-full">Notifier le stagiaire</button>
+                        </div>
+                        <div class="border p-4 rounded bg-gray-50">
+                            <h4 class="font-bold text-sm mb-2">📎 Envoyer un Document</h4>
+                            <input type="text" id="doc-titre" placeholder="Titre (ex: Attestation)" class="w-full border p-1 mb-1 text-sm rounded">
+                            <input type="file" id="doc-file" class="w-full border p-1 mb-2 text-sm rounded bg-white">
+                            <button id="btn-send-doc" class="bg-gray-800 hover:bg-gray-900 text-white px-2 py-1 rounded text-sm w-full">Uploader</button>
+                            <p id="upload-status" class="text-xs text-center mt-1 text-green-600 font-bold hidden">Envoi en cours...</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-lg mb-3 text-gray-800 border-l-4 border-indigo-500 pl-2">Historique et Données</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white border p-3 rounded shadow-sm">
+                                <h5 class="font-bold text-sm text-purple-700 border-b pb-1 mb-2">🎓 Ses Formations</h5>
+                                <ul id="admin-detail-formations" class="space-y-1 text-xs max-h-32 overflow-y-auto"></ul>
+                            </div>
+                            <div class="bg-white border p-3 rounded shadow-sm">
+                                <h5 class="font-bold text-sm text-gray-800 border-b pb-1 mb-2">📤 Docs reçus du stagiaire</h5>
+                                <ul id="admin-detail-docs-recus" class="space-y-2 text-xs max-h-32 overflow-y-auto pr-1"></ul>
+                            </div>
+                            <div class="bg-white border p-3 rounded shadow-sm">
+                                <h5 class="font-bold text-sm text-blue-700 border-b pb-1 mb-2">📂 Docs envoyés par l'admin</h5>
+                                <ul id="admin-detail-documents" class="space-y-2 text-xs max-h-32 overflow-y-auto pr-1"></ul>
+                            </div>
+                            <div class="bg-white border p-3 rounded shadow-sm">
+                                <h5 class="font-bold text-sm text-yellow-700 border-b pb-1 mb-2">📝 Historique Permissions</h5>
+                                <ul id="admin-detail-permissions" class="space-y-1 text-xs max-h-32 overflow-y-auto"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, getDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
+  authDomain: "stagiaire-afc7b.firebaseapp.com",
+  projectId: "stagiaire-afc7b",
+  storageBucket: "stagiaire-afc7b.firebasestorage.app",
+  messagingSenderId: "211607769009",
+  appId: "1:211607769009:web:7676af127f0ae6927e3790"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+        const secondaryAuth = getAuth(secondaryApp);
+
+        let allStagiaires = []; 
+        let selectedUserId = null;
+        let selectedUserDocId = null;
+
+        const formNomSelect = document.getElementById('form-nom');
+        const customFormNomInput = document.getElementById('custom-form-nom');
+        
+        formNomSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'Autre') {
+                customFormNomInput.classList.remove('hidden');
+            } else {
+                customFormNomInput.classList.add('hidden');
+                customFormNomInput.value = '';
+            }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+            } else if (user.email !== "admin@brainy.com") {
+                window.location.href = "stagiaire.html";
+            } else {
+                initAdmin();
+            }
+        });
+
+        document.getElementById('btn-logout-admin').addEventListener('click', () => signOut(auth));
+
+        function initAdmin() {
+            chargerListeStagiaires();
+            chargerDemandesAdmin();
+        }
+
+        // --- DASHBOARD ADMIN AVEC STATISTIQUES ET REVENUS MENSUELS ---
+        document.getElementById('btn-dashboard-admin').addEventListener('click', async () => {
+            const mdp = prompt("🔒 Veuillez entrer le mot de passe :");
+            if (mdp !== "963689") return alert("❌ Accès refusé.");
+            document.getElementById('dashboard-modal').classList.remove('hidden');
+            
+            // Stats Utilisateurs
+            const qU = query(collection(db, "users"), where("role", "==", "stagiaire"));
+            const snapsU = await getDocs(qU);
+            
+            let tStag=0, tActif=0, tTermine=0, tAbandon=0, tFrais=0, tEncaisse=0;
+            snapsU.forEach(doc => {
+                const d = doc.data();
+                tStag++;
+                if(d.statut === "Actif") tActif++;
+                else if(d.statut === "Terminé") tTermine++;
+                else if(d.statut === "Abandonné") tAbandon++;
+                tFrais += (d.totalFormations || 0);
+                tEncaisse += (d.totalPaye || 0);
+            });
+
+            document.getElementById('stat-total-stag').textContent = tStag;
+            document.getElementById('stat-actif').textContent = tActif;
+            document.getElementById('stat-termine').textContent = tTermine;
+            document.getElementById('stat-abandon').textContent = tAbandon;
+            document.getElementById('stat-total-frais').textContent = tFrais.toLocaleString() + " FCFA";
+            document.getElementById('stat-total-encaisse').textContent = tEncaisse.toLocaleString() + " FCFA";
+            document.getElementById('stat-total-reste').textContent = (tFrais - tEncaisse).toLocaleString() + " FCFA";
+
+            // Stats Formations
+            const qF = query(collection(db, "formations"));
+            const snapsF = await getDocs(qF);
+            const counts = {};
+            snapsF.forEach(doc => {
+                const nomF = doc.data().nom;
+                counts[nomF] = (counts[nomF] || 0) + 1;
+            });
+
+            const listFormStats = document.getElementById('stat-formations-list');
+            listFormStats.innerHTML = '';
+            let hasFormations = false;
+            for (const [nom, count] of Object.entries(counts)) {
+                hasFormations = true;
+                listFormStats.innerHTML += `
+                    <li class="flex justify-between items-center border-b border-gray-200 pb-2">
+                        <span class="truncate pr-2">${nom}</span>
+                        <span class="font-black text-blue-700 bg-blue-100 px-2 py-1 rounded-md">${count}</span>
+                    </li>`;
+            }
+            if(!hasFormations) listFormStats.innerHTML = '<li class="text-gray-500 italic">Aucune formation enregistrée.</li>';
+
+            // STATS REVENUS MENSUELS (Nouveau Tableau)
+            const tbodyRevenus = document.getElementById('dash-revenus-mensuels-body');
+            tbodyRevenus.innerHTML = '<tr><td colspan="2" class="px-4 py-3 text-center text-gray-500 italic">Calcul en cours...</td></tr>';
+            
+            try {
+                const qPaiements = query(collection(db, "paiements"));
+                const snapPaiements = await getDocs(qPaiements);
+                const revenusMois = {};
+
+                snapPaiements.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const montant = parseFloat(data.montant) || 0;
+                    let dateObj = new Date();
+                    
+                    if (data.date) {
+                        dateObj = data.date.toMillis ? new Date(data.date.toMillis()) : new Date(data.date);
+                    }
+                    
+                    const annee = dateObj.getFullYear();
+                    const moisNum = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const cleTri = `${annee}-${moisNum}`;
+                    
+                    const moisTexte = dateObj.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                    const moisCapitalize = moisTexte.charAt(0).toUpperCase() + moisTexte.slice(1);
+
+                    if (!revenusMois[cleTri]) {
+                        revenusMois[cleTri] = { label: moisCapitalize, total: 0 };
+                    }
+                    revenusMois[cleTri].total += montant;
+                });
+
+                const clesTriees = Object.keys(revenusMois).sort().reverse();
+                tbodyRevenus.innerHTML = '';
+                
+                if (clesTriees.length === 0) {
+                    tbodyRevenus.innerHTML = '<tr><td colspan="2" class="px-4 py-3 text-center text-gray-500 italic">Aucun revenu enregistré.</td></tr>';
+                } else {
+                    clesTriees.forEach(cle => {
+                        const item = revenusMois[cle];
+                        tbodyRevenus.innerHTML += `
+                            <tr class="hover:bg-gray-50 transition border-b">
+                                <td class="px-4 py-2 text-gray-800 font-medium">${item.label}</td>
+                                <td class="px-4 py-2 text-right text-green-700 font-bold">${item.total.toLocaleString()} FCFA</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error("Erreur calcul revenus mensuels :", e);
+                tbodyRevenus.innerHTML = '<tr><td colspan="2" class="px-4 py-3 text-center text-red-500 italic">Erreur de chargement.</td></tr>';
+            }
+        });
+
+        document.getElementById('btn-close-dashboard').addEventListener('click', () => {
+            document.getElementById('dashboard-modal').classList.add('hidden');
+        });
+
+        // 1. Ajouter Stagiaire
+        document.getElementById('btn-ajouter-stagiaire').addEventListener('click', async () => {
+            const nom = document.getElementById('add-stag-nom').value.trim();
+            const matricule = document.getElementById('add-stag-matricule').value.trim();
+            if (!nom || !matricule) return alert("Nom et matricule requis.");
+
+            const cleanMatricule = matricule.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            const emailGen = cleanMatricule + "@brainy.com";
+            let passwordGen = cleanMatricule.padEnd(6, '0');
+
+            try {
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, emailGen, passwordGen);
+                await signOut(secondaryAuth);
+
+                await addDoc(collection(db, "users"), {
+                    uid: cred.user.uid, nom: nom, matricule: matricule, email: emailGen,
+                    role: "stagiaire", statut: "Actif", totalFormations: 0, totalPaye: 0, dateCreation: serverTimestamp()
+                });
+                alert(`✅ Stagiaire ajouté !\nLogin: ${matricule}\nMot de passe: ${passwordGen}`);
+                document.getElementById('add-stag-nom').value = '';
+                document.getElementById('add-stag-matricule').value = '';
+                chargerListeStagiaires();
+            } catch (error) { alert("Erreur: " + error.message); }
+        });
+
+        // 2. Charger Liste & Barre de recherche
+        async function chargerListeStagiaires() {
+            const q = query(collection(db, "users"), where("role", "==", "stagiaire"));
+            const snaps = await getDocs(q);
+            allStagiaires = [];
+            snaps.forEach(doc => {
+                const data = doc.data();
+                allStagiaires.push({ id: doc.id, ...data });
+            });
+            afficherStagiairesDansSelect(allStagiaires);
+        }
+
+        function afficherStagiairesDansSelect(liste) {
+            const select = document.getElementById('select-stagiaire');
+            select.innerHTML = '<option value="">-- Choisissez un stagiaire --</option>';
+            liste.forEach(stag => {
+                select.innerHTML += `<option value="${stag.uid}" data-docid="${stag.id}">${stag.nom} (${stag.matricule})</option>`;
+            });
+        }
+
+        document.getElementById('search-stagiaire').addEventListener('input', (e) => {
+            const t = e.target.value.toLowerCase();
+            const filtre = allStagiaires.filter(s => s.nom.toLowerCase().includes(t) || s.matricule.toLowerCase().includes(t));
+            afficherStagiairesDansSelect(filtre);
+        });
+
+        // 3. Selection Stagiaire & Affichage Profil Admin
+        document.getElementById('select-stagiaire').addEventListener('change', async (e) => {
+            selectedUserId = e.target.value;
+            if(!selectedUserId) {
+                document.getElementById('panel-gestion-stagiaire').classList.add('hidden');
+                return;
+            }
+            selectedUserDocId = e.target.options[e.target.selectedIndex].dataset.docid;
+            document.getElementById('panel-gestion-stagiaire').classList.remove('hidden');
+            
+            const userObj = allStagiaires.find(u => u.uid === selectedUserId);
+            
+            // Remplissage des champs d'édition
+            document.getElementById('edit-nom').value = userObj.nom || '';
+            document.getElementById('edit-matricule').value = userObj.matricule || '';
+            document.getElementById('edit-password').value = '';
+
+            // Remplissage des informations d'affichage
+            document.getElementById('view-email').textContent = userObj.adresseEmail || '-';
+            document.getElementById('view-tel').textContent = userObj.telephone || '-';
+            document.getElementById('view-sexe').textContent = userObj.sexe || '-';
+            document.getElementById('view-dob').textContent = userObj.dateNaissance || '-';
+            document.getElementById('view-pob').textContent = userObj.lieuNaissance || '-';
+            document.getElementById('view-prof').textContent = userObj.profession || '-';
+            document.getElementById('view-res').textContent = userObj.residence || '-';
+            document.getElementById('view-mat').textContent = userObj.situationMatrimoniale || '-';
+            
+            // Remplissage du bloc Urgence
+            document.getElementById('view-em-name').textContent = userObj.urgenceNom || '-';
+            document.getElementById('view-em-tel').textContent = userObj.urgenceTel || '-';
+            document.getElementById('view-em-rel').textContent = userObj.urgenceRel || '-';
+            
+            const photoDiv = document.getElementById('admin-view-photo');
+            if(userObj.photoProfil) {
+                photoDiv.innerHTML = `<img src="${userObj.photoProfil}" class="w-full h-full object-cover">`;
+                photoDiv.classList.remove('text-2xl', 'text-gray-400');
+            } else {
+                photoDiv.innerHTML = `👤`;
+                photoDiv.classList.add('text-2xl', 'text-gray-400');
+            }
+
+            rafraichirFinancesAdmin(userObj);
+            chargerHistoriqueStagiaire(selectedUserId);
+        });
+
+        // MODIFICATION DES INFOS DU STAGIAIRE
+        document.getElementById('btn-save-edit').addEventListener('click', async () => {
+            const mdpAdmin = prompt("🔒 Action sensible : Veuillez entrer le mot de passe administrateur pour valider :");
+            if (mdpAdmin !== "963689") return alert("❌ Mot de passe administrateur incorrect. Modification annulée.");
+
+            const newNom = document.getElementById('edit-nom').value.trim();
+            const newMatricule = document.getElementById('edit-matricule').value.trim();
+            const newPwd = document.getElementById('edit-password').value;
+
+            if (!newNom || !newMatricule) return alert("Le nom et le matricule sont obligatoires.");
+
+            try {
+                await updateDoc(doc(db, "users", selectedUserDocId), {
+                    nom: newNom,
+                    matricule: newMatricule
+                });
+
+                let msg = "✅ Nom et matricule modifiés avec succès !";
+                
+                if (newPwd) {
+                    msg += "\n\n⚠️ Note Firebase : Pour modifier le mot de passe de façon sécurisée, le stagiaire doit le changer lui-même depuis son espace.";
+                }
+
+                alert(msg);
+                chargerListeStagiaires(); 
+            } catch (e) {
+                alert("Erreur lors de la modification : " + e.message);
+            }
+        });
+
+        async function rafraichirFinancesAdmin(data) {
+            document.getElementById('update-statut').value = data.statut || "Actif";
+            document.getElementById('lbl-total-formations').textContent = data.totalFormations || 0;
+            document.getElementById('lbl-total-paye').textContent = data.totalPaye || 0;
+            document.getElementById('lbl-reste-payer').textContent = (data.totalFormations || 0) - (data.totalPaye || 0);
+        }
+
+        async function chargerHistoriqueStagiaire(uid) {
+            const qF = query(collection(db, "formations"), where("userId", "==", uid));
+            const snapF = await getDocs(qF);
+            const listF = document.getElementById('admin-detail-formations');
+            listF.innerHTML = snapF.empty ? '<li class="text-gray-400 italic">Aucune</li>' : '';
+            snapF.forEach(doc => { const d = doc.data(); listF.innerHTML += `<li class="border-b pb-1">👉 ${d.nom} - ${d.prix} FCFA</li>`; });
+
+            const qD = query(collection(db, "documents"), where("userId", "==", uid));
+            const snapD = await getDocs(qD);
+            const listD = document.getElementById('admin-detail-documents');
+            listD.innerHTML = snapD.empty ? '<li class="text-gray-400 italic">Aucun</li>' : '';
+            snapD.forEach(doc => { 
+                const d = doc.data(); 
+                listD.innerHTML += `<li class="border-b pb-1 flex justify-between"><span>📄 ${d.titre}</span> <a href="${d.url}" target="_blank" class="text-blue-600 font-bold">Ouvrir</a></li>`; 
+            });
+
+            const qDS = query(collection(db, "documents_stagiaires"), where("userId", "==", uid));
+            const snapDS = await getDocs(qDS);
+            const listDS = document.getElementById('admin-detail-docs-recus');
+            listDS.innerHTML = snapDS.empty ? '<li class="text-gray-400 italic">Aucun</li>' : '';
+            snapDS.forEach(doc => { 
+                const d = doc.data(); 
+                listDS.innerHTML += `<li class="border-b pb-1 flex justify-between"><span class="text-green-700">📥 ${d.titre}</span> <a href="${d.url}" target="_blank" download class="text-blue-600 font-bold">Télécharger</a></li>`; 
+            });
+
+            const qP = query(collection(db, "permissions"), where("userId", "==", uid));
+            const snapP = await getDocs(qP);
+            const listP = document.getElementById('admin-detail-permissions');
+            listP.innerHTML = snapP.empty ? '<li class="text-gray-400 italic">Aucune</li>' : '';
+            snapP.forEach(doc => { const d = doc.data(); listP.innerHTML += `<li class="border-b pb-1">🛑 ${d.motif} (${d.statut})</li>`; });
+        }
+
+        // 4. Actions Admin
+        document.getElementById('btn-update-statut').addEventListener('click', async () => {
+            const st = document.getElementById('update-statut').value;
+            await updateDoc(doc(db, "users", selectedUserDocId), { statut: st });
+            envoyerMessage(selectedUserId, "Statut modifié", `Votre statut est passé à : ${st}`);
+            alert("Statut mis à jour !");
+            chargerListeStagiaires(); 
+        });
+
+        document.getElementById('btn-add-formation').addEventListener('click', async () => {
+            let nom = document.getElementById('form-nom').value;
+            
+            if (nom === 'Autre') {
+                nom = document.getElementById('custom-form-nom').value.trim();
+                if (!nom) return alert("Veuillez préciser le nom de la formation.");
+            } else if (!nom) {
+                return alert("Veuillez choisir une formation.");
+            }
+            
+            const prix = parseFloat(document.getElementById('form-prix').value);
+            const duree = document.getElementById('form-duree').value;
+            if(!prix || !duree) return alert("Remplissez le prix et la durée.");
+
+            await addDoc(collection(db, "formations"), { userId: selectedUserId, nom, prix, duree, date: serverTimestamp() });
+            const currTotal = parseFloat(document.getElementById('lbl-total-formations').textContent);
+            await updateDoc(doc(db, "users", selectedUserDocId), { totalFormations: currTotal + prix });
+            
+            envoyerMessage(selectedUserId, "Nouvelle Formation", `La formation ${nom} vous a été ajoutée.`);
+            alert("Formation ajoutée !");
+            
+            document.getElementById('form-nom').value = ''; 
+            document.getElementById('custom-form-nom').value = '';
+            document.getElementById('custom-form-nom').classList.add('hidden');
+            document.getElementById('form-prix').value = '';
+            document.getElementById('form-duree').value = '';
+            
+            rafraichirFinancesAdmin(allStagiaires.find(u => u.uid === selectedUserId));
+            chargerHistoriqueStagiaire(selectedUserId);
+        });
+
+        document.getElementById('btn-add-paiement').addEventListener('click', async () => {
+            const mt = parseFloat(document.getElementById('pay-montant').value);
+            if(!mt) return;
+
+            await addDoc(collection(db, "paiements"), { userId: selectedUserId, montant: mt, date: serverTimestamp() });
+            const currPaye = parseFloat(document.getElementById('lbl-total-paye').textContent);
+            await updateDoc(doc(db, "users", selectedUserDocId), { totalPaye: currPaye + mt });
+            
+            envoyerMessage(selectedUserId, "Paiement reçu", `Votre paiement de ${mt} FCFA a été enregistré.`);
+            alert("Paiement enregistré !");
+            document.getElementById('pay-montant').value = '';
+            rafraichirFinancesAdmin(allStagiaires.find(u => u.uid === selectedUserId));
+        });
+
+        // 7. Annonces & Messages
+        document.getElementById('btn-publier-annonce').addEventListener('click', async () => {
+            envoyerMessage('all', document.getElementById('annonce-titre').value, document.getElementById('annonce-message').value);
+            document.getElementById('annonce-titre').value = ''; document.getElementById('annonce-message').value = '';
+        });
+
+        document.getElementById('btn-send-msg').addEventListener('click', async () => {
+            envoyerMessage(selectedUserId, document.getElementById('msg-titre').value, document.getElementById('msg-texte').value);
+            document.getElementById('msg-titre').value = ''; document.getElementById('msg-texte').value = '';
+        });
+
+        async function envoyerMessage(cible, titre, message) {
+            if(!titre || !message) return alert("Champs vides.");
+            await addDoc(collection(db, "notifications"), { destinataire: cible, titre, message, date: serverTimestamp() });
+            if(cible !== 'all') alert("Notification envoyée au stagiaire.");
+            else alert("Annonce globale publiée.");
+        }
+
+        // 9. Uploader Document
+        document.getElementById('btn-send-doc').addEventListener('click', async () => {
+            const titre = document.getElementById('doc-titre').value;
+            const fileInput = document.getElementById('doc-file');
+            const status = document.getElementById('upload-status');
+            if(!titre || fileInput.files.length === 0) return alert("Titre et fichier requis.");
+            
+            status.classList.remove('hidden');
+            try {
+                const sRef = storageRef(storage, `documents/${selectedUserId}/${Date.now()}_${fileInput.files[0].name}`);
+                await uploadBytes(sRef, fileInput.files[0]);
+                const url = await getDownloadURL(sRef);
+                await addDoc(collection(db, "documents"), { userId: selectedUserId, titre: titre, url: url, date: serverTimestamp() });
+                
+                envoyerMessage(selectedUserId, "Nouveau document", `Le document "${titre}" est disponible.`);
+                status.classList.add('hidden');
+                alert("Document envoyé !");
+                document.getElementById('doc-titre').value = ''; fileInput.value = '';
+                chargerHistoriqueStagiaire(selectedUserId);
+            } catch(e) { status.classList.add('hidden'); console.error(e); }
+        });
+
+        // 10. Charger TOUTES les demandes (Permissions modifiables)
+        async function chargerDemandesAdmin() {
+            const list = document.getElementById('admin-permissions-list');
+            list.innerHTML = '';
+            
+            const qP = query(collection(db, "permissions"), orderBy("date", "desc"));
+            const snapsP = await getDocs(qP);
+            snapsP.forEach(docSnap => {
+                const d = docSnap.data();
+                const docId = docSnap.id;
+                
+                let actionBtns = '';
+                if(d.statut === "En attente") {
+                    actionBtns = `
+                        <div class="mt-2 flex gap-2">
+                            <button class="btn-accept bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold transition" data-id="${docId}" data-uid="${d.userId}">Accepter</button>
+                            <button class="btn-reject bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-bold transition" data-id="${docId}" data-uid="${d.userId}">Rejeter</button>
+                        </div>
+                    `;
+                }
+
+                let statusColor = "text-yellow-600";
+                if(d.statut === "Acceptée") statusColor = "text-green-600";
+                if(d.statut === "Rejetée") statusColor = "text-red-600";
+
+                list.innerHTML += `
+                    <li class="border p-3 rounded-lg bg-yellow-50 flex flex-col mb-3 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <span class="text-sm"><strong>Perm:</strong> ${d.userEmail} : ${d.motif}</span>
+                            <span class="font-bold ${statusColor} text-xs uppercase">${d.statut}</span>
+                        </div>
+                        ${actionBtns}
+                    </li>`;
+            });
+
+            const qR = query(collection(db, "doc_requests"), orderBy("date", "desc"));
+            const snapsR = await getDocs(qR);
+            snapsR.forEach(docSnap => {
+                const d = docSnap.data();
+                list.innerHTML += `<li class="border p-3 rounded-lg bg-blue-50 flex justify-between items-center mb-3 shadow-sm"><span class="text-sm"><strong>Doc (${d.type}):</strong> ${d.userName} : ${d.motif}</span><span class="font-bold text-blue-600 text-xs uppercase">Reçu</span></li>`;
+            });
+        }
+
+        // Action Accepter / Rejeter Permission
+        document.getElementById('admin-permissions-list').addEventListener('click', async (e) => {
+            if(e.target.classList.contains('btn-accept') || e.target.classList.contains('btn-reject')) {
+                const docId = e.target.getAttribute('data-id');
+                const userId = e.target.getAttribute('data-uid');
+                const isAccept = e.target.classList.contains('btn-accept');
+                const newStatus = isAccept ? "Acceptée" : "Rejetée";
+                
+                try {
+                    await updateDoc(doc(db, "permissions", docId), { statut: newStatus });
+                    
+                    // Notification automatique
+                    await addDoc(collection(db, "notifications"), {
+                        destinataire: userId,
+                        titre: "Réponse à votre demande de permission",
+                        message: `Votre demande de permission a été ${newStatus.toLowerCase()}.`,
+                        date: serverTimestamp()
+                    });
+                    
+                    alert(`Permission ${newStatus.toLowerCase()} avec succès !`);
+                    chargerDemandesAdmin();
+                } catch (error) {
+                    console.error(error);
+                    alert("Erreur lors de la mise à jour.");
+                }
+            }
+        });
+    </script>
+</body>
+</html>
