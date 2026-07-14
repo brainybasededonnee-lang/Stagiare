@@ -112,6 +112,16 @@
                         <li class="text-gray-500 italic">Chargement...</li>
                     </ul>
                 </div>
+				
+				<div class="bg-white p-5 rounded-lg shadow border-t-4 border-indigo-500">
+                    <h3 class="font-bold text-lg mb-3 flex justify-between items-center">
+                        <span>💡 Points de Vue des Stagiaires</span>
+                        <span id="count-points-vue" class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                    </h3>
+                    <ul id="admin-points-vue-list" class="space-y-3 max-h-60 overflow-y-auto text-sm divide-y divide-gray-100">
+                        <li class="text-gray-500 italic py-2">Chargement des points de vue...</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow lg:col-span-2 border-t-4 border-purple-500 flex flex-col h-fit">
@@ -291,11 +301,11 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
-  authDomain: "stagiaire-afc7b.firebaseapp.com",
-  projectId: "stagiaire-afc7b",
-  storageBucket: "stagiaire-afc7b.firebasestorage.app",
-  messagingSenderId: "211607769009",
-  appId: "1:211607769009:web:7676af127f0ae6927e3790"
+            authDomain: "stagiaire-afc7b.firebaseapp.com",
+            projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
+            messagingSenderId: "211607769009",
+            appId: "1:211607769009:web:7676af127f0ae6927e3790"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -337,6 +347,7 @@
         function initAdmin() {
             chargerListeStagiaires();
             chargerDemandesAdmin();
+            chargerPointsDeVue(); // <-- AJOUTÉ : Chargement automatique des suggestions/points de vue
         }
 
         // --- DASHBOARD ADMIN AVEC STATISTIQUES ET REVENUS MENSUELS ---
@@ -776,6 +787,49 @@
                 }
             }
         });
+
+        // 11. NOUVEAU : Charger les Points de Vue / Suggestions des stagiaires
+        async function chargerPointsDeVue() {
+            const list = document.getElementById('admin-points-vue-list');
+            const badgeCount = document.getElementById('count-points-vue');
+            if (!list) return;
+
+            list.innerHTML = '';
+            
+            try {
+                const qPV = query(collection(db, "suggestions"), orderBy("date", "desc"));
+                const snapsPV = await getDocs(qPV);
+                
+                if (badgeCount) badgeCount.textContent = snapsPV.size;
+
+                if (snapsPV.empty) {
+                    list.innerHTML = '<li class="text-gray-500 italic py-2 text-center">Aucun point de vue soumis pour le moment.</li>';
+                    return;
+                }
+
+                snapsPV.forEach(docSnap => {
+                    const d = docSnap.data();
+                    
+                    let dateStr = "";
+                    if (d.date) {
+                        const dateObj = d.date.toMillis ? new Date(d.date.toMillis()) : new Date(d.date);
+                        dateStr = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    }
+
+                    list.innerHTML += `
+                        <li class="pt-2 pb-1 bg-indigo-50/50 p-2 rounded border border-indigo-100 mb-2 shadow-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-indigo-900 text-xs">👤 ${d.nomUtilisateur || 'Anonyme'}</span>
+                                <span class="text-[10px] text-gray-500 bg-white px-1.5 py-0.5 rounded border">${dateStr}</span>
+                            </div>
+                            <p class="text-gray-700 text-xs italic bg-white p-2 rounded border-l-2 border-indigo-400 mt-1">"${d.message || ''}"</p>
+                        </li>`;
+                });
+            } catch (error) {
+                console.error("Erreur lors du chargement des points de vue :", error);
+                list.innerHTML = '<li class="text-red-500 italic py-2 text-xs">Erreur de chargement.</li>';
+            }
+        }
     </script>
 </body>
 </html>
