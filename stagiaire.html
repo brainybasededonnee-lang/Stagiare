@@ -18,6 +18,15 @@
             border-radius: 50%; padding: 2px 6px;
             font-size: 10px; font-weight: bold;
         }
+
+        /* Styles pour cacher/afficher les onglets */
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
@@ -131,6 +140,7 @@
     </div>
 
     <div id="stagiaire-section" class="min-h-screen bg-gray-100 pb-10">
+        
         <nav class="bg-green-700 p-4 text-white flex justify-between items-center shadow-md sticky top-0 z-40">
             <div class="flex items-center gap-3">
                 <div id="nav-photo-profil" class="w-12 h-12 bg-white rounded-full overflow-hidden border-2 border-green-300 cursor-pointer hover:scale-105 hover:shadow-lg hover:border-white transition-all duration-200 flex items-center justify-center" title="Modifier mon profil">
@@ -155,84 +165,172 @@
             </div>
         </nav>
 
-        <div class="container mx-auto mt-6 p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-blue-500">
-                    <div><p class="text-gray-500 text-sm">Statut</p><p id="stg-statut" class="font-bold text-lg">-</p></div>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-gray-500">
-                    <div><p class="text-gray-500 text-sm">Total Formations</p><p id="stg-total-form" class="font-bold text-lg">0 FCFA</p></div>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-green-500">
-                    <div><p class="text-gray-500 text-sm">Déjà Payé</p><p id="stg-total-paye" class="font-bold text-lg text-green-600">0 FCFA</p></div>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between border-l-4 border-red-500">
-                    <div><p class="text-gray-500 text-sm">Reste à payer</p><p id="stg-reste" class="font-bold text-xl text-red-600">0 FCFA</p></div>
-                </div>
-            </div>
-
-            <div class="space-y-6 lg:col-span-2">
-                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500">
-                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-blue-800"> Mes Messages & Annonces</h3>
-                    <ul id="stagiaire-annonces-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
-                        <li class="text-gray-500 italic">Aucune annonce.</li>
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-purple-800">🎓 Mes Formations Actives</h3>
-                    <ul id="stagiaire-formations-list" class="space-y-2"></ul>
-                </div>
+        <div class="bg-white shadow-md mb-6 sticky top-[72px] z-30 overflow-x-auto">
+            <div class="container mx-auto flex flex-nowrap md:flex-wrap justify-start md:justify-center items-center gap-2 p-3 min-w-max">
+                <button class="tab-btn px-4 py-2 rounded-md font-bold text-gray-600 hover:bg-gray-100 transition-colors" data-target="tab-formations">Mes formations</button>
+                <button class="tab-btn px-4 py-2 rounded-md font-bold text-gray-600 hover:bg-gray-100 transition-colors" data-target="tab-demandes">Demandes</button>
                 
-                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-gray-800">
-                    <div class="flex justify-between items-center border-b pb-2 mb-4">
-                        <h3 class="text-lg font-bold">Aperçu Documents de l'Administration</h3>
-                        <button class="text-xs font-bold text-blue-600 hover:underline" onclick="document.getElementById('btn-open-docs').click()">Voir tout</button>
-                    </div>
-                    <ul id="stagiaire-documents-list" class="space-y-2">
-                        <li class="text-gray-500 text-sm italic">Aucun document reçu.</li>
+                <button class="tab-btn px-6 py-2 rounded-full font-black bg-blue-600 text-white shadow-lg hover:scale-105 hover:bg-blue-700 transition-all active-tab" data-target="tab-accueil">Accueil</button>
+                
+                <button class="tab-btn px-4 py-2 rounded-md font-bold text-gray-600 hover:bg-gray-100 transition-colors" data-target="tab-annonces">Annonces et messages</button>
+                <button class="tab-btn px-4 py-2 rounded-md font-bold text-gray-600 hover:bg-gray-100 transition-colors" data-target="tab-documents">Mes documents</button>
+            </div>
+        </div>
+
+        <div class="container mx-auto p-4">
+
+            <div id="tab-accueil" class="tab-content">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-gray-800">Bonjour, <span id="accueil-display-name" class="text-blue-600 font-light"></span></h2>
+                    <p class="text-gray-500 mt-2">Bienvenue sur votre espace d'apprentissage.</p>
+                </div>
+
+                <div class="w-full max-w-2xl mx-auto aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl relative mb-12 border-4 border-white bg-gray-200">
+                    <img id="carousel-img" src="source/image10.jpeg" alt="Diaporama" class="w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-100">
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-bold mb-6 border-b pb-2 text-gray-800 flex items-center gap-2">
+                        📚 Toutes les formations disponibles
+                    </h3>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’informatique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’informatique Industrielle</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’intelligence artificielle (IA)</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation en Electronique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation en maintenance informatique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + commande en chine</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + Initiation en maintenance informatique + commande en chine</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Informatique Industrielle</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Electronique + Informatique Industrielle</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">IA + Initiation en maintenance informatique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Réparation d’Appareils</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Réseaux Informatique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">E-commerce (Alibaba et Facebook Ads)</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Installation de caméra de surveillance</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Montage des Antennes parabolique</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Word</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Excel</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Publisher</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Powerpoint</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’internet</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Vacances utiles (Module1)</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Vacances utiles (Module2)</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Internet complet</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Infographie</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Canva</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Alibaba</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Atelier des grands</li>
+                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Atelier Gratuit</li>
                     </ul>
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
-                    <h3 class="text-lg font-bold border-b pb-2 mb-4 text-green-800">📤 Envoyer un document à l'admin</h3>
-                    <input type="text" id="stg-doc-titre" placeholder="Titre du document" class="w-full border p-2 mb-2 rounded text-sm">
-                    <input type="file" id="stg-doc-file" class="w-full border p-2 mb-2 rounded text-sm bg-gray-50">
-                    <button id="btn-stg-send-doc" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer le document</button>
-                    <p id="stg-upload-status" class="text-xs text-center mt-1 text-green-600 font-bold hidden">Envoi en cours...</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-bold border-b pb-2 mb-4"> Demander un document</h3>
-                    <select id="req-doc-type" class="w-full border p-2 mb-2 rounded text-sm bg-gray-50">
-                        <option value="Attestation">Attestation de formation</option>
-                        <option value="Bulletin">Bulletin de notes</option>
-                        <option value="Reçu">Reçu de paiement</option>
-                        <option value="Autre">Autre</option>
-                    </select>
-                    <textarea id="req-doc-motif" placeholder="Précision..." class="w-full border p-2 mb-2 rounded h-12 text-sm"></textarea>
-                    <button id="btn-req-doc" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer la demande</button>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-bold border-b pb-2 mb-4"> Demander une permission</h3>
-                    <textarea id="perm-motif" placeholder="Raison de l'absence..." class="w-full border p-2 mb-2 rounded h-16 text-sm"></textarea>
-                    <div class="flex gap-2 mb-2">
-                        <div class="w-1/2">
-                            <label class="text-xs text-gray-500">Du</label>
-                            <input type="date" id="perm-debut" class="w-full border p-1 text-sm rounded bg-gray-50">
-                        </div>
-                        <div class="w-1/2">
-                            <label class="text-xs text-gray-500">Au</label>
-                            <input type="date" id="perm-fin" class="w-full border p-1 text-sm rounded bg-gray-50">
-                        </div>
+            <div id="tab-formations" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500 flex flex-col justify-center">
+                        <p class="text-gray-500 text-sm">Statut</p>
+                        <p id="stg-statut" class="font-bold text-lg">-</p>
                     </div>
-                    <button id="btn-demander-perm" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full text-sm font-bold shadow mt-1">Soumettre la demande</button>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500 flex flex-col justify-center">
+                        <p class="text-gray-500 text-sm">Total Formations</p>
+                        <p id="stg-total-form" class="font-bold text-lg">0 FCFA</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500 flex flex-col justify-center">
+                        <p class="text-gray-500 text-sm">Déjà Payé</p>
+                        <p id="stg-total-paye" class="font-bold text-lg text-green-600">0 FCFA</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500 flex flex-col justify-center">
+                        <p class="text-gray-500 text-sm">Reste à payer</p>
+                        <p id="stg-reste" class="font-bold text-xl text-red-600">0 FCFA</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold border-b pb-2 mb-4 text-purple-800">🎓 Mes Formations Actives</h3>
+                    <ul id="stagiaire-formations-list" class="space-y-4">
+                        <li class="text-gray-500 italic">Chargement des formations...</li>
+                    </ul>
                 </div>
             </div>
+
+            <div id="tab-demandes" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-yellow-500">
+                        <h3 class="text-lg font-bold border-b pb-2 mb-4">🛑 Demander une permission</h3>
+                        <textarea id="perm-motif" placeholder="Raison de l'absence..." class="w-full border p-2 mb-3 rounded h-20 text-sm bg-gray-50"></textarea>
+                        <div class="flex gap-3 mb-4">
+                            <div class="w-1/2">
+                                <label class="text-xs font-bold text-gray-500 mb-1 block">Du</label>
+                                <input type="date" id="perm-debut" class="w-full border p-2 text-sm rounded bg-gray-50">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="text-xs font-bold text-gray-500 mb-1 block">Au</label>
+                                <input type="date" id="perm-fin" class="w-full border p-2 text-sm rounded bg-gray-50">
+                            </div>
+                        </div>
+                        <button id="btn-demander-perm" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Soumettre la demande</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500">
+                        <h3 class="text-lg font-bold border-b pb-2 mb-4">📄 Demander un document</h3>
+                        <select id="req-doc-type" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50 font-semibold">
+                            <option value="Attestation">Attestation de formation</option>
+                            <option value="Bulletin">Bulletin de notes</option>
+                            <option value="Reçu">Reçu de paiement</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                        <textarea id="req-doc-motif" placeholder="Précisez votre demande..." class="w-full border p-2 mb-4 rounded h-20 text-sm bg-gray-50"></textarea>
+                        <button id="btn-req-doc" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer la demande</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
+                        <h3 class="text-lg font-bold border-b pb-2 mb-4">💡 Soumettre une suggestion</h3>
+                        <p class="text-xs text-gray-500 mb-3">Votre avis compte ! Partagez vos idées ou points de vue.</p>
+                        <textarea id="sugg-message" placeholder="Tapez votre suggestion ici..." class="w-full border p-2 mb-4 rounded h-24 text-sm bg-gray-50"></textarea>
+                        <button id="btn-send-suggestion" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer ma suggestion</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-annonces" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500 max-w-4xl mx-auto">
+                    <h3 class="text-xl font-bold border-b pb-2 mb-4 text-blue-800">📢 Toutes mes annonces et messages</h3>
+                    <ul id="tab-annonces-list" class="space-y-4">
+                        <li class="text-gray-500 italic">Chargement...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="tab-documents" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500 h-fit">
+                        <h3 class="text-lg font-bold border-b pb-2 mb-4 text-green-800">📤 Envoyer un document à l'admin</h3>
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">Titre du document</label>
+                        <input type="text" id="stg-doc-titre" placeholder="Ex: Copie de naissance" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">Fichier</label>
+                        <input type="file" id="stg-doc-file" class="w-full border p-2 mb-4 rounded text-sm bg-gray-50">
+                        <button id="btn-stg-send-doc" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded w-full text-sm font-bold shadow">Envoyer le document</button>
+                        <p id="stg-upload-status" class="text-xs text-center mt-2 text-green-600 font-bold hidden">Envoi en cours, veuillez patienter...</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-gray-800">
+                        <h3 class="text-lg font-bold border-b pb-2 mb-4">📂 Liste de mes documents</h3>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold text-gray-700 mr-2">Filtrer :</label>
+                            <select id="tab-doc-filter" class="w-full border p-2 rounded bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1">
+                                <option value="all">Tous les documents (Reçus et Envoyés)</option>
+                                <option value="recu">📥 Documents reçus de l'administration</option>
+                                <option value="envoye">📤 Documents envoyés par moi-même</option>
+                            </select>
+                        </div>
+                        <div id="tab-docs-list" class="space-y-3 overflow-y-auto max-h-[400px] pr-2">
+                            <div class="text-gray-500 text-sm italic text-center py-4">Chargement de vos documents...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -243,12 +341,12 @@
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
-             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
-  authDomain: "stagiaire-afc7b.firebaseapp.com",
-  projectId: "stagiaire-afc7b",
-  storageBucket: "stagiaire-afc7b.firebasestorage.app",
-  messagingSenderId: "211607769009",
-  appId: "1:211607769009:web:7676af127f0ae6927e3790"
+            apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
+            authDomain: "stagiaire-afc7b.firebaseapp.com",
+            projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
+            messagingSenderId: "211607769009",
+            appId: "1:211607769009:web:7676af127f0ae6927e3790"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -259,16 +357,65 @@
         let currentStagProfile = {};
         let unreadCount = 0;
         let localReadNotifs = [];
-        let allUserDocs = []; // Stockage de tous les docs (reçus et envoyés)
+        let allUserDocs = [];
 
-        // Gestion du champ Relation Autre
+        // ==========================================
+        // GESTION DU CARROUSEL D'IMAGES
+        // ==========================================
+        const carouselImages = [
+            'source/image10.jpeg', 'source/image11.jpeg', 'source/image12.jpeg',
+            'source/image13.jpeg', 'source/image14.jpeg', 'source/image15.jpeg'
+        ];
+        let currentCarouselIdx = 0;
+        const cImg = document.getElementById('carousel-img');
+        
+        setInterval(() => {
+            cImg.style.opacity = '0';
+            setTimeout(() => {
+                currentCarouselIdx = (currentCarouselIdx + 1) % carouselImages.length;
+                cImg.src = carouselImages[currentCarouselIdx];
+                cImg.style.opacity = '1';
+            }, 1000); // Temps de transition fade-out avant de changer l'image
+        }, 4000); // Change l'image toutes les 4 secondes
+
+        // ==========================================
+        // GESTION DES ONGLETS (TABS)
+        // ==========================================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Masquer tous les contenus
+                tabContents.forEach(content => content.classList.add('hidden'));
+                
+                // Réinitialiser les styles des boutons normaux
+                tabBtns.forEach(b => {
+                    if (b.dataset.target !== 'tab-accueil') {
+                        b.classList.remove('text-blue-600', 'bg-blue-50');
+                        b.classList.add('text-gray-600');
+                    }
+                });
+
+                // Afficher le contenu cliqué
+                document.getElementById(btn.dataset.target).classList.remove('hidden');
+
+                // Appliquer le style actif au bouton (sauf Accueil qui garde son design central)
+                if (btn.dataset.target !== 'tab-accueil') {
+                    btn.classList.remove('text-gray-600');
+                    btn.classList.add('text-blue-600', 'bg-blue-50');
+                }
+            });
+        });
+
+        // Gestion du champ Relation Autre dans Profil
         document.getElementById('prof-em-rel').addEventListener('change', (e) => {
             const autreField = document.getElementById('prof-em-rel-autre');
             if(e.target.value === 'Autre') autreField.classList.remove('hidden');
             else { autreField.classList.add('hidden'); autreField.value = ''; }
         });
 
-        // MODALS CLICS
+        // MODALS (BANDE VERTE)
         document.getElementById('nav-photo-profil').addEventListener('click', () => {
             document.getElementById('profile-modal').classList.remove('hidden');
         });
@@ -306,9 +453,11 @@
                 const docSnap = snapU.docs[0];
                 currentStagProfile = { id: docSnap.id, ...docSnap.data() };
                 
+                // Noms dans la navbar et dans l'accueil
                 document.getElementById('user-display-name').textContent = currentStagProfile.nom;
+                document.getElementById('accueil-display-name').textContent = currentStagProfile.nom;
                 
-                // Remplissage Finances
+                // Remplissage Finances (Onglet Mes formations)
                 document.getElementById('stg-statut').textContent = currentStagProfile.statut || "Actif";
                 document.getElementById('stg-total-form').textContent = (currentStagProfile.totalFormations || 0) + " FCFA";
                 document.getElementById('stg-total-paye').textContent = (currentStagProfile.totalPaye || 0) + " FCFA";
@@ -344,14 +493,35 @@
 
             chargerNotificationsStagiaire(user.uid);
             chargerTousLesDocuments(user.uid);
+            chargerMesFormations(user.uid);
+        }
 
+        // --- GESTION DES FORMATIONS SUIVIES (ONGLET MES FORMATIONS) ---
+        async function chargerMesFormations(uid) {
             const listF = document.getElementById('stagiaire-formations-list');
             listF.innerHTML = '';
-            const qF = query(collection(db, "formations"), where("userId", "==", user.uid));
+            const qF = query(collection(db, "formations"), where("userId", "==", uid));
             const snapF = await getDocs(qF);
+            
+            if(snapF.empty) {
+                listF.innerHTML = '<li class="text-gray-500 italic">Vous n\'avez aucune formation active pour le moment.</li>';
+                return;
+            }
+
             snapF.forEach(doc => {
                 const d = doc.data();
-                listF.innerHTML += `<li class="border p-2 rounded flex justify-between bg-gray-50"><span class="font-bold">${d.nom}</span><span class="text-blue-600 font-bold">${d.prix} FCFA</span></li>`;
+                // Affichage du nom, période (durée), prix total
+                listF.innerHTML += `
+                    <li class="border border-gray-200 p-4 rounded-lg flex flex-col md:flex-row justify-between bg-gray-50 shadow-sm hover:shadow transition">
+                        <div class="flex-1">
+                            <span class="font-bold text-lg text-gray-800 block">${d.nom}</span>
+                            <span class="text-sm text-gray-500 mt-1 block">📅 Période (Durée) : <strong class="text-gray-700">${d.duree || 'Non spécifiée'}</strong></span>
+                        </div>
+                        <div class="text-left md:text-right mt-3 md:mt-0 flex flex-col justify-center border-t md:border-t-0 md:border-l border-gray-200 pt-3 md:pt-0 md:pl-4">
+                            <span class="text-xs text-gray-500 uppercase tracking-wide font-bold">Prix total</span>
+                            <span class="text-blue-600 font-black text-xl">${d.prix} FCFA</span>
+                        </div>
+                    </li>`;
             });
         }
 
@@ -369,39 +539,26 @@
             const snapDS = await getDocs(qDS);
             snapDS.forEach(doc => allUserDocs.push({ id: doc.id, ...doc.data(), typeDoc: 'envoye' }));
 
-            // Tri par date décroissante (Plus récent en haut)
+            // Tri par date décroissante
             allUserDocs.sort((a, b) => {
                 let tA = a.date ? a.date.toMillis() : Date.now();
                 let tB = b.date ? b.date.toMillis() : Date.now();
                 return tB - tA;
             });
 
-            // Affichage Aperçu Page Principale (Seulement reçus)
-            const listPreview = document.getElementById('stagiaire-documents-list');
-            listPreview.innerHTML = '';
-            const recuDocs = allUserDocs.filter(d => d.typeDoc === 'recu');
-            if(recuDocs.length === 0) {
-                listPreview.innerHTML = '<li class="text-sm italic text-gray-500">Aucun document reçu.</li>';
-            } else {
-                recuDocs.slice(0, 3).forEach(d => { // Affiche les 3 derniers
-                    listPreview.innerHTML += `
-                        <div class="flex items-center justify-between bg-gray-50 p-2 border rounded mb-2">
-                            <span class="text-sm font-bold text-gray-700 truncate pr-2">📥 ${d.titre}</span>
-                            <a href="${d.url}" target="_blank" download class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 whitespace-nowrap shadow">Ouvrir</a>
-                        </div>`;
-                });
-            }
+            // Met à jour la modale et l'onglet
+            afficherDocumentsFiltres();
+            afficherDocumentsFiltresTab();
         }
 
+        // Filtre modale
         document.getElementById('doc-filter').addEventListener('change', afficherDocumentsFiltres);
-
         function afficherDocumentsFiltres() {
             const filter = document.getElementById('doc-filter').value;
             const list = document.getElementById('modal-docs-list');
             list.innerHTML = '';
             
             const filtered = allUserDocs.filter(d => filter === 'all' || d.typeDoc === filter);
-            
             if(filtered.length === 0) {
                 list.innerHTML = '<div class="text-sm italic text-gray-500 text-center py-4">Aucun document trouvé.</div>';
                 return;
@@ -423,11 +580,40 @@
             });
         }
 
-        // --- NOTIFICATIONS ---
+        // Filtre Onglet Documents
+        document.getElementById('tab-doc-filter').addEventListener('change', afficherDocumentsFiltresTab);
+        function afficherDocumentsFiltresTab() {
+            const filter = document.getElementById('tab-doc-filter').value;
+            const list = document.getElementById('tab-docs-list');
+            list.innerHTML = '';
+            
+            const filtered = allUserDocs.filter(d => filter === 'all' || d.typeDoc === filter);
+            if(filtered.length === 0) {
+                list.innerHTML = '<div class="text-sm italic text-gray-500 text-center py-4">Aucun document trouvé.</div>';
+                return;
+            }
+
+            filtered.forEach(d => {
+                const icon = d.typeDoc === 'recu' ? '📥' : '📤';
+                const color = d.typeDoc === 'recu' ? 'text-blue-700' : 'text-green-700';
+                const label = d.typeDoc === 'recu' ? "Reçu de l'administration" : "Envoyé à l'administration";
+                
+                list.innerHTML += `
+                    <div class="flex items-center justify-between bg-white p-4 border rounded-lg mb-3 shadow hover:shadow-md transition">
+                        <div class="overflow-hidden pr-3">
+                            <span class="text-base font-bold text-gray-900 block truncate">${icon} ${d.titre}</span>
+                            <span class="text-xs ${color} font-bold mt-1 block">${label}</span>
+                        </div>
+                        <a href="${d.url}" target="_blank" download class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow font-bold whitespace-nowrap">Télécharger</a>
+                    </div>`;
+            });
+        }
+
+        // --- NOTIFICATIONS & MESSAGES ---
         async function chargerNotificationsStagiaire(uid) {
-            const listMsg = document.getElementById('modal-annonces-list');
-            const previewList = document.getElementById('stagiaire-annonces-list');
-            listMsg.innerHTML = ''; previewList.innerHTML = '';
+            const listModal = document.getElementById('modal-annonces-list');
+            const listTab = document.getElementById('tab-annonces-list');
+            listModal.innerHTML = ''; listTab.innerHTML = '';
             unreadCount = 0;
 
             const qM = query(collection(db, "notifications"), orderBy("date", "desc"));
@@ -441,21 +627,23 @@
                     const isRead = localReadNotifs.includes(id);
                     if(!isRead) unreadCount++;
 
-                    const bg = isRead ? 'bg-gray-50 opacity-70' : 'bg-blue-50 border-l-4 border-blue-500';
-                    const tag = d.destinataire === 'all' ? '📢 Annonce' : '✉ Administration';
+                    const bgStyle = isRead ? 'bg-gray-50 border border-gray-200' : 'bg-blue-50 border-l-4 border-blue-500 shadow-sm';
+                    const tag = d.destinataire === 'all' ? '📢 Annonce Générale' : '✉ Message de l\'Administration';
+                    
                     const html = `
-                        <li class="${bg} p-3 rounded shadow-sm mb-2" data-id="${id}">
-                            <span class="text-xs font-bold text-gray-500">${tag}</span>
-                            <strong class="block text-gray-900">${d.titre}</strong>
-                            <span class="text-sm text-gray-700">${d.message}</span>
+                        <li class="${bgStyle} p-4 rounded-lg" data-id="${id}">
+                            <span class="text-xs font-bold text-gray-500 mb-1 block uppercase">${tag}</span>
+                            <strong class="block text-gray-900 text-lg mb-1">${d.titre}</strong>
+                            <p class="text-sm text-gray-700 leading-relaxed">${d.message}</p>
                         </li>`;
                     
-                    listMsg.innerHTML += html;
-                    if(previewList.children.length < 5) previewList.innerHTML += html; // Max 5 in preview
+                    listModal.innerHTML += html;
+                    listTab.innerHTML += html;
                 }
             });
 
-            if(previewList.innerHTML === '') previewList.innerHTML = '<li class="text-gray-500 italic">Aucune annonce.</li>';
+            if(listModal.innerHTML === '') listModal.innerHTML = '<li class="text-gray-500 italic text-center py-4">Aucune annonce.</li>';
+            if(listTab.innerHTML === '') listTab.innerHTML = '<li class="text-gray-500 italic text-center py-4">Aucune annonce.</li>';
 
             const badge = document.getElementById('notif-badge');
             if(unreadCount > 0) { badge.textContent = unreadCount; badge.classList.remove('hidden'); } 
@@ -475,14 +663,13 @@
 
         document.getElementById('btn-close-notifs').addEventListener('click', () => {
             document.getElementById('notif-modal').classList.add('hidden');
-            chargerNotificationsStagiaire(auth.currentUser.uid);
+            chargerNotificationsStagiaire(auth.currentUser.uid); // Rafraichit le visuel "lu"
         });
 
         // --- UPDATE PROFIL ET MOT DE PASSE (MODAL) ---
         document.getElementById('btn-update-profil').addEventListener('click', async () => {
             if(!currentStagProfile.id) return;
             
-            // 1. GESTION DU MOT DE PASSE (Si rempli)
             const pwd = document.getElementById('new-password').value;
             if(pwd) {
                 if(pwd.length < 6) return alert("Le mot de passe doit faire au moins 6 caractères.");
@@ -494,7 +681,6 @@
                 }
             }
 
-            // 2. GESTION DES INFORMATIONS DU PROFIL
             const btn = document.getElementById('btn-update-profil');
             btn.textContent = "Sauvegarde...";
 
@@ -559,8 +745,8 @@
                 status.classList.add('hidden');
                 alert("Document envoyé à l'administration !");
                 document.getElementById('stg-doc-titre').value = ''; fileInput.value = '';
-                chargerTousLesDocuments(auth.currentUser.uid); // Maj direct
-            } catch(e) { status.classList.add('hidden'); alert("Erreur."); console.error(e); }
+                chargerTousLesDocuments(auth.currentUser.uid);
+            } catch(e) { status.classList.add('hidden'); alert("Erreur lors de l'envoi."); console.error(e); }
         });
 
         // --- DEMANDER UN DOCUMENT ---
@@ -592,12 +778,29 @@
                 date: serverTimestamp() 
             });
             
-            alert("Demande de permission soumise !");
+            alert("Demande de permission soumise à l'administration !");
             document.getElementById('perm-motif').value = '';
             document.getElementById('perm-debut').value = '';
             document.getElementById('perm-fin').value = '';
         });
 
+        // --- NOUVEAU: SOUMETTRE UNE SUGGESTION ---
+        document.getElementById('btn-send-suggestion').addEventListener('click', async () => {
+            const msg = document.getElementById('sugg-message').value.trim();
+            if(!msg) return alert("Veuillez rédiger une suggestion avant de l'envoyer.");
+
+            await addDoc(collection(db, "suggestions"), {
+                userId: auth.currentUser.uid,
+                nomUtilisateur: currentStagProfile.nom,
+                message: msg,
+                date: serverTimestamp()
+            });
+
+            alert("Votre suggestion a été envoyée avec succès. Merci pour votre contribution !");
+            document.getElementById('sugg-message').value = '';
+        });
+
     </script>
+	
 </body>
 </html>
