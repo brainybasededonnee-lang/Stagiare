@@ -62,7 +62,7 @@
             flex: 1;
             position: relative;
             width: 100%;
-            height: calc(100vh - 115px);
+            /* La hauteur fixe a été retirée pour laisser Flexbox gérer l'espace disponible sans chevauchement */
             overflow: hidden;
             background: #fff;
         }
@@ -83,10 +83,8 @@
 
         /* ── BARRE DE NAVIGATION INFÉRIEURE ── */
         .bottom-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
+            width: 100%;
+            flex-shrink: 0; /* Empêche la barre de se réduire et garantit son espace dédié */
             background: var(--white); 
             display: flex; 
             justify-content: space-around; 
@@ -131,8 +129,6 @@
     </style>
 </head>
 <body>
-
- 
 
     <!-- Vues principales encapsulées -->
     <main class="content-container">
@@ -192,13 +188,13 @@
                 iframeChat.classList.remove('active');
                 navHome.classList.add('active');
                 navChat.classList.remove('active');
-                pageTitleDisplay.textContent = "Accueil";
+                if (pageTitleDisplay) pageTitleDisplay.textContent = "Accueil";
             } else if (view === 'chat') {
                 iframeChat.classList.add('active');
                 iframeStagiaire.classList.remove('active');
                 navChat.classList.add('active');
                 navHome.classList.remove('active');
-                pageTitleDisplay.textContent = "Messages";
+                if (pageTitleDisplay) pageTitleDisplay.textContent = "Messages";
             }
         };
     </script>
