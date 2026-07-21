@@ -2,297 +2,205 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainy Hub - Connexion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brainy Hub - Navigation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 1. Animation des couleurs du fond */
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0284c7, #4338ca, #3b0764);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
+        :root { 
+            --primary: #075e54; 
+            --secondary: #128c7e; 
+            --bg: #f0f2f5; 
+            --white: #ffffff; 
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        
+        /* ── HEADER PRINCIPAL ── */
+        header { 
+            background: var(--primary); 
+            color: var(--white); 
+            padding: 0 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 100; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
+            height: 50px; 
+        }
+        
+        .header-title { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* 2. Motif texte style fond WhatsApp (Abondant et Animé) */
-        .pattern-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='600' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='rgba(255,255,255,0.05)' font-family='sans-serif' font-size='16' font-weight='bold' transform='rotate(-25 300 300)'%3E%3Ctext x='50' y='100'%3EBrainy Agency%3C/text%3E%3Ctext x='350' y='150'%3E%2B22896368928%3C/text%3E%3Ctext x='100' y='300'%3EVotre r%C3%A9ussite %C3%A0 la pointe de la Technologie.%3C/text%3E%3Ctext x='400' y='450'%3EBrainy Agency%3C/text%3E%3Ctext x='50' y='550'%3E%2B22896368928%3C/text%3E%3Ctext x='250' y='650'%3EVotre r%C3%A9ussite %C3%A0 la pointe de la Technologie.%3C/text%3E%3C/g%3E%3C/svg%3E");
-            background-repeat: repeat;
-            z-index: 0;
-            pointer-events: none;
-            animation: scrollPattern 40s linear infinite;
-        }
-
-        @keyframes scrollPattern {
-            0% { background-position: 0px 0px; }
-            100% { background-position: 600px 600px; }
-        }
-
-        /* 3. Images qui défilent en rond (Orbites) */
-        .orbit-container {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 650px; height: 650px;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            border: 1px dashed rgba(255, 255, 255, 0.1);
-            animation: orbit 30s linear infinite;
-            z-index: 1;
-            pointer-events: none;
-            transition: transform 0.3s ease;
-        }
-
-        .orbit-img {
-            position: absolute;
-            width: 90px; height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 20px rgba(0, 195, 255, 0.5);
-            animation: counter-orbit 30s linear infinite;
-        }
-
-        /* Répartition des 9 images tout autour du cercle */
-        .img-1 { top: -45px; left: 280px; }
-        .img-2 { top: 31px; left: 489px; }
-        .img-3 { top: 224px; left: 600px; }
-        .img-4 { top: 443px; left: 562px; }
-        .img-5 { top: 585px; left: 391px; }
-        .img-6 { top: 585px; left: 169px; }
-        .img-7 { top: 443px; left: -2px; }
-        .img-8 { top: 224px; left: -40px; }
-        .img-9 { top: 31px; left: 71px; }
-
-        @keyframes orbit {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        @keyframes counter-orbit {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(-360deg); }
-        }
-
-        /* 4. Effet Vitré (Glassmorphism) */
-        .glass-card {
-            position: relative;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .glass-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            backdrop-filter: blur(5px);
-        }
-        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7); }
-        .glass-input:focus {
+        .header-badge {
+            font-size: 0.75rem;
             background: rgba(255, 255, 255, 0.2);
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 400;
         }
 
-        .hidden { display: none !important; }
-
-        /* ========================================== */
-        /* ADAPTATION SECURE POUR TOUS LES MOBILES   */
-        /* ========================================== */
-        @media (max-width: 768px) {
-            .orbit-container {
-                transform: translate(-50%, -50%) scale(0.7);
-            }
-            .glass-card {
-                padding: 2rem;
-            }
+        /* ── CONTENEUR PRINCIPAL DES VUES (IFRAMES) ── */
+        .content-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 115px);
+            overflow: hidden;
+            background: #fff;
         }
 
-        @media (max-width: 480px) {
-            .orbit-container {
-                transform: translate(-50%, -50%) scale(0.48);
-            }
-            .glass-card {
-                padding: 1.75rem;
-                margin-left: 1rem;
-                margin-right: 1rem;
-            }
-            .glass-card h2 {
-                font-size: 1.875rem;
-            }
+        .app-view {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        .app-view.active {
+            display: block;
+        }
+
+        /* ── BARRE DE NAVIGATION INFÉRIEURE ── */
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: var(--white); 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            height: 65px; 
+            border-top: 1px solid #e0e0e0; 
+            z-index: 1000; 
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            padding-bottom: env(safe-area-inset-bottom); 
+        }
+        
+        .nav-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            background: none; 
+            border: none; 
+            color: #666; 
+            font-size: 0.75rem; 
+            font-weight: 600;
+            cursor: pointer; 
+            flex: 1; 
+            height: 100%;
+            text-decoration: none; 
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+        
+        .nav-item i { 
+            font-size: 1.3rem; 
+            margin-bottom: 3px; 
+        }
+        
+        .nav-item.active { 
+            color: var(--primary); 
+            border-top: 3px solid var(--primary);
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center relative">
+<body>
 
-    <div class="pattern-overlay"></div>
+ 
 
-    <div class="orbit-container">
-        <img src="source/image1.jpeg" class="orbit-img img-1" alt="Image 1">
-        <img src="source/image2.jpeg" class="orbit-img img-2" alt="Image 2">
-        <img src="source/image3.jpeg" class="orbit-img img-3" alt="Image 3">
-        <img src="source/image4.jpeg" class="orbit-img img-4" alt="Image 4">
-        <img src="source/image5.jpeg" class="orbit-img img-5" alt="Image 5">
-        <img src="source/image6.jpeg" class="orbit-img img-6" alt="Image 6">
-        <img src="source/image7.jpeg" class="orbit-img img-7" alt="Image 7">
-        <img src="source/image8.jpeg" class="orbit-img img-8" alt="Image 8">
-        <img src="source/image9.jpeg" class="orbit-img img-9" alt="Image 9">
-    </div>
+    <!-- Vues principales encapsulées -->
+    <main class="content-container">
+        <iframe id="view-stagiaire" src="stagiaire.html" class="app-view active" title="Espace Stagiaire"></iframe>
+        <iframe id="view-chat" src="chat.html" class="app-view" title="Chat Stagiaire"></iframe>
+    </main>
 
-    <div id="reset-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-        <div class="glass-card p-8 w-full max-w-sm">
-            <h3 class="text-2xl font-bold mb-4 drop-shadow">Récupération</h3>
-            <p class="text-sm text-blue-100 mb-4">Entrez votre email ou matricule pour recevoir un lien de réinitialisation sécurisé.</p>
-            <input type="text" id="reset-email" class="glass-input w-full py-3 px-4 rounded-xl transition duration-200 mb-5" placeholder="Email ou Matricule">
-            <div class="flex gap-3">
-                <button id="btn-cancel-reset" class="w-1/3 bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-xl transition duration-200">Annuler</button>
-                <button id="btn-send-reset" class="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition duration-200">Envoyer</button>
-            </div>
-            <p id="reset-msg" class="text-sm mt-4 text-center hidden font-bold"></p>
-        </div>
-    </div>
+    <!-- Navigation Inférieure -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" id="nav-home" onclick="switchView('home')">
+            <i class="fas fa-home"></i>
+            <span>Accueil</span>
+        </button>
+        <button class="nav-item" id="nav-chat" onclick="switchView('chat')">
+            <i class="fas fa-comments"></i>
+            <span>Messages</span>
+        </button>
+    </nav>
 
-    <div class="glass-card p-10 w-full max-w-md mx-4 hover:shadow-2xl hover:border-white/40">
-        <div class="text-center mb-8">
-            <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md">Brainy LMS<span class="text-blue-400">.</span></h2>
-            <p class="text-sm font-light text-blue-200 mt-2 tracking-wider uppercase drop-shadow">Learning Management System</p>
-			<p class="text-sm font-light text-blue-200 mt-2 tracking-wider uppercase drop-shadow">Espace Stagiaire</p>
-        </div>
-        
-        <form id="login-form">
-            <div class="mb-5">
-                <label class="block text-white text-sm font-bold mb-2 drop-shadow-sm">Email ou Matricule</label>
-                <input type="text" id="login-email" class="glass-input w-full py-3 px-4 rounded-xl transition duration-200" placeholder="Email ou Matricule" required>
-            </div>
-            <div class="mb-6">
-                <label class="block text-white text-sm font-bold mb-2 drop-shadow-sm">Mot de passe</label>
-                <input type="password" id="login-password" class="glass-input w-full py-3 px-4 rounded-xl transition duration-200" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="w-full bg-white text-blue-800 font-extrabold py-3 px-4 rounded-xl shadow-lg hover:bg-blue-50 hover:scale-105 transform transition duration-300">
-                Se connecter
-            </button>
-        </form>
-        
-        <p id="login-error" class="bg-red-500/80 backdrop-blur-md text-white text-sm mt-6 p-3 rounded-lg text-center font-semibold hidden border border-red-400"></p>
-
-        <div class="mt-6 text-center">
-            <a href="#" id="forgot-password-link" class="text-sm text-blue-200 hover:text-white transition drop-shadow underline decoration-blue-400/50 hover:decoration-white">Mot de passe oublié ?</a>
-        </div>
-    </div>
-
+    <!-- Firebase Auth & Switcher Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Ajout de sendPasswordResetEmail dans l'import
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
-  authDomain: "stagiaire-afc7b.firebaseapp.com",
-  projectId: "stagiaire-afc7b",
-  storageBucket: "stagiaire-afc7b.firebasestorage.app",
-  messagingSenderId: "211607769009",
-  appId: "1:211607769009:web:7676af127f0ae6927e3790"
+            authDomain: "stagiaire-afc7b.firebaseapp.com",
+            projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
+            messagingSenderId: "211607769009",
+            appId: "1:211607769009:web:7676af127f0ae6927e3790"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // ROUTAGE AUTOMATIQUE SI DEJA CONNECTÉ
+        // Vérification de la session utilisateur
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                if (user.email === "admin@brainy.com") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = "stagiaire.html";
-                }
+            if (!user) {
+                window.location.href = "login.html";
+            } else if (user.email === "admin@brainy.com") {
+                window.location.href = "admin.html";
             }
         });
 
-        // CONNEXION
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let loginInput = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
+        // Gestion du basculement d'onglets
+        window.switchView = function(view) {
+            const iframeStagiaire = document.getElementById('view-stagiaire');
+            const iframeChat = document.getElementById('view-chat');
+            const navHome = document.getElementById('nav-home');
+            const navChat = document.getElementById('nav-chat');
+            const pageTitleDisplay = document.getElementById('pageTitleDisplay');
 
-            if (!loginInput.includes('@')) {
-                loginInput = loginInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
+            if (view === 'home') {
+                iframeStagiaire.classList.add('active');
+                iframeChat.classList.remove('active');
+                navHome.classList.add('active');
+                navChat.classList.remove('active');
+                pageTitleDisplay.textContent = "Accueil";
+            } else if (view === 'chat') {
+                iframeChat.classList.add('active');
+                iframeStagiaire.classList.remove('active');
+                navChat.classList.add('active');
+                navHome.classList.remove('active');
+                pageTitleDisplay.textContent = "Messages";
             }
-
-            try {
-                await signInWithEmailAndPassword(auth, loginInput, password);
-                document.getElementById('login-error').classList.add('hidden');
-            } catch (error) {
-                document.getElementById('login-error').textContent = "Identifiants incorrects. Veuillez réessayer.";
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        });
-
-        // GESTION MOT DE PASSE OUBLIÉ
-        const resetModal = document.getElementById('reset-modal');
-        const resetMsg = document.getElementById('reset-msg');
-        const resetEmailInput = document.getElementById('reset-email');
-
-        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            resetModal.classList.remove('hidden');
-            resetMsg.classList.add('hidden');
-            // Pré-remplir si l'utilisateur avait déjà tapé son identifiant
-            resetEmailInput.value = document.getElementById('login-email').value;
-        });
-
-        document.getElementById('btn-cancel-reset').addEventListener('click', () => {
-            resetModal.classList.add('hidden');
-        });
-
-        document.getElementById('btn-send-reset').addEventListener('click', async () => {
-            let emailInput = resetEmailInput.value.trim();
-            if (!emailInput) return;
-
-            // Formater en email si c'est un matricule
-            if (!emailInput.includes('@')) {
-                emailInput = emailInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
-            }
-
-            const btnSend = document.getElementById('btn-send-reset');
-            btnSend.textContent = "Envoi...";
-            btnSend.disabled = true;
-
-            try {
-                await sendPasswordResetEmail(auth, emailInput);
-                resetMsg.textContent = "Lien envoyé ! Veuillez vérifier vos emails.";
-                resetMsg.className = "text-sm mt-4 text-center font-bold text-green-300 drop-shadow";
-                resetMsg.classList.remove('hidden');
-                
-                // Fermeture automatique après 3 secondes
-                setTimeout(() => {
-                    resetModal.classList.add('hidden');
-                    btnSend.textContent = "Envoyer";
-                    btnSend.disabled = false;
-                }, 3000);
-            } catch (error) {
-                resetMsg.textContent = "Erreur : Compte introuvable ou requête échouée.";
-                resetMsg.className = "text-sm mt-4 text-center font-bold text-red-300 drop-shadow";
-                resetMsg.classList.remove('hidden');
-                btnSend.textContent = "Envoyer";
-                btnSend.disabled = false;
-            }
-        });
+        };
     </script>
 </body>
 </html>
