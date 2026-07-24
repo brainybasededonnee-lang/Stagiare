@@ -27,6 +27,24 @@
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Styles pour le défilement vertical infini des profils */
+        @keyframes scrollY {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        .animate-scrolling-profiles {
+            display: flex;
+            flex-direction: column;
+            animation: scrollY 30s linear infinite;
+        }
+        .animate-scrolling-profiles:hover {
+            animation-play-state: paused;
+        }
+        .mask-fade {
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
@@ -177,160 +195,168 @@
             </div>
         </div>
 
-        <div class="container mx-auto p-4">
+        <div class="container mx-auto p-4 flex gap-6">
 
-            <div id="tab-accueil" class="tab-content">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-extrabold text-gray-800">Bonjour, <span id="accueil-display-name" class="text-blue-600 font-light"></span></h2>
-                    <p class="text-gray-500 mt-2">Bienvenue sur votre espace d'apprentissage.</p>
-                </div>
-
-                <div class="w-full max-w-2xl mx-auto aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl relative mb-12 border-4 border-white bg-gray-200">
-                    <img id="carousel-img" src="source/image10.jpeg" alt="Diaporama" class="w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-100">
-                </div>
-
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-xl font-bold mb-6 border-b pb-2 text-gray-800 flex items-center gap-2">
-                        📚 Toutes les formations disponibles
-                    </h3>
-                    <ul class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’informatique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’informatique Industrielle</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’intelligence artificielle (IA)</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation en Electronique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation en maintenance informatique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + commande en chine</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + Initiation en maintenance informatique + commande en chine</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Informatique Industrielle</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Electronique + Informatique Industrielle</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">IA + Initiation en maintenance informatique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Réparation d’Appareils</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Réseaux Informatique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">E-commerce (Alibaba et Facebook Ads)</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Installation de caméra de surveillance</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Montage des Antennes parabolique</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Word</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Excel</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Publisher</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Powerpoint</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Initiation à l’internet</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Vacances utiles (Module1)</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Vacances utiles (Module2)</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Internet complet</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Infographie</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Canva</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Alibaba</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Atelier des grands</li>
-                        <li class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 shadow-sm font-semibold text-gray-700">Atelier Gratuit</li>
-                    </ul>
-                </div>
+            <div class="hidden md:block w-16 flex-shrink-0 relative h-[calc(100vh-180px)] sticky top-[150px] overflow-hidden mask-fade">
+                <div id="scrolling-profiles-container" class="animate-scrolling-profiles">
+                    </div>
             </div>
 
-            <div id="tab-formations" class="tab-content hidden">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500 flex flex-col justify-center">
-                        <p class="text-gray-500 text-sm">Statut</p>
-                        <p id="stg-statut" class="font-bold text-lg">-</p>
+            <div class="flex-1 overflow-hidden w-full">
+                
+                <div id="tab-accueil" class="tab-content">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-extrabold text-gray-800">Bonjour, <span id="accueil-display-name" class="text-blue-600 font-light"></span></h2>
+                        <p class="text-gray-500 mt-2">Bienvenue sur votre espace d'apprentissage.</p>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500 flex flex-col justify-center">
-                        <p class="text-gray-500 text-sm">Total Formations</p>
-                        <p id="stg-total-form" class="font-bold text-lg">0 FCFA</p>
+
+                    <div class="w-full max-w-2xl mx-auto aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl relative mb-12 border-4 border-white bg-gray-200">
+                        <img id="carousel-img" src="source/image10.jpeg" alt="Diaporama" class="w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-100">
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500 flex flex-col justify-center">
-                        <p class="text-gray-500 text-sm">Déjà Payé</p>
-                        <p id="stg-total-paye" class="font-bold text-lg text-green-600">0 FCFA</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500 flex flex-col justify-center">
-                        <p class="text-gray-500 text-sm">Reste à payer</p>
-                        <p id="stg-reste" class="font-bold text-xl text-red-600">0 FCFA</p>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-6 border-b pb-2 text-gray-800 flex items-center gap-2">
+                            Toutes les formations disponibles
+                        </h3>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation à l’informatique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation à l’informatique Industrielle</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation à l’intelligence artificielle (IA)</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation en Electronique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation en maintenance informatique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + commande en chine</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Secrétariat bureautique + IA + Initiation en maintenance informatique + commande en chine</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Informatique Industrielle</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Electronique + Informatique Industrielle</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">IA + Initiation en maintenance informatique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Réparation d’Appareils</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Réseaux Informatique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">E-commerce (Alibaba et Facebook Ads)</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Installation de caméra de surveillance</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Montage des Antennes parabolique</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Word</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Excel</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Publisher</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Powerpoint</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Initiation à l’internet</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Vacances utiles (Module1)</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Vacances utiles (Module2)</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Internet complet</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Infographie</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Canva</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Alibaba</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Atelier des grands</li>
+                            <li class="bg-gray-50 p-3 rounded shadow-sm font-semibold text-gray-700">Atelier Gratuit</li>
+                        </ul>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-bold border-b pb-2 mb-4 text-purple-800">🎓 Mes Formations Actives</h3>
-                    <ul id="stagiaire-formations-list" class="space-y-4">
-                        <li class="text-gray-500 italic">Chargement des formations...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div id="tab-demandes" class="tab-content hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-yellow-500">
-                        <h3 class="text-lg font-bold border-b pb-2 mb-4">🛑 Demander une permission</h3>
-                        <textarea id="perm-motif" placeholder="Raison de l'absence..." class="w-full border p-2 mb-3 rounded h-20 text-sm bg-gray-50"></textarea>
-                        <div class="flex gap-3 mb-4">
-                            <div class="w-1/2">
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Du</label>
-                                <input type="date" id="perm-debut" class="w-full border p-2 text-sm rounded bg-gray-50">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Au</label>
-                                <input type="date" id="perm-fin" class="w-full border p-2 text-sm rounded bg-gray-50">
-                            </div>
+                <div id="tab-formations" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-lg shadow flex flex-col justify-center">
+                            <p class="text-gray-500 text-sm">Statut</p>
+                            <p id="stg-statut" class="font-bold text-lg">-</p>
                         </div>
-                        <button id="btn-demander-perm" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Soumettre la demande</button>
+                        <div class="bg-white p-4 rounded-lg shadow flex flex-col justify-center">
+                            <p class="text-gray-500 text-sm">Total Formations</p>
+                            <p id="stg-total-form" class="font-bold text-lg">0 FCFA</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow flex flex-col justify-center">
+                            <p class="text-gray-500 text-sm">Déjà Payé</p>
+                            <p id="stg-total-paye" class="font-bold text-lg text-green-600">0 FCFA</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow flex flex-col justify-center">
+                            <p class="text-gray-500 text-sm">Reste à payer</p>
+                            <p id="stg-reste" class="font-bold text-xl text-red-600">0 FCFA</p>
+                        </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500">
-                        <h3 class="text-lg font-bold border-b pb-2 mb-4">📄 Demander un document</h3>
-                        <select id="req-doc-type" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50 font-semibold">
-                            <option value="Attestation">Attestation de formation</option>
-                            <option value="Bulletin">Bulletin de notes</option>
-                            <option value="Reçu">Reçu de paiement</option>
-                            <option value="Autre">Autre</option>
-                        </select>
-                        <textarea id="req-doc-motif" placeholder="Précisez votre demande..." class="w-full border p-2 mb-4 rounded h-20 text-sm bg-gray-50"></textarea>
-                        <button id="btn-req-doc" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer la demande</button>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
-                        <h3 class="text-lg font-bold border-b pb-2 mb-4">💡 Soumettre une suggestion</h3>
-                        <p class="text-xs text-gray-500 mb-3">Votre avis compte ! Partagez vos idées ou points de vue.</p>
-                        <textarea id="sugg-message" placeholder="Tapez votre suggestion ici..." class="w-full border p-2 mb-4 rounded h-24 text-sm bg-gray-50"></textarea>
-                        <button id="btn-send-suggestion" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer ma suggestion</button>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold border-b pb-2 mb-4 text-purple-800">🎓 Mes Formations Actives</h3>
+                        <ul id="stagiaire-formations-list" class="space-y-4">
+                            <li class="text-gray-500 italic">Chargement des formations...</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
 
-            <div id="tab-annonces" class="tab-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-blue-500 max-w-4xl mx-auto">
-                    <h3 class="text-xl font-bold border-b pb-2 mb-4 text-blue-800">📢 Toutes mes annonces et messages</h3>
-                    <ul id="tab-annonces-list" class="space-y-4">
-                        <li class="text-gray-500 italic">Chargement...</li>
-                    </ul>
-                </div>
-            </div>
+                <div id="tab-demandes" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-bold border-b pb-2 mb-4">🛑 Demander une permission</h3>
+                            <textarea id="perm-motif" placeholder="Raison de l'absence..." class="w-full border p-2 mb-3 rounded h-20 text-sm bg-gray-50"></textarea>
+                            <div class="flex gap-3 mb-4">
+                                <div class="w-1/2">
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Du</label>
+                                    <input type="date" id="perm-debut" class="w-full border p-2 text-sm rounded bg-gray-50">
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Au</label>
+                                    <input type="date" id="perm-fin" class="w-full border p-2 text-sm rounded bg-gray-50">
+                                </div>
+                            </div>
+                            <button id="btn-demander-perm" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Soumettre la demande</button>
+                        </div>
 
-            <div id="tab-documents" class="tab-content hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500 h-fit">
-                        <h3 class="text-lg font-bold border-b pb-2 mb-4 text-green-800">📤 Envoyer un document à l'admin</h3>
-                        <label class="text-xs font-bold text-gray-500 mb-1 block">Titre du document</label>
-                        <input type="text" id="stg-doc-titre" placeholder="Ex: Copie de naissance" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50">
-                        <label class="text-xs font-bold text-gray-500 mb-1 block">Fichier</label>
-                        <input type="file" id="stg-doc-file" class="w-full border p-2 mb-4 rounded text-sm bg-gray-50">
-                        <button id="btn-stg-send-doc" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded w-full text-sm font-bold shadow">Envoyer le document</button>
-                        <p id="stg-upload-status" class="text-xs text-center mt-2 text-green-600 font-bold hidden">Envoi en cours, veuillez patienter...</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-lg shadow border-t-4 border-gray-800">
-                        <h3 class="text-lg font-bold border-b pb-2 mb-4">📂 Liste de mes documents</h3>
-                        <div class="mb-4">
-                            <label class="text-sm font-bold text-gray-700 mr-2">Filtrer :</label>
-                            <select id="tab-doc-filter" class="w-full border p-2 rounded bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1">
-                                <option value="all">Tous les documents (Reçus et Envoyés)</option>
-                                <option value="recu">📥 Documents reçus de l'administration</option>
-                                <option value="envoye">📤 Documents envoyés par moi-même</option>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-bold border-b pb-2 mb-4">📄 Demander un document</h3>
+                            <select id="req-doc-type" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50 font-semibold">
+                                <option value="Attestation">Attestation de formation</option>
+                                <option value="Bulletin">Bulletin de notes</option>
+                                <option value="Reçu">Reçu de paiement</option>
+                                <option value="Autre">Autre</option>
                             </select>
+                            <textarea id="req-doc-motif" placeholder="Précisez votre demande..." class="w-full border p-2 mb-4 rounded h-20 text-sm bg-gray-50"></textarea>
+                            <button id="btn-req-doc" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer la demande</button>
                         </div>
-                        <div id="tab-docs-list" class="space-y-3 overflow-y-auto max-h-[400px] pr-2">
-                            <div class="text-gray-500 text-sm italic text-center py-4">Chargement de vos documents...</div>
+
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-bold border-b pb-2 mb-4"> Soumettre une suggestion</h3>
+                            <p class="text-xs text-gray-500 mb-3">Votre avis compte ! Partagez vos idées ou points de vue.</p>
+                            <textarea id="sugg-message" placeholder="Tapez votre suggestion ici..." class="w-full border p-2 mb-4 rounded h-24 text-sm bg-gray-50"></textarea>
+                            <button id="btn-send-suggestion" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full text-sm font-bold shadow">Envoyer ma suggestion</button>
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <div id="tab-annonces" class="tab-content hidden">
+                    <div class="bg-white p-6 rounded-lg shadow max-w-4xl mx-auto">
+                        <h3 class="text-xl font-bold border-b pb-2 mb-4 text-blue-800"> Toutes mes annonces et messages</h3>
+                        <ul id="tab-annonces-list" class="space-y-4">
+                            <li class="text-gray-500 italic">Chargement...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="tab-documents" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow h-fit">
+                            <h3 class="text-lg font-bold border-b pb-2 mb-4 text-green-800">📤 Envoyer un document à l'admin</h3>
+                            <label class="text-xs font-bold text-gray-500 mb-1 block">Titre du document</label>
+                            <input type="text" id="stg-doc-titre" placeholder="Ex: Copie de naissance" class="w-full border p-2 mb-3 rounded text-sm bg-gray-50">
+                            <label class="text-xs font-bold text-gray-500 mb-1 block">Fichier</label>
+                            <input type="file" id="stg-doc-file" class="w-full border p-2 mb-4 rounded text-sm bg-gray-50">
+                            <button id="btn-stg-send-doc" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded w-full text-sm font-bold shadow">Envoyer le document</button>
+                            <p id="stg-upload-status" class="text-xs text-center mt-2 text-green-600 font-bold hidden">Envoi en cours, veuillez patienter...</p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-bold border-b pb-2 mb-4">📂 Liste de mes documents</h3>
+                            <div class="mb-4">
+                                <label class="text-sm font-bold text-gray-700 mr-2">Filtrer :</label>
+                                <select id="tab-doc-filter" class="w-full border p-2 rounded bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1">
+                                    <option value="all">Tous les documents (Reçus et Envoyés)</option>
+                                    <option value="recu">📥 Documents reçus de l'administration</option>
+                                    <option value="envoye">📤 Documents envoyés par moi-même</option>
+                                </select>
+                            </div>
+                            <div id="tab-docs-list" class="space-y-3 overflow-y-auto max-h-[400px] pr-2">
+                                <div class="text-gray-500 text-sm italic text-center py-4">Chargement de vos documents...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -363,8 +389,11 @@
         // GESTION DU CARROUSEL D'IMAGES
         // ==========================================
         const carouselImages = [
-            'source/image10.jpeg', 'source/image11.jpeg', 'source/image12.jpeg',
-            'source/image13.jpeg', 'source/image14.jpeg', 'source/image15.jpeg'
+            'source/image10.jpeg', 'source/image18.jpeg', 'source/image12.jpeg',
+			'source/image19.jpeg', 'source/image20.jpeg', 'source/image21.jpeg',
+            'source/image13.jpeg', 'source/image14.jpeg', 'source/image15.jpeg',
+			'source/image16.jpeg', 'source/image17.jpeg', 'source/image11.jpeg',
+				'source/image22.jpeg', 'source/image20.jpeg', 'source/image21.jpeg'
         ];
         let currentCarouselIdx = 0;
         const cImg = document.getElementById('carousel-img');
@@ -494,6 +523,48 @@
             chargerNotificationsStagiaire(user.uid);
             chargerTousLesDocuments(user.uid);
             chargerMesFormations(user.uid);
+            chargerTousLesProfils(); // Nouveau : Appel pour afficher la barre latérale défilante
+        }
+
+        // --- GESTION DU DEFILEMENT DES PROFILS (BARRE LATERALE) ---
+        async function chargerTousLesProfils() {
+            try {
+                const qU = query(collection(db, "users"), where("role", "==", "stagiaire"));
+                const snapU = await getDocs(qU);
+                let profils = [];
+                snapU.forEach(doc => {
+                    const data = doc.data();
+                    profils.push(data.photoProfil || 'default');
+                });
+
+                // Mélange aléatoire (Algorithme de Fisher-Yates) à chaque connexion
+                for (let i = profils.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [profils[i], profils[j]] = [profils[j], profils[i]];
+                }
+
+                const container = document.getElementById('scrolling-profiles-container');
+                if(!container) return;
+
+                if(profils.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                let htmlContent = '';
+                profils.forEach(p => {
+                    if (p === 'default') {
+                        htmlContent += `<div class="w-12 h-12 mb-4 rounded-full flex-shrink-0 bg-white border-2 border-gray-300 flex items-center justify-center text-gray-400 text-xl mx-auto shadow-sm">👤</div>`;
+                    } else {
+                        htmlContent += `<img src="${p}" class="w-12 h-12 mb-4 rounded-full flex-shrink-0 object-cover border-2 border-gray-300 mx-auto shadow-sm" alt="Profil">`;
+                    }
+                });
+
+                // On insère deux fois le même contenu pour un défilement infini et fluide
+                container.innerHTML = htmlContent + htmlContent;
+            } catch (error) {
+                console.error("Erreur lors du chargement des profils pour le défilement: ", error);
+            }
         }
 
         // --- GESTION DES FORMATIONS SUIVIES (ONGLET MES FORMATIONS) ---
@@ -627,7 +698,7 @@
                     const isRead = localReadNotifs.includes(id);
                     if(!isRead) unreadCount++;
 
-                    const bgStyle = isRead ? 'bg-gray-50 border border-gray-200' : 'bg-blue-50 border-l-4 border-blue-500 shadow-sm';
+                    const bgStyle = isRead ? 'bg-gray-50 border border-gray-200' : 'bg-blue-50 shadow-sm';
                     const tag = d.destinataire === 'all' ? '📢 Annonce Générale' : '✉ Message de l\'Administration';
                     
                     const html = `
