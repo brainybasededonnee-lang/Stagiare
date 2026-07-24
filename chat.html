@@ -120,67 +120,66 @@
         .btn-delete:hover { background: rgba(239, 68, 68, 0.1); }
 
         /* ── ZONE DE SAISIE ── */
-        /* ── ZONE DE SAISIE ── */
-.input-area { 
-    padding: 10px; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    background: #f0f0f0; 
-    border-top: 1px solid #ddd; 
-    width: 100%;
-    box-sizing: border-box;
-}
+        .input-area { 
+            padding: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            background: #f0f0f0; 
+            border-top: 1px solid #ddd; 
+            width: 100%;
+            box-sizing: border-box;
+        }
 
-.input-wrapper { 
-    background: white; 
-    border-radius: 25px; 
-    flex: 1; 
-    min-width: 0; /* Permet au conteneur de rétrécir sur petit écran */
-    display: flex; 
-    align-items: center; 
-    padding: 4px 14px; 
-    box-shadow: 0 1px 2px rgba(0,0,0,0.08); 
-}
+        .input-wrapper { 
+            background: white; 
+            border-radius: 25px; 
+            flex: 1; 
+            min-width: 0; 
+            display: flex; 
+            align-items: center; 
+            padding: 4px 14px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08); 
+        }
 
-.input-wrapper input { 
-    border: none; 
-    outline: none; 
-    flex: 1; 
-    min-width: 0; /* Empêche le texte de forcer l'élargissement de la page */
-    padding: 8px; 
-    font-size: 0.98rem; 
-    font-family: inherit; 
-}
+        .input-wrapper input { 
+            border: none; 
+            outline: none; 
+            flex: 1; 
+            min-width: 0; 
+            padding: 8px; 
+            font-size: 0.98rem; 
+            font-family: inherit; 
+        }
 
-.action-icon { 
-    color: #666; 
-    font-size: 1.2rem; 
-    cursor: pointer; 
-    padding: 6px; 
-    transition: color 0.2s; 
-}
+        .action-icon { 
+            color: #666; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            padding: 6px; 
+            transition: color 0.2s; 
+        }
 
-.action-icon:hover { 
-    color: var(--wa-primary); 
-}
+        .action-icon:hover { 
+            color: var(--wa-primary); 
+        }
 
-.btn-action { 
-    background: var(--wa-secondary); 
-    color: white; 
-    border: none; 
-    width: 45px; 
-    height: 45px; 
-    border-radius: 50%; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 1.2rem; 
-    cursor: pointer; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-    transition: transform 0.1s, background 0.2s; 
-    flex-shrink: 0; /* Empêche le bouton d'être écrasé */
-}
+        .btn-action { 
+            background: var(--wa-secondary); 
+            color: white; 
+            border: none; 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+            transition: transform 0.1s, background 0.2s; 
+            flex-shrink: 0; 
+        }
 
         /* ── MINUTEUR VOCAL ── */
         #recTimer { display: none; align-items: center; gap: 6px; color: #e53935; font-weight: 700; font-size: 0.92rem; white-space: nowrap; padding: 0 8px; }
@@ -304,6 +303,7 @@
 
         let groupeLastMsgDate = 0;
         let groupeLastMsgText = "Canal commun de l'agence Brainy";
+        let groupeUnreadCount = 0;
 
         // Variables de messagerie
         let activeChatId = "groupe";
@@ -399,19 +399,48 @@
 
         async function fetchGroupLastMessage() {
             try {
-                const qMsg = query(collection(db, "messages_groupe"), orderBy("date", "desc"), limit(1));
-                const snapshot = await getDocs(qMsg);
-                if (!snapshot.empty) {
-                    const msg = snapshot.docs[0].data();
-                    groupeLastMsgDate = msg.date ? (msg.date.toMillis ? msg.date.toMillis() : new Date(msg.date).getTime()) : 0;
-                    if(msg.type === 'text') groupeLastMsgText = (msg.senderName || 'Inconnu') + ": " + (msg.texte || '');
-                    else if(msg.type === 'image') groupeLastMsgText = (msg.senderName || 'Inconnu') + ": 📷 Photo";
-                    else if(msg.type === 'audio') groupeLastMsgText = (msg.senderName || 'Inconnu') + ": 🎤 Vocal";
-                    else if(msg.type === 'file') groupeLastMsgText = (msg.senderName || 'Inconnu') + ": 📄 Fichier";
-                    else if(msg.type === 'location') groupeLastMsgText = (msg.senderName || 'Inconnu') + ": 📍 Position";
-                }
+                const qMsg = query(collection(db, "messages_groupe"), orderBy("date", "asc"));
+                onSnapshot(qMsg, (snapshot) => {
+                    if (!snapshot.empty) {
+                        let maxDate = 0;
+                        let unreadCount = 0;
+                        let lastMsg = null;
+                        const lastRead = getLocalReadTime('groupe');
+
+                        snapshot.forEach(docSnap => {
+                            const data = docSnap.data();
+                            const d = data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now();
+                            if (d >= maxDate) {
+                                maxDate = d;
+                                lastMsg = data;
+                            }
+                            
+                            if (data.senderUid !== currentUser.uid && d > lastRead) {
+                                unreadCount++;
+                            }
+                        });
+
+                        groupeLastMsgDate = maxDate;
+                        if(lastMsg.type === 'text') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": " + (lastMsg.texte || '');
+                        else if(lastMsg.type === 'image') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": 📷 Photo";
+                        else if(lastMsg.type === 'audio') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": 🎤 Vocal";
+                        else if(lastMsg.type === 'file') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": 📄 Fichier";
+                        else if(lastMsg.type === 'location') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": 📍 Position";
+
+                        if (activeChatId === 'groupe' && !document.getElementById('chatOverlay').classList.contains('hidden')) {
+                            setLocalReadTime('groupe', maxDate);
+                            groupeUnreadCount = 0;
+                        } else {
+                            groupeUnreadCount = unreadCount;
+                        }
+
+                        if (currentTab === 'discussions') renderList();
+                    }
+                }, (error) => {
+                    console.warn("Erreur fetch last group msg", error);
+                });
             } catch (error) {
-                console.warn("Erreur fetch last group msg", error);
+                console.warn("Erreur init group msg", error);
             }
         }
 
@@ -434,7 +463,7 @@
                                 const data = docSnap.data();
                                 const d = data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now();
                                 if (d >= maxDate) {
-                                    maxDate = d;
+                                maxDate = d;
                                     lastMsg = data;
                                 }
                                 
@@ -513,7 +542,8 @@
                     isGroup: true,
                     nom: "Discussion Générale",
                     lastMessageDate: groupeLastMsgDate || 0,
-                    lastMsgText: groupeLastMsgText || "Canal commun de l'agence Brainy"
+                    lastMsgText: groupeLastMsgText || "Canal commun de l'agence Brainy",
+                    unreadCount: groupeUnreadCount || 0
                 });
             }
 
@@ -555,6 +585,13 @@
             const row = document.createElement('div');
             row.className = 'item-row';
             let timeDisplay = item.lastMessageDate > 0 ? formatDisplayDate(new Date(item.lastMessageDate)) : "En direct";
+            
+            let timeStyle = "";
+            if (item.unreadCount > 0) timeStyle = "color:var(--unread-red); font-weight:bold;";
+
+            const badgeHTML = (item.unreadCount > 0) 
+                ? `<div style="background:var(--unread-red); color:white; font-size:0.75rem; font-weight:bold; border-radius:50%; min-width:20px; height:20px; display:flex; align-items:center; justify-content:center; padding:0 6px;">${item.unreadCount}</div>`
+                : '';
 
             row.innerHTML = `
                 <div class="avatar-container">
@@ -563,10 +600,13 @@
                 <div class="item-info">
                     <div class="item-title-row">
                         <span class="item-name">Discussion Générale <span class="group-badge">Groupe</span></span>
-                        <span class="item-time">${timeDisplay}</span>
+                        <span class="item-time" style="${timeStyle}">${timeDisplay}</span>
                     </div>
-                    <div class="item-subtitle">
-                        <i class="fas fa-users" style="color:#075e54;"></i> ${item.lastMsgText}
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div class="item-subtitle" style="${item.unreadCount > 0 ? 'font-weight:600; color:#222;' : ''} flex:1; min-width:0;">
+                            <i class="fas fa-users" style="color:#075e54;"></i> ${item.lastMsgText}
+                        </div>
+                        ${badgeHTML}
                     </div>
                 </div>
             `;
@@ -575,7 +615,6 @@
         }
 
         function renderUserRow(container, user, isDiscussionTab) {
-            // Modification Principale: Prise en compte de photoProfil utilisé par la page admin
             const userPhoto = user.photoProfil || user.photoURL;
             const photoHTML = userPhoto && userPhoto !== "" 
                 ? `<img src="${userPhoto}" class="avatar">`
@@ -652,6 +691,11 @@
                 document.getElementById('chatHeaderAvatar').innerHTML = "💬";
                 document.getElementById('chatHeaderAvatar').style.background = "#e8f5e9";
                 document.getElementById('chatHeaderDesc').textContent = "Échangez avec tous les stagiaires";
+                
+                if (groupeLastMsgDate > 0) {
+                    setLocalReadTime('groupe', groupeLastMsgDate);
+                    groupeUnreadCount = 0;
+                }
             } else {
                 activeChatId = currentUser.uid < targetUid ? `${currentUser.uid}_${targetUid}` : `${targetUid}_${currentUser.uid}`;
                 activeChatName = targetName;
@@ -734,6 +778,9 @@
                     else if(lastDoc.type === 'audio') groupeLastMsgText = (lastDoc.senderName || 'Inconnu') + ": 🎤 Vocal";
                     else if(lastDoc.type === 'file') groupeLastMsgText = (lastDoc.senderName || 'Inconnu') + ": 📄 Fichier";
                     else if(lastDoc.type === 'location') groupeLastMsgText = (lastDoc.senderName || 'Inconnu') + ": 📍 Position";
+                    
+                    setLocalReadTime('groupe', groupeLastMsgDate);
+                    groupeUnreadCount = 0;
                 } else {
                     const uids = activeChatId.split('_');
                     const targetUid = uids[0] === currentUser.uid ? uids[1] : uids[0];
@@ -762,7 +809,6 @@
                         timeString = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                     }
 
-                    // Modification Principale: Ajout des miniatures de l'avatar et du nom à côté de toutes les bulles
                     let senderPhoto = null;
                     if (isMe && currentStagiaireData) {
                         senderPhoto = currentStagiaireData.photoProfil || currentStagiaireData.photoURL;
