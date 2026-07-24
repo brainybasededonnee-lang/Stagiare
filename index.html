@@ -117,7 +117,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Effet d'onde magique au clic (Ripple Effect) */
         .nav-item::after {
             content: '';
             position: absolute;
@@ -168,7 +167,6 @@
             }
         }
 
-        /* Indicateur magique lumineux haut de bouton actif */
         .nav-item.active::before {
             content: '';
             position: absolute;
@@ -191,6 +189,35 @@
                 width: 28px;
                 opacity: 1;
             }
+        }
+
+        /* ── BADGE DE NOTIFICATION (MESSAGES NON LUS) ── */
+        .badge-unread {
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(5px);
+            background-color: #ef4444; /* Étiquette rouge */
+            color: #ffffff; /* Texte en blanc */
+            font-size: 0.65rem;
+            font-weight: bold;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            z-index: 10;
+            border: 1px solid white;
+            pointer-events: none;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) translateX(5px); }
+            100% { transform: scale(1) translateX(5px); }
         }
     </style>
 </head>
@@ -234,6 +261,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
@@ -246,14 +274,111 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = "login.html";
             } else if (user.email === "admin@brainy.com") {
                 window.location.href = "admin.html";
+            } else {
+                // Initialise le compteur des messages non lus avec l'UID de l'utilisateur connecté
+                initUnreadCounter(user.uid);
             }
         });
+
+        // --- GESTION DES MESSAGES NON LUS (Synchronisé avec chat.html) ---
+        function getLocalReadTime(uid, chatId) {
+            try {
+                const data = JSON.parse(localStorage.getItem('brainy_read_' + uid)) || {};
+                return data[chatId] || 0;
+            } catch(e) { 
+                return 0; 
+            }
+        }
+
+        async function initUnreadCounter(uid) {
+            const unreadMap = new Map();
+            let allMessagesCache = new Map(); 
+
+            // Met à jour l'étiquette rouge sur le bouton "Messages"
+            function updateBadge() {
+                let total = 0;
+                unreadMap.forEach(count => total += count);
+                
+                const navChat = document.getElementById('nav-chat');
+                let badge = document.getElementById('chat-badge');
+                
+                if (total > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.id = 'chat-badge';
+                        badge.className = 'badge-unread';
+                        navChat.appendChild(badge);
+                    }
+                    badge.textContent = total > 99 ? '99+' : total;
+                } else {
+                    if (badge) badge.remove();
+                }
+            }
+
+            // Recalcule les non-lus en vérifiant le localStorage
+            function recalcUnread() {
+                allMessagesCache.forEach((msgTimes, chatId) => {
+                    const lastRead = getLocalReadTime(uid, chatId);
+                    let count = 0;
+                    msgTimes.forEach(time => {
+                        if (time > lastRead) count++;
+                    });
+                    unreadMap.set(chatId, count);
+                });
+                updateBadge();
+            }
+
+            // Vérification périodique pour réagir si l'utilisateur lit un message dans l'iframe
+            setInterval(recalcUnread, 1500);
+
+            // 1. Écoute des messages du groupe
+            const qGroup = query(collection(db, "messages_groupe"), orderBy("date", "asc"));
+            onSnapshot(qGroup, (snapshot) => {
+                let times = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.senderUid !== uid) {
+                        times.push(data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now());
+                    }
+                });
+                allMessagesCache.set('groupe', times);
+                recalcUnread();
+            });
+
+            // 2. Écoute des messages privés
+            try {
+                const qUsers = query(collection(db, "users"));
+                const usersSnap = await getDocs(qUsers);
+                usersSnap.forEach(docSnap => {
+                    const user = docSnap.data();
+                    if (user.uid !== uid && user.email !== "admin@brainy.com") {
+                        const chatId = uid < user.uid ? `${uid}_${user.uid}` : `${user.uid}_${uid}`;
+                        const qPriv = query(collection(db, "messages_prives"), where("chatId", "==", chatId));
+                        
+                        onSnapshot(qPriv, (snapshot) => {
+                            let times = [];
+                            snapshot.forEach(docSnap => {
+                                const data = docSnap.data();
+                                if (data.senderUid !== uid) {
+                                    times.push(data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now());
+                                }
+                            });
+                            allMessagesCache.set(chatId, times);
+                            recalcUnread();
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error("Erreur lors du chargement des notifications de messages :", error);
+            }
+        }
     </script>
 </body>
 </html>
