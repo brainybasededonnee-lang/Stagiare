@@ -30,6 +30,7 @@
             padding: 0;
             overflow: hidden; 
             position: relative;
+            -webkit-text-size-adjust: 100%;
         }
 
         /* ── CONTENEUR DES PAGES (IFRAMES) ADAPTÉ MOBILE ── */
@@ -38,10 +39,10 @@
             top: 0;
             left: 0;
             right: 0;
-            bottom: 50px; /* Hauteur exacte de la barre de navigation */
+            bottom: calc(50px + env(safe-area-inset-bottom));
             width: 100%;
-            height: calc(100vh - 50px);
-            height: calc(100dvh - 50px);
+            height: calc(100vh - 50px - env(safe-area-inset-bottom));
+            height: calc(100dvh - 50px - env(safe-area-inset-bottom));
             overflow: hidden;
             background: #fff;
             z-index: 1;
@@ -85,16 +86,15 @@
             left: 0;
             right: 0;
             width: 100%;
-            height: 50px; 
+            height: calc(50px + env(safe-area-inset-bottom)); 
             background: var(--white); 
             display: flex; 
             justify-content: space-around; 
-            align-items: center; 
+            align-items: flex-start;
             border-top: 1px solid rgba(0, 0, 0, 0.08); 
             z-index: 99999;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
             backdrop-filter: blur(10px);
-            /* Support pour les barres de navigation des téléphones récents (iPhone X+, etc.) */
             padding-bottom: env(safe-area-inset-bottom);
         }
         
@@ -110,10 +110,11 @@
             font-weight: 600;
             cursor: pointer; 
             flex: 1; 
-            height: 100%;
+            height: 50px;
             text-decoration: none; 
             position: relative;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Effet d'onde magique au clic (Ripple Effect) */
