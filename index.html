@@ -24,6 +24,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: var(--bg); 
             height: 100vh; 
+            height: 100dvh; 
             width: 100vw;
             margin: 0;
             padding: 0;
@@ -31,15 +32,16 @@
             position: relative;
         }
 
-        /* ── CONTENEUR DES PAGES (IFRAMES) ── */
+        /* ── CONTENEUR DES PAGES (IFRAMES) ADAPTÉ MOBILE ── */
         .content-container {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 50px; /* Hauteur réduite pour mobile */
+            bottom: 50px; /* Hauteur exacte de la barre de navigation */
             width: 100%;
             height: calc(100vh - 50px);
+            height: calc(100dvh - 50px);
             overflow: hidden;
             background: #fff;
             z-index: 1;
@@ -76,14 +78,14 @@
             }
         }
 
-        /* ── BARRE DE NAVIGATION FIXE ET PERSISTANTE (HAUTEUR RÉDUITE & ANIMÉE) ── */
+        /* ── BARRE DE NAVIGATION FIXE ET PERSISTANTE ── */
         .bottom-nav { 
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             width: 100%;
-            height: 50px; /* Réduit pour un rendu mobile parfait */
+            height: 50px; 
             background: var(--white); 
             display: flex; 
             justify-content: space-around; 
@@ -92,6 +94,8 @@
             z-index: 99999;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
             backdrop-filter: blur(10px);
+            /* Support pour les barres de navigation des téléphones récents (iPhone X+, etc.) */
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .nav-item { 
