@@ -9,6 +9,7 @@
         :root { 
             --primary: #075e54; 
             --secondary: #128c7e; 
+            --accent: #25d366;
             --bg: #f0f2f5; 
             --white: #ffffff; 
         }
@@ -23,48 +24,25 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: var(--bg); 
             height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
+            width: 100vw;
+            margin: 0;
+            padding: 0;
             overflow: hidden; 
-        }
-        
-        /* ── HEADER PRINCIPAL ── */
-        header { 
-            background: var(--primary); 
-            color: var(--white); 
-            padding: 0 16px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            z-index: 100; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
-            height: 50px; 
-        }
-        
-        .header-title { 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            font-size: 1.1rem; 
-            font-weight: 700; 
-        }
-
-        .header-badge {
-            font-size: 0.75rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 400;
-        }
-
-        /* ── CONTENEUR PRINCIPAL DES VUES (IFRAMES) ── */
-        .content-container {
-            flex: 1;
             position: relative;
+        }
+
+        /* ── CONTENEUR DES PAGES (IFRAMES) ── */
+        .content-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 50px; /* Hauteur réduite pour mobile */
             width: 100%;
-            /* La hauteur fixe a été retirée pour laisser Flexbox gérer l'espace disponible sans chevauchement */
+            height: calc(100vh - 50px);
             overflow: hidden;
             background: #fff;
+            z-index: 1;
         }
 
         .app-view {
@@ -75,25 +53,45 @@
             top: 0;
             left: 0;
             display: none;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .app-view.active {
             display: block;
+            opacity: 1;
+            transform: scale(1);
+            animation: viewAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* ── BARRE DE NAVIGATION INFÉRIEURE ── */
+        @keyframes viewAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ── BARRE DE NAVIGATION FIXE ET PERSISTANTE (HAUTEUR RÉDUITE & ANIMÉE) ── */
         .bottom-nav { 
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
-            flex-shrink: 0; /* Empêche la barre de se réduire et garantit son espace dédié */
+            height: 50px; /* Réduit pour un rendu mobile parfait */
             background: var(--white); 
             display: flex; 
             justify-content: space-around; 
             align-items: center; 
-            height: 65px; 
-            border-top: 1px solid #e0e0e0; 
-            z-index: 1000; 
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-            padding-bottom: env(safe-area-inset-bottom); 
+            border-top: 1px solid rgba(0, 0, 0, 0.08); 
+            z-index: 99999;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
         }
         
         .nav-item { 
@@ -103,40 +101,101 @@
             justify-content: center;
             background: none; 
             border: none; 
-            color: #666; 
-            font-size: 0.75rem; 
+            color: #888; 
+            font-size: 0.68rem; 
             font-weight: 600;
             cursor: pointer; 
             flex: 1; 
             height: 100%;
             text-decoration: none; 
-            transition: color 0.2s ease, transform 0.1s ease;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Effet d'onde magique au clic (Ripple Effect) */
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(7, 94, 84, 0.15);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease-out, height 0.4s ease-out, opacity 0.4s ease-out;
+            opacity: 0;
+        }
+
+        .nav-item:active::after {
+            width: 120px;
+            height: 120px;
+            opacity: 1;
+            transition: 0s;
         }
         
         .nav-item i { 
-            font-size: 1.3rem; 
-            margin-bottom: 3px; 
+            font-size: 1.15rem; 
+            margin-bottom: 2px; 
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+        }
+
+        .nav-item span {
+            transition: transform 0.3s ease, color 0.3s ease;
         }
         
         .nav-item.active { 
             color: var(--primary); 
-            border-top: 3px solid var(--primary);
         }
 
-        .nav-item:active {
-            transform: scale(0.95);
+        .nav-item.active i {
+            transform: translateY(-2px) scale(1.15);
+            color: var(--primary);
+            animation: iconPulse 1.5s infinite alternate;
+        }
+
+        @keyframes iconPulse {
+            0% {
+                filter: drop-shadow(0 0 0 rgba(7, 94, 84, 0));
+            }
+            100% {
+                filter: drop-shadow(0 2px 8px rgba(7, 94, 84, 0.3));
+            }
+        }
+
+        /* Indicateur magique lumineux haut de bouton actif */
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 0 0 3px 3px;
+            animation: slideInBar 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideInBar {
+            0% {
+                width: 0px;
+                opacity: 0;
+            }
+            100% {
+                width: 28px;
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Vues principales encapsulées -->
     <main class="content-container">
         <iframe id="view-stagiaire" src="stagiaire.html" class="app-view active" title="Espace Stagiaire"></iframe>
         <iframe id="view-chat" src="chat.html" class="app-view" title="Chat Stagiaire"></iframe>
     </main>
 
-    <!-- Navigation Inférieure -->
     <nav class="bottom-nav" id="bottomNav">
         <button class="nav-item active" id="nav-home" onclick="switchView('home')">
             <i class="fas fa-home"></i>
@@ -148,12 +207,29 @@
         </button>
     </nav>
 
-    <!-- Firebase Auth & Switcher Script -->
+    <script>
+        function switchView(viewName) {
+            document.querySelectorAll('.app-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            if (viewName === 'home') {
+                document.getElementById('view-stagiaire').classList.add('active');
+                document.getElementById('nav-home').classList.add('active');
+            } else if (viewName === 'chat') {
+                document.getElementById('view-chat').classList.add('active');
+                document.getElementById('nav-chat').classList.add('active');
+            }
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
             authDomain: "stagiaire-afc7b.firebaseapp.com",
@@ -166,7 +242,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // Vérification de la session utilisateur
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = "login.html";
@@ -174,29 +249,6 @@
                 window.location.href = "admin.html";
             }
         });
-
-        // Gestion du basculement d'onglets
-        window.switchView = function(view) {
-            const iframeStagiaire = document.getElementById('view-stagiaire');
-            const iframeChat = document.getElementById('view-chat');
-            const navHome = document.getElementById('nav-home');
-            const navChat = document.getElementById('nav-chat');
-            const pageTitleDisplay = document.getElementById('pageTitleDisplay');
-
-            if (view === 'home') {
-                iframeStagiaire.classList.add('active');
-                iframeChat.classList.remove('active');
-                navHome.classList.add('active');
-                navChat.classList.remove('active');
-                if (pageTitleDisplay) pageTitleDisplay.textContent = "Accueil";
-            } else if (view === 'chat') {
-                iframeChat.classList.add('active');
-                iframeStagiaire.classList.remove('active');
-                navChat.classList.add('active');
-                navHome.classList.remove('active');
-                if (pageTitleDisplay) pageTitleDisplay.textContent = "Messages";
-            }
-        };
     </script>
 </body>
 </html>
