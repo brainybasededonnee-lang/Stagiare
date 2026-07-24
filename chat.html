@@ -105,7 +105,7 @@
         .bubble-wrapper.sent { items-align: flex-end; align-items: flex-end; }
         .bubble-wrapper.received { items-align: flex-start; align-items: flex-start; }
 
-        .sender-name { font-size: 0.72rem; font-weight: 700; color: var(--wa-primary); margin-bottom: 2px; margin-left: 4px; }
+        .sender-name { font-size: 0.75rem; font-weight: 700; color: var(--wa-primary); margin-bottom: 2px; margin-left: 4px; }
         
         .bubble { padding: 8px 12px; border-radius: 8px; max-width: 82%; font-size: 0.94rem; box-shadow: 0 1px 1px rgba(0,0,0,0.15); position: relative; word-wrap: break-word; }
         .sent { background: var(--wa-bubble-sent); border-top-right-radius: 0; color: #111; }
@@ -368,15 +368,12 @@
             const promises = allUsersCache.map((user) => {
                 return new Promise((resolve) => {
                     const chatId = currentUser.uid < user.uid ? `${currentUser.uid}_${user.uid}` : `${user.uid}_${currentUser.uid}`;
-                    // Correction: Retrait de orderBy et limit pour éviter l'erreur d'index composite manquant sur Firestore
                     const qMsg = query(collection(db, "messages_prives"), where("chatId", "==", chatId));
                     
-                    // Remplacement de getDocs par onSnapshot pour rendre la liste des badges temps réel
                     onSnapshot(qMsg, (snapshot) => {
                         if (!snapshot.empty) {
                             user.hasConversation = true;
                             
-                            // Tri local pour trouver le dernier message et compter les non lus
                             let lastMsg = null;
                             let maxDate = 0;
                             let unreadCount = 0;
@@ -384,14 +381,12 @@
                             
                             snapshot.forEach(docSnap => {
                                 const data = docSnap.data();
-                                // Fallback à Date.now() si date null (écriture optimiste en attente)
                                 const d = data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now();
                                 if (d >= maxDate) {
                                     maxDate = d;
                                     lastMsg = data;
                                 }
                                 
-                                // Compter les messages non lus de l'expéditeur
                                 if (data.senderUid !== currentUser.uid && d > lastRead) {
                                     unreadCount++;
                                 }
@@ -400,7 +395,6 @@
                             user.lastMessage = lastMsg;
                             user.lastMessageDate = maxDate;
                             
-                            // Si le chat est actuellement ouvert, on marque comme lu
                             if (activeChatId === chatId && !document.getElementById('chatOverlay').classList.contains('hidden')) {
                                 setLocalReadTime(chatId, maxDate);
                                 user.unreadCount = 0;
@@ -442,7 +436,6 @@
             renderList();
         };
         
-        // Nouvelle fonction pour forcer le démarrage d'une conversation
         window.startConversation = (uid) => {
             const user = allUsersCache.find(u => u.uid === uid);
             if (user) {
@@ -451,7 +444,8 @@
                     user.lastMessageDate = Date.now();
                 }
                 switchTab('discussions');
-                openChat(user.uid, user.nom || 'Inconnu', user.photoURL || null);
+                const userPhoto = user.photoProfil || user.photoURL;
+                openChat(user.uid, user.nom || 'Inconnu', userPhoto || null);
             }
         };
 
@@ -480,7 +474,6 @@
                 const activeUsers = filteredUsers.filter(u => u.hasConversation);
                 itemsToRender = itemsToRender.concat(activeUsers);
                 
-                // Tri par date du dernier message (les plus récents en premier)
                 itemsToRender.sort((a, b) => (b.lastMessageDate || 0) - (a.lastMessageDate || 0));
 
                 if (itemsToRender.length === 0) {
@@ -531,8 +524,10 @@
         }
 
         function renderUserRow(container, user, isDiscussionTab) {
-            const photoHTML = user.photoURL && user.photoURL !== "" 
-                ? `<img src="${user.photoURL}" class="avatar">`
+            // Modification Principale: Prise en compte de photoProfil utilisé par la page admin
+            const userPhoto = user.photoProfil || user.photoURL;
+            const photoHTML = userPhoto && userPhoto !== "" 
+                ? `<img src="${userPhoto}" class="avatar">`
                 : `<div class="avatar" style="background:#e3f2fd; color:#1565c0;">${(user.nom || '?').charAt(0).toUpperCase()}</div>`;
 
             let timeDisplay = "";
@@ -542,7 +537,6 @@
             if (isDiscussionTab) {
                 if (user.lastMessageDate > 0) timeDisplay = formatDisplayDate(new Date(user.lastMessageDate));
                 
-                // Colorer l'heure si un message est non lu
                 if (user.unreadCount > 0) timeStyle = "color:var(--unread-red); font-weight:bold;";
 
                 let msgPreview = "Nouveau message";
@@ -555,7 +549,6 @@
                 }
                 if (msgPreview.length > 40) msgPreview = msgPreview.substring(0, 40) + "...";
                 
-                // Gérer le badge de notification non lue
                 const badgeHTML = (user.unreadCount > 0) 
                     ? `<div style="background:var(--unread-red); color:white; font-size:0.75rem; font-weight:bold; border-radius:50%; min-width:20px; height:20px; display:flex; align-items:center; justify-content:center; padding:0 6px;">${user.unreadCount}</div>`
                     : '';
@@ -593,7 +586,7 @@
             `;
             
             if (isDiscussionTab) {
-                userRow.onclick = () => openChat(user.uid, user.nom, user.photoURL);
+                userRow.onclick = () => openChat(user.uid, user.nom, userPhoto);
             } else {
                 userRow.onclick = () => startConversation(user.uid);
             }
@@ -615,6 +608,7 @@
                 const avatarEl = document.getElementById('chatHeaderAvatar');
                 if (photoURL) {
                     avatarEl.innerHTML = `<img src="${photoURL}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                    avatarEl.style.background = "transparent";
                 } else {
                     avatarEl.innerHTML = targetName.charAt(0).toUpperCase();
                     avatarEl.style.background = "#e3f2fd";
@@ -622,7 +616,6 @@
                 }
                 document.getElementById('chatHeaderDesc').textContent = "Messagerie chiffrée de bout en bout";
                 
-                // On met à jour l'état de lecture immédiatement 
                 const user = allUsersCache.find(u => u.uid === targetUid);
                 if (user && user.lastMessageDate) {
                     setLocalReadTime(activeChatId, user.lastMessageDate);
@@ -630,7 +623,6 @@
                 }
             }
 
-            // Rafraîchir pour enlever le badge avant d'ouvrir
             if (currentTab === 'discussions') renderList();
 
             document.getElementById('chatHeaderName').textContent = targetName;
@@ -659,7 +651,6 @@
             if (activeChatId === 'groupe') {
                 qChat = query(collection(db, "messages_groupe"), orderBy("date", "asc"));
             } else {
-                // Correction : Suppression de orderBy pour contourner l'absence d'index composite requis sur Firestore
                 qChat = query(collection(db, "messages_prives"), where("chatId", "==", activeChatId));
             }
 
@@ -671,7 +662,6 @@
                     return;
                 }
 
-                // Extraction et tri local pour palier l'absence d'index
                 let docsList = [];
                 snapshot.forEach(docSnap => {
                     docsList.push({ id: docSnap.id, data: docSnap.data() });
@@ -685,7 +675,6 @@
                     });
                 }
 
-                // Mettre à jour l'historique local pour le tri de la liste de discussions
                 const lastDoc = docsList[docsList.length - 1].data;
                 if (activeChatId === 'groupe') {
                     groupeLastMsgDate = lastDoc.date ? (lastDoc.date.toMillis ? lastDoc.date.toMillis() : new Date(lastDoc.date).getTime()) : Date.now();
@@ -703,7 +692,6 @@
                         user.lastMessage = lastDoc;
                         user.lastMessageDate = lastDoc.date ? (lastDoc.date.toMillis ? lastDoc.date.toMillis() : new Date(lastDoc.date).getTime()) : Date.now();
                         
-                        // Puisque l'utilisateur est présent dans ce chat en direct, on actualise l'heure de lecture
                         setLocalReadTime(activeChatId, user.lastMessageDate);
                         user.unreadCount = 0;
                     }
@@ -723,9 +711,26 @@
                         timeString = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                     }
 
-                    const showSender = (!isMe && activeChatId === 'groupe') 
-                        ? `<div class="sender-name">${msg.senderName || 'Inconnu'}</div>` 
-                        : '';
+                    // Modification Principale: Ajout des miniatures de l'avatar et du nom à côté de toutes les bulles
+                    let senderPhoto = null;
+                    if (isMe && currentStagiaireData) {
+                        senderPhoto = currentStagiaireData.photoProfil || currentStagiaireData.photoURL;
+                    } else {
+                        const senderUser = allUsersCache.find(u => u.uid === msg.senderUid);
+                        if (senderUser) {
+                            senderPhoto = senderUser.photoProfil || senderUser.photoURL;
+                        }
+                    }
+
+                    const avatarMini = senderPhoto
+                        ? `<img src="${senderPhoto}" style="width:18px; height:18px; border-radius:50%; object-fit:cover; flex-shrink:0;">`
+                        : `<div style="width:18px; height:18px; border-radius:50%; background:#e3f2fd; color:#1565c0; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:bold; flex-shrink:0;">${(msg.senderName || '?').charAt(0).toUpperCase()}</div>`;
+
+                    const showSender = `<div class="sender-name" style="display:flex; align-items:center; gap:5px; margin-bottom:4px; ${isMe ? 'justify-content:flex-end; color:#888;' : ''}">
+                        ${!isMe ? avatarMini : ''}
+                        <span>${isMe ? 'Moi' : (msg.senderName || 'Inconnu')}</span>
+                        ${isMe ? avatarMini : ''}
+                    </div>`;
 
                     let contentHTML = '';
                     if (msg.type === 'image' || (msg.url && (msg.texte === '[Image]' || msg.texte === ''))) {
@@ -759,7 +764,6 @@
 
                     const ticksHTML = isMe ? `<span class="ticks read" title="Lu">✓✓</span>` : '';
                     
-                    // Bouton de suppression exclusif à l'expéditeur
                     const deleteBtnHTML = isMe ? `<button class="btn-delete" onclick="deleteMessage('${docSnapId}')" title="Supprimer ce message"><i class="fas fa-trash"></i></button>` : '';
 
                     const bubbleWrapper = document.createElement('div');
@@ -837,7 +841,6 @@
             }
         };
 
-        // Permettre l'envoi avec la touche Entrée
         document.getElementById('msgInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -932,7 +935,6 @@
             }
         };
 
-        // Gestion de la fenêtre Popup des Fichiers
         window.openFilePopup = (url, type) => {
             const popup = document.getElementById('filePopup');
             const content = document.getElementById('filePopupContent');
