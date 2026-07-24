@@ -120,16 +120,67 @@
         .btn-delete:hover { background: rgba(239, 68, 68, 0.1); }
 
         /* ── ZONE DE SAISIE ── */
-        .input-area { padding: 10px; display: flex; align-items: center; gap: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
-        .input-wrapper { background: white; border-radius: 25px; flex: 1; display: flex; align-items: center; padding: 4px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
-        .input-wrapper input { border: none; outline: none; flex: 1; padding: 8px; font-size: 0.98rem; font-family: inherit; }
-        
-        .action-icon { color: #666; font-size: 1.2rem; cursor: pointer; padding: 6px; transition: color 0.2s; }
-        .action-icon:hover { color: var(--wa-primary); }
+        /* ── ZONE DE SAISIE ── */
+.input-area { 
+    padding: 10px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    background: #f0f0f0; 
+    border-top: 1px solid #ddd; 
+    width: 100%;
+    box-sizing: border-box;
+}
 
-        .btn-action { background: var(--wa-secondary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s, background 0.2s; flex-shrink: 0; }
-        .btn-action:hover { background: var(--wa-primary); }
-        .btn-action:active { transform: scale(0.95); }
+.input-wrapper { 
+    background: white; 
+    border-radius: 25px; 
+    flex: 1; 
+    min-width: 0; /* Permet au conteneur de rétrécir sur petit écran */
+    display: flex; 
+    align-items: center; 
+    padding: 4px 14px; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08); 
+}
+
+.input-wrapper input { 
+    border: none; 
+    outline: none; 
+    flex: 1; 
+    min-width: 0; /* Empêche le texte de forcer l'élargissement de la page */
+    padding: 8px; 
+    font-size: 0.98rem; 
+    font-family: inherit; 
+}
+
+.action-icon { 
+    color: #666; 
+    font-size: 1.2rem; 
+    cursor: pointer; 
+    padding: 6px; 
+    transition: color 0.2s; 
+}
+
+.action-icon:hover { 
+    color: var(--wa-primary); 
+}
+
+.btn-action { 
+    background: var(--wa-secondary); 
+    color: white; 
+    border: none; 
+    width: 45px; 
+    height: 45px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.2rem; 
+    cursor: pointer; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    transition: transform 0.1s, background 0.2s; 
+    flex-shrink: 0; /* Empêche le bouton d'être écrasé */
+}
 
         /* ── MINUTEUR VOCAL ── */
         #recTimer { display: none; align-items: center; gap: 6px; color: #e53935; font-weight: 700; font-size: 0.92rem; white-space: nowrap; padding: 0 8px; }
