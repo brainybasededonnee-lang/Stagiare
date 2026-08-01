@@ -196,33 +196,26 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Ajout de sendPasswordResetEmail dans l'import
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        // Ajout de setPersistence, browserSessionPersistence et signOut
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
-  authDomain: "stagiaire-afc7b.firebaseapp.com",
-  projectId: "stagiaire-afc7b",
-  storageBucket: "stagiaire-afc7b.firebasestorage.app",
-  messagingSenderId: "211607769009",
-  appId: "1:211607769009:web:7676af127f0ae6927e3790"
+            authDomain: "stagiaire-afc7b.firebaseapp.com",
+            projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
+            messagingSenderId: "211607769009",
+            appId: "1:211607769009:web:7676af127f0ae6927e3790"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // ROUTAGE AUTOMATIQUE SI DEJA CONNECTÉ
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                if (user.email === "admin@brainy.com") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = "index.html";
-                }
-            }
-        });
+        // 1. DECONNEXION FORCÉE À L'OUVERTURE DE LA PAGE
+        // Détruit la session active en cache pour obliger l'utilisateur à retaper ses identifiants
+        signOut(auth).catch((error) => console.error("Erreur de déconnexion:", error));
 
         // CONNEXION
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -234,16 +227,33 @@
                 loginInput = loginInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
             }
 
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.textContent = "Connexion...";
+            btnSubmit.disabled = true;
+
             try {
-                await signInWithEmailAndPassword(auth, loginInput, password);
+                // 2. CONFIGURER FIREBASE POUR OUBLIER LA SESSION À LA FERMETURE DU NAVIGATEUR
+                await setPersistence(auth, browserSessionPersistence);
+                
+                // 3. AUTHENTIFIER L'UTILISATEUR
+                const userCredential = await signInWithEmailAndPassword(auth, loginInput, password);
                 document.getElementById('login-error').classList.add('hidden');
+                
+                // 4. REDIRECTION MANUELLE
+                if (userCredential.user.email === "admin@brainy.com") {
+                    window.location.href = "admin.html";
+                } else {
+                    window.location.href = "index.html";
+                }
             } catch (error) {
                 document.getElementById('login-error').textContent = "Identifiants incorrects. Veuillez réessayer.";
                 document.getElementById('login-error').classList.remove('hidden');
+                btnSubmit.textContent = "Se connecter";
+                btnSubmit.disabled = false;
             }
         });
 
-        // GESTION MOT DE PASSE OUBLIÉ
+        // GESTION MOT DE PASSE OUBLIÉ (Reste inchangé)
         const resetModal = document.getElementById('reset-modal');
         const resetMsg = document.getElementById('reset-msg');
         const resetEmailInput = document.getElementById('reset-email');
@@ -252,7 +262,6 @@
             e.preventDefault();
             resetModal.classList.remove('hidden');
             resetMsg.classList.add('hidden');
-            // Pré-remplir si l'utilisateur avait déjà tapé son identifiant
             resetEmailInput.value = document.getElementById('login-email').value;
         });
 
@@ -264,7 +273,6 @@
             let emailInput = resetEmailInput.value.trim();
             if (!emailInput) return;
 
-            // Formater en email si c'est un matricule
             if (!emailInput.includes('@')) {
                 emailInput = emailInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
             }
@@ -279,7 +287,6 @@
                 resetMsg.className = "text-sm mt-4 text-center font-bold text-green-300 drop-shadow";
                 resetMsg.classList.remove('hidden');
                 
-                // Fermeture automatique après 3 secondes
                 setTimeout(() => {
                     resetModal.classList.add('hidden');
                     btnSend.textContent = "Envoyer";
