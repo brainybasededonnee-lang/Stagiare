@@ -197,109 +197,113 @@
     </div>
 
 <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Ajout de setPersistence, browserSessionPersistence et signOut
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithEmailAndPassword, 
+        sendPasswordResetEmail, 
+        setPersistence, 
+        inMemoryPersistence, 
+        signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
-            authDomain: "stagiaire-afc7b.firebaseapp.com",
-            projectId: "stagiaire-afc7b",
-            storageBucket: "stagiaire-afc7b.firebasestorage.app",
-            messagingSenderId: "211607769009",
-            appId: "1:211607769009:web:7676af127f0ae6927e3790"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
+        authDomain: "stagiaire-afc7b.firebaseapp.com",
+        projectId: "stagiaire-afc7b",
+        storageBucket: "stagiaire-afc7b.firebasestorage.app",
+        messagingSenderId: "211607769009",
+        appId: "1:211607769009:web:7676af127f0ae6927e3790"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-        // 1. DECONNEXION FORCÉE À L'OUVERTURE DE LA PAGE
-        // Détruit la session active en cache pour obliger l'utilisateur à retaper ses identifiants
-        signOut(auth).catch((error) => console.error("Erreur de déconnexion:", error));
+    // Déconnexion systématique à l'ouverture de la page de login
+    signOut(auth).catch(() => {});
 
-        // CONNEXION
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let loginInput = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
+    // GESTION DE LA CONNEXION
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        let loginInput = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
 
-            if (!loginInput.includes('@')) {
-                loginInput = loginInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
+        if (!loginInput.includes('@')) {
+            loginInput = loginInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
+        }
+
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.textContent = "Connexion...";
+        btnSubmit.disabled = true;
+
+        try {
+            // FORCE FIREBASE À NE GARDER LA SESSION QUE DANS LA MÉMOIRE VIVE
+            await setPersistence(auth, inMemoryPersistence);
+            
+            const userCredential = await signInWithEmailAndPassword(auth, loginInput, password);
+            document.getElementById('login-error').classList.add('hidden');
+            
+            // Redirection selon le rôle
+            if (userCredential.user.email === "admin@brainy.com") {
+                window.location.href = "admin.html";
+            } else {
+                window.location.href = "index.html";
             }
+        } catch (error) {
+            document.getElementById('login-error').textContent = "Identifiants incorrects. Veuillez réessayer.";
+            document.getElementById('login-error').classList.remove('hidden');
+            btnSubmit.textContent = "Se connecter";
+            btnSubmit.disabled = false;
+        }
+    });
 
-            const btnSubmit = e.target.querySelector('button[type="submit"]');
-            btnSubmit.textContent = "Connexion...";
-            btnSubmit.disabled = true;
+    // MOT DE PASSE OUBLIÉ
+    const resetModal = document.getElementById('reset-modal');
+    const resetMsg = document.getElementById('reset-msg');
+    const resetEmailInput = document.getElementById('reset-email');
 
-            try {
-                // 2. CONFIGURER FIREBASE POUR OUBLIER LA SESSION À LA FERMETURE DU NAVIGATEUR
-                await setPersistence(auth, browserSessionPersistence);
-                
-                // 3. AUTHENTIFIER L'UTILISATEUR
-                const userCredential = await signInWithEmailAndPassword(auth, loginInput, password);
-                document.getElementById('login-error').classList.add('hidden');
-                
-                // 4. REDIRECTION MANUELLE
-                if (userCredential.user.email === "admin@brainy.com") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = "index.html";
-                }
-            } catch (error) {
-                document.getElementById('login-error').textContent = "Identifiants incorrects. Veuillez réessayer.";
-                document.getElementById('login-error').classList.remove('hidden');
-                btnSubmit.textContent = "Se connecter";
-                btnSubmit.disabled = false;
-            }
-        });
+    document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        resetModal.classList.remove('hidden');
+        resetMsg.classList.add('hidden');
+        resetEmailInput.value = document.getElementById('login-email').value;
+    });
 
-        // GESTION MOT DE PASSE OUBLIÉ (Reste inchangé)
-        const resetModal = document.getElementById('reset-modal');
-        const resetMsg = document.getElementById('reset-msg');
-        const resetEmailInput = document.getElementById('reset-email');
+    document.getElementById('btn-cancel-reset').addEventListener('click', () => {
+        resetModal.classList.add('hidden');
+    });
 
-        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            resetModal.classList.remove('hidden');
-            resetMsg.classList.add('hidden');
-            resetEmailInput.value = document.getElementById('login-email').value;
-        });
+    document.getElementById('btn-send-reset').addEventListener('click', async () => {
+        let emailInput = resetEmailInput.value.trim();
+        if (!emailInput) return;
 
-        document.getElementById('btn-cancel-reset').addEventListener('click', () => {
-            resetModal.classList.add('hidden');
-        });
+        if (!emailInput.includes('@')) {
+            emailInput = emailInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
+        }
 
-        document.getElementById('btn-send-reset').addEventListener('click', async () => {
-            let emailInput = resetEmailInput.value.trim();
-            if (!emailInput) return;
+        const btnSend = document.getElementById('btn-send-reset');
+        btnSend.textContent = "Envoi...";
+        btnSend.disabled = true;
 
-            if (!emailInput.includes('@')) {
-                emailInput = emailInput.toLowerCase().replace(/\s/g, '') + '@brainy.com';
-            }
-
-            const btnSend = document.getElementById('btn-send-reset');
-            btnSend.textContent = "Envoi...";
-            btnSend.disabled = true;
-
-            try {
-                await sendPasswordResetEmail(auth, emailInput);
-                resetMsg.textContent = "Lien envoyé ! Veuillez vérifier vos emails.";
-                resetMsg.className = "text-sm mt-4 text-center font-bold text-green-300 drop-shadow";
-                resetMsg.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    resetModal.classList.add('hidden');
-                    btnSend.textContent = "Envoyer";
-                    btnSend.disabled = false;
-                }, 3000);
-            } catch (error) {
-                resetMsg.textContent = "Erreur : Compte introuvable ou requête échouée.";
-                resetMsg.className = "text-sm mt-4 text-center font-bold text-red-300 drop-shadow";
-                resetMsg.classList.remove('hidden');
+        try {
+            await sendPasswordResetEmail(auth, emailInput);
+            resetMsg.textContent = "Lien envoyé ! Veuillez vérifier vos emails.";
+            resetMsg.className = "text-sm mt-4 text-center font-bold text-green-300 drop-shadow";
+            resetMsg.classList.remove('hidden');
+            
+            setTimeout(() => {
+                resetModal.classList.add('hidden');
                 btnSend.textContent = "Envoyer";
                 btnSend.disabled = false;
-            }
-        });
-    </script>
+            }, 3000);
+        } catch (error) {
+            resetMsg.textContent = "Erreur : Compte introuvable ou requête échouée.";
+            resetMsg.className = "text-sm mt-4 text-center font-bold text-red-300 drop-shadow";
+            resetMsg.classList.remove('hidden');
+            btnSend.textContent = "Envoyer";
+            btnSend.disabled = false;
+        }
+    });
+</script>
 </body>
 </html>
