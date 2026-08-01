@@ -315,35 +315,6 @@
         let audioChunks = [];
         let recInterval = null;
 
-
-        const app = initializeApp(firebaseConfig); //
-        const auth = getAuth(app); //
-        const db = getFirestore(app); //[cite: 1]
-        const storage = getStorage(app); //[cite: 1]
-
-        // --- NOUVELLE FONCTIONNALITÉ : DÉCONNEXION AU RELOAD & AUTO-REFRESH ---
-        
-        // 1. Forcer l'actualisation de la page toutes les 5 minutes (300 000 ms)
-        setTimeout(() => {
-            window.location.reload();
-        }, 300000);
-
-        // 2. Détecter si l'utilisateur a actualisé la page (manuellement ou via le timeout)
-        const navEntries = performance.getEntriesByType("navigation");
-        if (navEntries.length > 0 && navEntries[0].type === "reload") {
-            // Déconnecter l'utilisateur de Firebase et le renvoyer vers la page de connexion
-            signOut(auth).then(() => {
-                window.location.href = "login.html";
-            }).catch((error) => {
-                console.error("Erreur lors de la déconnexion forcée :", error);
-            });
-        }
-        
-        // ----------------------------------------------------------------------
-
-        let currentUser = null; //[cite: 1]
-        let currentStagiaireData = null; //[cite: 1]
-
         // --- GESTION DES MESSAGES NON LUS (Stockage local pour ne pas affecter la DB) ---
         let windowReadTimestamps = null;
         function getLocalReadTime(chatId) {
