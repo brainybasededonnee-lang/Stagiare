@@ -223,8 +223,9 @@
 </head>
 <body>
 
-    <main class="content-container">
+ <main class="content-container">
         <iframe id="view-stagiaire" src="stagiaire.html" class="app-view active" title="Espace Stagiaire"></iframe>
+        <iframe id="view-formation" src="formation.html" class="app-view" title="Formations"></iframe>
         <iframe id="view-chat" src="chat.html" class="app-view" title="Chat Stagiaire"></iframe>
     </main>
 
@@ -232,6 +233,10 @@
         <button class="nav-item active" id="nav-home" onclick="switchView('home')">
             <i class="fas fa-home"></i>
             <span>Accueil</span>
+        </button>
+        <button class="nav-item" id="nav-formation" onclick="switchView('formation')">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Formations</span>
         </button>
         <button class="nav-item" id="nav-chat" onclick="switchView('chat')">
             <i class="fas fa-comments"></i>
@@ -251,6 +256,9 @@
             if (viewName === 'home') {
                 document.getElementById('view-stagiaire').classList.add('active');
                 document.getElementById('nav-home').classList.add('active');
+            } else if (viewName === 'formation') {
+                document.getElementById('view-formation').classList.add('active');
+                document.getElementById('nav-formation').classList.add('active');
             } else if (viewName === 'chat') {
                 document.getElementById('view-chat').classList.add('active');
                 document.getElementById('nav-chat').classList.add('active');
