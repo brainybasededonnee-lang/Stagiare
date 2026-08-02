@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brainy Hub - Formations en Ligne</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        
+        /* Personnalisation de la scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animation d'apparition des cartes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .post-card {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Styles pour masquer la barre de défilement horizontale des catégories */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Protection vidéo basique (désactiver le clic droit) */
+        .protected-media {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal text-gray-900 pb-20">
+
+    <!-- Navbar fixe -->
+    <nav class="bg-green-700 p-4 text-white flex justify-between items-center shadow-md sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <button onclick="window.history.back()" class="text-white hover:text-green-200 transition text-xl mr-2 md:hidden" title="Retour">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="w-10 h-10 bg-white rounded-full overflow-hidden border-2 border-green-300 flex items-center justify-center">
+                <i class="fas fa-graduation-cap text-green-700 text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg md:text-xl leading-tight">Formations en ligne</h1>
+                <p class="text-xs text-green-200 font-light">Espace Stagiaire</p>
+            </div>
+        </div>
+        
+       
+    </nav>
+
+    <!-- Zone de filtrage et recherche -->
+    <div class="bg-white shadow-sm sticky top-[72px] z-30">
+        <div class="max-w-3xl mx-auto px-4 py-3">
+            <!-- Barre de recherche -->
+            <div class="relative mb-3 flex items-center gap-2">
+    <div class="relative flex-1">
+        <input type="text" id="search-input" placeholder="Rechercher une formation, un mot-clé..." 
+            class="w-full bg-gray-100 border border-gray-200 text-gray-800 text-sm rounded-full focus:ring-green-500 focus:border-green-500 block pl-10 p-2.5 outline-none transition shadow-inner">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+        </div>
+    </div>
+    <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow transition flex items-center gap-2 shrink-0" title="Rechercher" onclick="document.getElementById('search-input').focus()">
+        <i class="fas fa-search"></i>
+        <span class="hidden sm:inline">Rechercher</span>
+    </button>
+</div>
+
+            <!-- Filtres de catégories (Scroll horizontal sur mobile) -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar py-1" id="category-filters">
+                <button class="filter-btn active whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-green-600 text-white shadow-md transition-colors" data-category="all">
+                    Toutes
+                </button>
+                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Bureautique">
+                    Info. Bureautique
+                </button>
+                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Industrielle">
+                    Info. Industrielle
+                </button>
+                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Électronique">
+                    Électronique
+                </button>
+                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Business">
+                    Business
+                </button>
+            </div>
+        </div>
+    </div>
+	
+
+    <!-- Barre d'administration (Masquée par défaut) -->
+    <div id="admin-bar" class="hidden max-w-3xl mx-auto px-4 mt-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex justify-between items-center shadow-sm">
+            <span class="font-bold text-blue-800 text-sm"><i class="fas fa-user-shield mr-2"></i>Compte Admin : BRAINY AGENCY</span>
+            <div class="flex gap-2">
+                <button onclick="window.openPublishModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold shadow transition flex items-center gap-1">
+                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Nouvelle publication</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteneur principal (Fil d'actualité) -->
+    <main class="max-w-3xl mx-auto px-4 py-4" id="feed-container">
+        <div class="text-center py-10 text-gray-500">
+            <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+            <p>Chargement des formations depuis la base de données...</p>
+        </div>
+    </main>
+
+    <!-- Modale de nouvelle publication (Admin) -->
+    <div id="publish-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl my-8 relative flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b flex justify-between items-center bg-white rounded-t-xl shrink-0">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-plus-circle text-blue-600"></i> Nouvelle Publication</h2>
+                <button onclick="window.closePublishModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar grow">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Titre de la publication</label>
+                    <input type="text" id="pub-titre" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ex: Cours d'initiation Excel">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Description / Contenu textuel</label>
+                    <textarea id="pub-desc" rows="4" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Écrivez votre message ici..."></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Catégorie</label>
+                        <select id="pub-cat" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="Informatique Bureautique">Informatique Bureautique</option>
+                            <option value="Informatique Industrielle">Informatique Industrielle</option>
+                            <option value="Électronique">Électronique</option>
+                            <option value="Business">Business</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Autoriser le téléchargement du fichier</label>
+                        <select id="pub-dl" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none font-bold">
+                            <option value="true">Oui, autoriser le téléchargement</option>
+                            <option value="false">Non, interdire (Lecture seule)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Joindre un fichier (Optionnel)</label>
+                    <input type="file" id="pub-file" onchange="window.previewFile()" class="w-full bg-gray-50 border border-gray-300 rounded p-2 text-sm cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1">Vidéos, Images, PDF, Word, Excel, PowerPoint, ZIP, Audio...</p>
+                </div>
+                <div id="pub-preview-container" class="hidden mt-3 p-3 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center gap-3">
+                    <div id="pub-preview-icon" class="text-3xl"></div>
+                    <div class="overflow-hidden">
+                        <p id="pub-preview-name" class="font-bold text-sm text-gray-800 truncate"></p>
+                        <p id="pub-preview-size" class="text-xs text-gray-500"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 border-t bg-gray-50 rounded-b-xl flex justify-end gap-3 shrink-0 relative overflow-hidden">
+                <div id="pub-progress-bg" class="absolute top-0 left-0 h-full bg-green-100 w-0 transition-all duration-300 z-0"></div>
+                <button onclick="window.closePublishModal()" class="px-4 py-2 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded font-bold transition relative z-10">Annuler</button>
+                <button id="btn-publish" onclick="window.submitPublication()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold shadow-md transition flex items-center relative z-10">
+                    <span id="btn-publish-text">Publier</span>
+                    <i id="btn-publish-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, arrayUnion, arrayRemove, serverTimestamp, getDocs, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        // Configuration Firebase existante (Identique aux autres fichiers du projet)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
+            authDomain: "stagiaire-afc7b.firebaseapp.com",
+            projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
+            messagingSenderId: "211607769009",
+            appId: "1:211607769009:web:7676af127f0ae6927e3790"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Variables globales
+        let currentUserProfile = null;
+        let isAdmin = false;
+        let postsData = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        const feedContainer = document.getElementById('feed-container');
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // ==========================================
+        // INITIALISATION ET AUTHENTIFICATION
+        // ==========================================
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "index.html"; // Redirection si non connecté
+                return;
+            }
+
+            // Récupérer le profil de l'utilisateur depuis Firestore
+            const qU = query(collection(db, "users"), where("uid", "==", user.uid));
+            const snapU = await getDocs(qU);
+            
+            if (!snapU.empty) {
+                currentUserProfile = snapU.docs[0].data();
+                
+                // Vérification du compte administrateur exclusif
+                if (currentUserProfile.matricule === 'BRA0000') {
+                    isAdmin = true;
+                    document.getElementById('admin-bar').classList.remove('hidden');
+                }
+                
+                // Charger les publications dynamiquement
+                chargerPublications();
+            }
+        });
+
+        // ==========================================
+        // LOGIQUE D'AFFICHAGE ET DE RENDU
+        // ==========================================
+        
+        // Icônes dynamiques par type de fichier
+        function getFileIcon(type) {
+            switch(type) {
+                case 'pdf': return '<i class="fas fa-file-pdf text-red-500 text-3xl"></i>';
+                case 'zip': return '<i class="fas fa-file-archive text-yellow-600 text-3xl"></i>';
+                case 'word': return '<i class="fas fa-file-word text-blue-600 text-3xl"></i>';
+                case 'excel': return '<i class="fas fa-file-excel text-green-600 text-3xl"></i>';
+                case 'powerpoint': return '<i class="fas fa-file-powerpoint text-orange-500 text-3xl"></i>';
+                case 'audio': return '<i class="fas fa-file-audio text-teal-500 text-3xl"></i>';
+                case 'video': return '<i class="fas fa-file-video text-purple-500 text-3xl"></i>';
+                case 'image': return '<i class="fas fa-file-image text-green-500 text-3xl"></i>';
+                default: return '<i class="fas fa-file-alt text-gray-500 text-3xl"></i>';
+            }
+        }
+
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'À l\'instant';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'À l\'instant';
+            if (diffInSeconds < 3600) return `Il y a ${Math.floor(diffInSeconds / 60)} min`;
+            if (diffInSeconds < 86400) return `Il y a ${Math.floor(diffInSeconds / 3600)} h`;
+            if (diffInSeconds < 172800) return `Hier à ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            
+            const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+
+        function renderPost(post) {
+            const formattedText = (post.description || '').replace(/\n/g, '<br>');
+
+            let badgeColor = "bg-gray-100 text-gray-800";
+            if(post.categorie === 'Informatique Bureautique') badgeColor = "bg-blue-100 text-blue-800";
+            if(post.categorie === 'Informatique Industrielle') badgeColor = "bg-purple-100 text-purple-800";
+            if(post.categorie === 'Électronique') badgeColor = "bg-yellow-100 text-yellow-800";
+            if(post.categorie === 'Business') badgeColor = "bg-green-100 text-green-800";
+
+            let mediaBlock = '';
+            
+            if (post.typeFichier === 'video') {
+                const downloadAttr = post.allowDownload ? '' : 'controlsList="nodownload" oncontextmenu="return false;"';
+                const lockBadge = post.allowDownload ? '' : '<div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm"><i class="fas fa-lock"></i> Protégé</div>';
+                
+                mediaBlock = `
+                    <div class="mt-3 relative rounded-lg overflow-hidden bg-black protected-media">
+                        <video controls class="w-full max-h-80 object-contain" ${downloadAttr}>
+                            <source src="${post.urlFichier}" type="video/mp4">
+                        </video>
+                        ${lockBadge}
+                    </div>
+                `;
+            } 
+            else if (post.typeFichier === 'image') {
+                const downloadStyle = post.allowDownload ? 'cursor-pointer' : 'pointer-events-none protected-media';
+                const lockBadge = post.allowDownload ? '' : '<div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm"><i class="fas fa-lock"></i> Protégé</div>';
+
+                mediaBlock = `
+                    <div class="mt-3 relative rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
+                        <img src="${post.urlFichier}" alt="Publication" class="w-full h-auto max-h-96 object-contain ${downloadStyle}" ${!post.allowDownload ? 'oncontextmenu="return false;"' : ''}>
+                        ${lockBadge}
+                    </div>
+                `;
+            }
+            else if (post.typeFichier && post.typeFichier !== 'text') {
+                const btnAction = post.allowDownload 
+                    ? `<a href="${post.urlFichier}" target="_blank" download class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg font-bold text-sm transition flex items-center gap-2"><i class="fas fa-download"></i> <span class="hidden sm:inline">Télécharger</span></a>`
+                    : `<span class="bg-red-50 text-red-500 px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-red-100 cursor-not-allowed" title="Lecture seule"><i class="fas fa-ban"></i> <span class="hidden sm:inline">Protégé</span></span>`;
+
+                mediaBlock = `
+                    <div class="mt-3 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            ${getFileIcon(post.typeFichier)}
+                            <div class="truncate">
+                                <p class="text-sm font-bold text-gray-800 truncate" title="${post.nomFichier}">${post.nomFichier}</p>
+                                <p class="text-xs text-gray-500 uppercase">${post.tailleFichier} • ${post.typeFichier}</p>
+                            </div>
+                        </div>
+                        <div class="ml-2 flex-shrink-0">
+                            ${btnAction}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Génération des commentaires
+            let commentsHtml = '';
+            const commentsArray = post.comments || [];
+            commentsArray.forEach(c => {
+                const isAgency = c.matricule === 'BRA0000';
+                const authorClass = isAgency ? "text-green-700 bg-green-100 px-1 rounded text-xs ml-1" : "text-gray-900";
+                const badge = isAgency ? `<span class="${authorClass}"><i class="fas fa-check-circle"></i> Auteur</span>` : '';
+                const avatar = c.photoProfil || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.nom)}&background=random`;
+                
+                commentsHtml += `
+                    <div class="flex gap-2 mt-3">
+                        <img src="${avatar}" class="w-8 h-8 rounded-full flex-shrink-0 object-cover border border-gray-200">
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2 flex-1 text-sm">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="font-bold ${isAgency ? 'text-green-800' : 'text-gray-900'}">${c.nom} ${badge}</span>
+                                <span class="text-xs text-gray-500">${formatTimeAgo(c.date)}</span>
+                            </div>
+                            <p class="text-gray-800">${c.commentaire}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Like Logic
+            const likedBy = post.likedBy || [];
+            const isLiked = currentUserProfile && likedBy.includes(currentUserProfile.uid);
+            const likesCount = likedBy.length;
+            
+            // Avatar de l'auteur (Toujours BRAINY AGENCY d'après les règles)
+            const authorAvatar = "https://ui-avatars.com/api/?name=Brainy+Agency&background=075e54&color=fff&bold=true";
+            
+            // Contrôles Admin exclusifs
+            const adminControls = isAdmin ? `
+                <button onclick="window.deletePost('${post.id}')" class="text-gray-400 hover:text-red-500 transition p-2" title="Supprimer">
+                    <i class="fas fa-trash"></i>
+                </button>
+            ` : '';
+
+            return `
+                <article class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 post-card overflow-hidden">
+                    <div class="p-4 flex items-start justify-between border-b border-gray-50">
+                        <div class="flex items-center gap-3">
+                            <img src="${authorAvatar}" alt="Logo" class="w-12 h-12 rounded-full border-2 border-green-100 object-cover shadow-sm">
+                            <div>
+                                <h3 class="font-bold text-gray-900 leading-tight flex items-center gap-1">
+                                    ${post.auteur} <i class="fas fa-badge-check text-blue-500 text-sm" title="Compte Officiel"></i>
+                                </h3>
+                                <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                    <span><i class="fas fa-id-card"></i> ${post.matricule}</span>
+                                    <span>•</span>
+                                    <span>${formatTimeAgo(post.datePublication)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold whitespace-nowrap hidden sm:block">
+                                ${post.categorie}
+                            </span>
+                            ${adminControls}
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold mb-3 inline-block sm:hidden">
+                            ${post.categorie}
+                        </span>
+                        
+                        ${post.titre ? `<h4 class="font-bold text-lg mb-2 text-gray-800">${post.titre}</h4>` : ''}
+                        <div class="text-gray-800 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                            ${formattedText}
+                        </div>
+                        
+                        ${mediaBlock}
+                    </div>
+
+                    <div class="px-4 py-2 flex justify-between text-xs text-gray-500 font-medium border-t border-gray-50">
+                        <span>${likesCount} J'aime</span>
+                        <span>${commentsArray.length} Commentaires</span>
+                    </div>
+
+                    <div class="px-4 py-2 border-t border-b border-gray-100 flex gap-1 bg-gray-50">
+                        <button onclick="window.toggleLike('${post.id}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded hover:bg-gray-200 transition font-bold text-sm ${isLiked ? 'text-blue-600' : 'text-gray-600'}">
+                            <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up text-lg"></i>
+                            J'aime
+                        </button>
+                        <button onclick="window.toggleCommentSection('${post.id}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded hover:bg-gray-200 text-gray-600 transition font-bold text-sm">
+                            <i class="far fa-comment text-lg"></i>
+                            Commenter
+                        </button>
+                    </div>
+
+                    <div id="comments-section-${post.id}" class="hidden p-4 bg-white">
+                        <div id="comments-list-${post.id}" class="space-y-1 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                            ${commentsHtml || '<p class="text-xs text-gray-400 italic text-center py-2">Soyez le premier à commenter cette publication.</p>'}
+                        </div>
+                        
+                        <div class="flex gap-2 items-center">
+                            <img src="${currentUserProfile?.photoProfil || `https://ui-avatars.com/api/?name=${currentUserProfile?.nom || 'U'}`}" class="w-8 h-8 rounded-full border border-gray-200 object-cover">
+                            <div class="flex-1 relative">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Écrire un commentaire..." 
+                                    class="w-full bg-gray-100 text-sm rounded-full py-2.5 pl-4 pr-10 outline-none focus:ring-2 focus:ring-green-500 transition border border-transparent focus:border-green-500"
+                                    onkeypress="window.handleCommentEnter(event, '${post.id}')">
+                                <button onclick="window.addComment('${post.id}')" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-600 hover:text-green-800 p-1">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderFeed() {
+            feedContainer.innerHTML = '';
+            
+            const filteredPosts = postsData.filter(post => {
+                const matchCategory = currentFilter === 'all' || post.categorie === currentFilter;
+                const matchSearch = (post.description || '').toLowerCase().includes(searchQuery) || 
+                                    (post.titre || '').toLowerCase().includes(searchQuery) ||
+                                    (post.nomFichier || '').toLowerCase().includes(searchQuery) ||
+                                    (post.categorie || '').toLowerCase().includes(searchQuery);
+                return matchCategory && matchSearch;
+            });
+
+            if (filteredPosts.length === 0) {
+                feedContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="inline-block p-4 bg-gray-100 rounded-full mb-3 text-gray-400 text-4xl">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-700">Aucune publication trouvée</h3>
+                        <p class="text-gray-500 text-sm mt-1">Essayez de modifier vos filtres ou votre recherche.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Génération de l'HTML et injection
+            let finalHtml = '';
+            filteredPosts.forEach(post => { finalHtml += renderPost(post); });
+            feedContainer.innerHTML = finalHtml;
+        }
+
+        function chargerPublications() {
+            const q = query(collection(db, "publications"), orderBy("datePublication", "desc"));
+            
+            // Écouteur en temps réel Cloud Firestore
+            onSnapshot(q, (snapshot) => {
+                postsData = [];
+                snapshot.forEach((doc) => {
+                    postsData.push({ id: doc.id, ...doc.data() });
+                });
+                renderFeed();
+            }, (error) => {
+                console.error("Erreur de chargement des publications: ", error);
+                feedContainer.innerHTML = `<p class="text-red-500 text-center py-10">Erreur de connexion à la base de données.</p>`;
+            });
+        }
+
+        // ==========================================
+        // GESTION DES FILTRES
+        // ==========================================
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-green-600', 'text-white');
+                    b.classList.add('bg-gray-100', 'text-gray-600');
+                });
+                const clickedBtn = e.currentTarget;
+                clickedBtn.classList.remove('bg-gray-100', 'text-gray-600');
+                clickedBtn.classList.add('bg-green-600', 'text-white');
+
+                currentFilter = clickedBtn.dataset.category;
+                renderFeed();
+            });
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            renderFeed();
+        });
+
+        // ==========================================
+        // ACTIONS SUR LES PUBLICATIONS (Global pour onclick)
+        // ==========================================
+        
+        window.toggleLike = async function(postId) {
+            if (!currentUserProfile) return;
+            const post = postsData.find(p => p.id === postId);
+            if(!post) return;
+            
+            const postRef = doc(db, "publications", postId);
+            const uid = currentUserProfile.uid;
+            
+            if (post.likedBy && post.likedBy.includes(uid)) {
+                await updateDoc(postRef, { likedBy: arrayRemove(uid) });
+            } else {
+                await updateDoc(postRef, { likedBy: arrayUnion(uid) });
+            }
+        };
+
+        window.toggleCommentSection = function(postId) {
+            const section = document.getElementById(`comments-section-${postId}`);
+            section.classList.toggle('hidden');
+            if(!section.classList.contains('hidden')) {
+                document.getElementById(`comment-input-${postId}`).focus();
+            }
+        };
+
+        window.handleCommentEnter = function(e, postId) {
+            if(e.key === 'Enter') window.addComment(postId);
+        };
+
+        window.addComment = async function(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
+            
+            if(text && currentUserProfile) {
+                const postRef = doc(db, "publications", postId);
+                const newComment = {
+                    nom: currentUserProfile.nom,
+                    matricule: currentUserProfile.matricule,
+                    photoProfil: currentUserProfile.photoProfil || '',
+                    commentaire: text,
+                    date: new Date().toISOString()
+                };
+                
+                input.value = ''; // Vider l'input de suite
+                await updateDoc(postRef, { comments: arrayUnion(newComment) });
+                // Le snapshot gère la mise à jour, on réouvre juste la section après render
+                setTimeout(() => {
+                    const section = document.getElementById(`comments-section-${postId}`);
+                    if(section) section.classList.remove('hidden');
+                }, 100);
+            }
+        };
+
+        // ==========================================
+        // ADMINISTRATION (Ajout, Supression, Fichiers)
+        // ==========================================
+        
+        window.openPublishModal = function() {
+            document.getElementById('publish-modal').classList.remove('hidden');
+        };
+
+        window.closePublishModal = function() {
+            document.getElementById('publish-modal').classList.add('hidden');
+            // Reset form
+            document.getElementById('pub-titre').value = '';
+            document.getElementById('pub-desc').value = '';
+            document.getElementById('pub-file').value = '';
+            document.getElementById('pub-preview-container').classList.add('hidden');
+        };
+
+        function getFileTypeCat(fileName, mime) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (['mp4', 'webm', 'mov', 'avi'].includes(ext) || mime.startsWith('video/')) return 'video';
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) || mime.startsWith('image/')) return 'image';
+            if (ext === 'pdf') return 'pdf';
+            if (['doc', 'docx'].includes(ext)) return 'word';
+            if (['xls', 'xlsx'].includes(ext)) return 'excel';
+            if (['ppt', 'pptx'].includes(ext)) return 'powerpoint';
+            if (['zip', 'rar', '7z'].includes(ext)) return 'zip';
+            if (['mp3', 'wav', 'ogg'].includes(ext) || mime.startsWith('audio/')) return 'audio';
+            if (['txt'].includes(ext)) return 'text';
+            return 'file';
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        window.previewFile = function() {
+            const file = document.getElementById('pub-file').files[0];
+            const container = document.getElementById('pub-preview-container');
+            if (file) {
+                const type = getFileTypeCat(file.name, file.type);
+                document.getElementById('pub-preview-icon').innerHTML = getFileIcon(type);
+                document.getElementById('pub-preview-name').innerText = file.name;
+                document.getElementById('pub-preview-size').innerText = formatBytes(file.size);
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        };
+
+        window.submitPublication = async function() {
+            if(!isAdmin) return;
+            
+            const titre = document.getElementById('pub-titre').value.trim();
+            const desc = document.getElementById('pub-desc').value.trim();
+            const cat = document.getElementById('pub-cat').value;
+            const allowDl = document.getElementById('pub-dl').value === 'true';
+            const file = document.getElementById('pub-file').files[0];
+
+            if(!titre && !desc && !file) return alert("La publication ne peut pas être vide.");
+
+            const btnText = document.getElementById('btn-publish-text');
+            const btnSpinner = document.getElementById('btn-publish-spinner');
+            const progressBg = document.getElementById('pub-progress-bg');
+            
+            btnText.innerText = "Envoi...";
+            btnSpinner.classList.remove('hidden');
+            document.getElementById('btn-publish').disabled = true;
+
+            try {
+                let fileUrl = null;
+                let fileName = null;
+                let fileSize = null;
+                let fileType = 'text';
+
+                // Si un fichier est joint
+                if (file) {
+                    fileType = getFileTypeCat(file.name, file.type);
+                    fileName = file.name;
+                    fileSize = formatBytes(file.size);
+                    
+                    const storageReference = storageRef(storage, `publications_media/${Date.now()}_${file.name}`);
+                    const uploadTask = uploadBytesResumable(storageReference, file);
+
+                    // Attente de l'upload via Promesse pour gérer la barre de progression
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                progressBg.style.width = progress + '%';
+                            }, 
+                            (error) => reject(error), 
+                            async () => {
+                                fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                                resolve();
+                            }
+                        );
+                    });
+                }
+
+                // Création du document Firestore basé strictement sur les règles imposées
+                await addDoc(collection(db, "publications"), {
+                    titre: titre,
+                    description: desc,
+                    categorie: cat,
+                    typeFichier: fileType,
+                    urlFichier: fileUrl,
+                    nomFichier: fileName,
+                    tailleFichier: fileSize,
+                    auteur: "BRAINY AGENCY",
+                    matricule: "BRA0000",
+                    datePublication: serverTimestamp(),
+                    likedBy: [],
+                    comments: [],
+                    allowDownload: allowDl
+                });
+
+                window.closePublishModal();
+            } catch (error) {
+                console.error("Erreur lors de la publication :", error);
+                alert("Une erreur est survenue lors de la publication.");
+            } finally {
+                btnText.innerText = "Publier";
+                btnSpinner.classList.add('hidden');
+                document.getElementById('btn-publish').disabled = false;
+                progressBg.style.width = '0%';
+            }
+        };
+
+        window.deletePost = async function(postId) {
+            if(!isAdmin) return;
+            if(confirm("Voulez-vous vraiment supprimer cette publication ?")) {
+                try {
+                    // Supprimer de Firestore (le Snapshot mettra à jour l'UI automatiquement)
+                    await deleteDoc(doc(db, "publications", postId));
+                } catch (error) {
+                    console.error("Erreur lors de la suppression:", error);
+                    alert("Erreur lors de la suppression.");
+                }
+            }
+        };
+
+    </script>
+</body>
+</html>
