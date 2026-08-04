@@ -295,11 +295,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-// 👉 AJOUTE CETTE LIGNE :
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
-
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
@@ -314,8 +312,7 @@ import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/fireb
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
-		// 👉 AJOUTE CETTE LIGNE :
-		const messaging = getMessaging(app);
+        const messaging = getMessaging(app);
 
         let currentUser = null;
         let currentStagiaireData = null;
@@ -341,31 +338,93 @@ import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/fireb
         let currentCall = null;
         let incomingCall = null;
         let localAudioStream = null;
-		
-		// 👉 AJOUTE LE BLOC DES NOTIFICATIONS ICI :
-Notification.requestPermission().then((permission) => {
-    if (permission === 'granted') {
-        console.log('Permission accordée pour les notifications.');
         
-        // Récupérer le token (N'oublie pas de mettre ta vraie clé VAPID)
-        getToken(messaging, { vapidKey: 'BJTEA2qGghTMNW0lLQzGBaXRxsk0LrBGQkrxsqenE6PQkuc6CMINm4QnZcQwXh87QCQcBYKrPpkYkulh9dsjL9s' }).then((currentToken) => {
-            if (currentToken) {
-                console.log('Token du stagiaire :', currentToken);
-                // TODO: Enregistrer ce token dans Firestore sous le profil du stagiaire
-            } else {
-                console.log('Aucun token généré.');
+        // GESTION DU SON DE NOTIFICATION SANS DOUBLON ET SANS JOUER AU CHARGEMENT INITIAL
+        const notifiedMessageIds = new Set();
+        function playNotificationSound(msgId, senderUid) {
+            if (!currentUser || senderUid === currentUser.uid) return;
+            if (notifiedMessageIds.has(msgId)) return;
+            notifiedMessageIds.add(msgId);
+            try {
+                const audio = new Audio('audio/Votre_Reussite.mp3');
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Autoplay audio bloqué par le navigateur :", error);
+                    });
+                }
+            } catch (e) {
+                console.warn("Erreur lecture audio :", e);
+            }
+        }
+
+        // GESTION OPTIMISÉE DES ACCUSÉS DE RÉCEPTION / LECTURE (WHATSAPP 2 COCHES BLEUES)
+        async function markMessagesAsDelivered(docs, colName) {
+            if (!docs || docs.length === 0 || !currentUser) return;
+            const batch = writeBatch(db);
+            let count = 0;
+            docs.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.senderUid !== currentUser.uid && !data.delivered && !data.seen) {
+                    const refDoc = doc(db, colName, docSnap.id);
+                    batch.update(refDoc, { delivered: true });
+                    count++;
+                }
+            });
+            if (count > 0) {
+                try {
+                    await batch.commit();
+                } catch (e) {
+                    console.warn("Erreur mise à jour delivered :", e);
+                }
+            }
+        }
+
+        async function markMessagesAsSeen(docs, colName) {
+            if (!docs || docs.length === 0 || !currentUser) return;
+            const batch = writeBatch(db);
+            let count = 0;
+            docs.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.senderUid !== currentUser.uid && !data.seen) {
+                    const refDoc = doc(db, colName, docSnap.id);
+                    batch.update(refDoc, {
+                        delivered: true,
+                        seen: true,
+                        seenAt: serverTimestamp()
+                    });
+                    count++;
+                }
+            });
+            if (count > 0) {
+                try {
+                    await batch.commit();
+                } catch (e) {
+                    console.warn("Erreur mise à jour seen :", e);
+                }
+            }
+        }
+		
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                console.log('Permission accordée pour les notifications.');
+                getToken(messaging, { vapidKey: 'BJTEA2qGghTMNW0lLQzGBaXRxsk0LrBGQkrxsqenE6PQkuc6CMINm4QnZcQwXh87QCQcBYKrPpkYkulh9dsjL9s' }).then((currentToken) => {
+                    if (currentToken) {
+                        console.log('Token du stagiaire :', currentToken);
+                    } else {
+                        console.log('Aucun token généré.');
+                    }
+                }).catch(err => console.warn("Erreur token FCM:", err));
             }
         });
-    }
-});
 
-// Écoute des messages quand la page de chat est ouverte
-onMessage(messaging, (payload) => {
-    console.log('Nouveau message reçu en direct : ', payload);
-    // Tu pourras ajouter ton fichier son-message.mp3 à la racine de ton projet
-    const audio = new Audio('audio/Votre_Reussite.mp3'); 
-    audio.play();
-});
+        onMessage(messaging, (payload) => {
+            console.log('Nouveau message reçu en direct : ', payload);
+            try {
+                const audio = new Audio('audio/Votre_Reussite.mp3'); 
+                audio.play().catch(e => console.warn(e));
+            } catch(e) {}
+        });
 
         // --- GESTION DES MESSAGES NON LUS (Stockage local pour ne pas affecter la DB) ---
         let windowReadTimestamps = null;
@@ -495,7 +554,6 @@ onMessage(messaging, (payload) => {
                 await loadStagiaireProfile(user.uid);
                 await loadAllUsers();
                 renderList();
-                // Initialisation de l'écoute des appels entrants
                 initPeerJS(user.uid);
             }
         });
@@ -552,6 +610,7 @@ onMessage(messaging, (payload) => {
         async function fetchGroupLastMessage() {
             try {
                 const qMsg = query(collection(db, "messages_groupe"), orderBy("date", "asc"));
+                let isInitialGroupLoad = true;
                 onSnapshot(qMsg, (snapshot) => {
                     if (!snapshot.empty) {
                         let maxDate = 0;
@@ -566,11 +625,23 @@ onMessage(messaging, (payload) => {
                                 maxDate = d;
                                 lastMsg = data;
                             }
-                            
                             if (data.senderUid !== currentUser.uid && d > lastRead) {
                                 unreadCount++;
                             }
                         });
+
+                        snapshot.docChanges().forEach(change => {
+                            if (change.type === 'added') {
+                                const msg = change.doc.data();
+                                const msgId = change.doc.id;
+                                if (isInitialGroupLoad) {
+                                    notifiedMessageIds.add(msgId);
+                                } else if (msg.senderUid !== currentUser.uid) {
+                                    playNotificationSound(msgId, msg.senderUid);
+                                }
+                            }
+                        });
+                        isInitialGroupLoad = false;
 
                         groupeLastMsgDate = maxDate;
                         if(lastMsg.type === 'text') groupeLastMsgText = (lastMsg.senderName || 'Inconnu') + ": " + (lastMsg.texte || '');
@@ -602,6 +673,7 @@ onMessage(messaging, (payload) => {
                     const chatId = currentUser.uid < user.uid ? `${currentUser.uid}_${user.uid}` : `${user.uid}_${currentUser.uid}`;
                     const qMsg = query(collection(db, "messages_prives"), where("chatId", "==", chatId));
                     
+                    let isInitialLoad = true;
                     onSnapshot(qMsg, (snapshot) => {
                         if (!snapshot.empty) {
                             user.hasConversation = true;
@@ -615,15 +687,32 @@ onMessage(messaging, (payload) => {
                                 const data = docSnap.data();
                                 const d = data.date ? (data.date.toMillis ? data.date.toMillis() : new Date(data.date).getTime()) : Date.now();
                                 if (d >= maxDate) {
-                                maxDate = d;
+                                    maxDate = d;
                                     lastMsg = data;
                                 }
-                                
                                 if (data.senderUid !== currentUser.uid && d > lastRead) {
                                     unreadCount++;
                                 }
                             });
+
+                            snapshot.docChanges().forEach(change => {
+                                if (change.type === 'added') {
+                                    const msg = change.doc.data();
+                                    const msgId = change.doc.id;
+                                    if (isInitialLoad) {
+                                        notifiedMessageIds.add(msgId);
+                                    } else if (msg.senderUid !== currentUser.uid) {
+                                        playNotificationSound(msgId, msg.senderUid);
+                                    }
+                                }
+                            });
+                            isInitialLoad = false;
                             
+                            // Marquer automatiquement comme "reçu" sur le téléphone du destinataire (2 coches grises ✓✓)
+                            if (snapshot.docs.length > 0) {
+                                markMessagesAsDelivered(snapshot.docs, "messages_prives");
+                            }
+
                             user.lastMessage = lastMsg;
                             user.lastMessageDate = maxDate;
                             
@@ -901,7 +990,27 @@ onMessage(messaging, (payload) => {
                 qChat = query(collection(db, "messages_prives"), where("chatId", "==", activeChatId));
             }
 
+            let isInitialChatLoad = true;
             unsubscribeChat = onSnapshot(qChat, (snapshot) => {
+                const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
+
+                // Gestion du son pour les nouveaux messages reçus dans la conversation ouverte
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const msg = change.doc.data();
+                        const msgId = change.doc.id;
+                        if (isInitialChatLoad) {
+                            notifiedMessageIds.add(msgId);
+                        } else if (msg.senderUid !== currentUser.uid) {
+                            playNotificationSound(msgId, msg.senderUid);
+                        }
+                    }
+                });
+                isInitialChatLoad = false;
+
+                // Marquer immédiatement tous les messages reçus comme "lu" (seen = 2 coches bleues ✓✓)
+                markMessagesAsSeen(snapshot.docs, colName);
+
                 chatBox.innerHTML = ''; 
 
                 if (snapshot.empty) {
@@ -1011,7 +1120,17 @@ onMessage(messaging, (payload) => {
                         contentHTML = `<span>${msg.texte || ''}</span>`;
                     }
 
-                    const ticksHTML = isMe ? `<span class="ticks read" title="Lu">✓✓</span>` : '';
+                    // GESTION DU SYSTÈMES DES COCHES WHATSAPP (✓, ✓✓ GRIS, ✓✓ BLEU)
+                    let ticksHTML = '';
+                    if (isMe) {
+                        if (msg.seen) {
+                            ticksHTML = `<span class="ticks read" title="Lu">✓✓</span>`;
+                        } else if (msg.delivered) {
+                            ticksHTML = `<span class="ticks delivered" title="Reçu">✓✓</span>`;
+                        } else {
+                            ticksHTML = `<span class="ticks delivered" title="Envoyé">✓</span>`;
+                        }
+                    }
                     
                     const deleteBtnHTML = isMe ? `<button class="btn-delete" onclick="deleteMessage('${docSnapId}')" title="Supprimer ce message"><i class="fas fa-trash"></i></button>` : '';
 
@@ -1036,7 +1155,7 @@ onMessage(messaging, (payload) => {
             });
         }
 
-        // 11. Fonction principale d'envoi de message
+        // 11. Fonction principale d'envoi de message (avec statuts sent/delivered/seen)
         async function sendMessageToDb(textVal, fileUrl = null, msgType = 'text') {
             if (!currentStagiaireData) return;
 
@@ -1046,7 +1165,11 @@ onMessage(messaging, (payload) => {
                 senderName: currentStagiaireData.nom || 'Inconnu',
                 senderMatricule: currentStagiaireData.matricule || '',
                 date: serverTimestamp(),
-                type: msgType
+                type: msgType,
+                sent: true,
+                delivered: false,
+                seen: false,
+                seenAt: null
             };
 
             if (fileUrl) messageData.url = fileUrl;
