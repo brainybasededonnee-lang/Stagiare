@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brainy Hub - Chat Stagiaire Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Bibliothèque PeerJS pour les appels WebRTC (P2P) -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --wa-primary: #075e54; 
@@ -240,6 +242,8 @@
                 <div id="chatHeaderName" class="chat-header-name">Discussion Générale</div>
                 <div id="chatHeaderDesc" class="chat-header-desc">Échangez avec tous les stagiaires</div>
             </div>
+            <!-- Icône d'Appel Audio -->
+            <i class="fas fa-phone action-icon" onclick="startAudioCall()" style="color: white; font-size: 1.1rem; cursor: pointer; margin-right: 8px;" title="Appel Audio"></i>
             <i class="fas fa-lock" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;" title="Sécurisé par Firebase"></i>
         </div>
 
@@ -276,11 +280,26 @@
         </div>
     </div>
 
+    <!-- Modal Overlay d'Appel Audio -->
+    <div id="callOverlay" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:3500; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+        <div class="avatar" style="width:100px; height:100px; font-size:3rem; margin-bottom:20px; background:#e3f2fd; color:#1565c0; border-radius:50%; display:flex; align-items:center; justify-content:center;">📞</div>
+        <h2 id="callName" style="margin:10px 0; font-size:1.5rem;">Nom Contact</h2>
+        <p id="callStatus" style="color:#ddd; margin-bottom:40px; font-size:1.1rem;">Appel en cours...</p>
+        <audio id="remoteAudio" autoplay></audio>
+        <div style="display:flex; gap:30px;">
+            <button id="btnAcceptCall" onclick="acceptCall()" class="hidden" style="background:#4caf50; color:white; border:none; width:65px; height:65px; border-radius:50%; font-size:1.8rem; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); transition:transform 0.2s;"><i class="fas fa-phone"></i></button>
+            <button id="btnEndCall" onclick="endCall()" style="background:#f44336; color:white; border:none; width:65px; height:65px; border-radius:50%; font-size:1.8rem; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); transition:transform 0.2s;"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+// 👉 AJOUTE CETTE LIGNE :
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
@@ -295,6 +314,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
+		// 👉 AJOUTE CETTE LIGNE :
+		const messaging = getMessaging(app);
 
         let currentUser = null;
         let currentStagiaireData = null;
@@ -315,6 +336,37 @@
         let audioChunks = [];
         let recInterval = null;
 
+        // Variables PeerJS (Appels Audio)
+        let peer = null;
+        let currentCall = null;
+        let incomingCall = null;
+        let localAudioStream = null;
+		
+		// 👉 AJOUTE LE BLOC DES NOTIFICATIONS ICI :
+Notification.requestPermission().then((permission) => {
+    if (permission === 'granted') {
+        console.log('Permission accordée pour les notifications.');
+        
+        // Récupérer le token (N'oublie pas de mettre ta vraie clé VAPID)
+        getToken(messaging, { vapidKey: 'BJTEA2qGghTMNW0lLQzGBaXRxsk0LrBGQkrxsqenE6PQkuc6CMINm4QnZcQwXh87QCQcBYKrPpkYkulh9dsjL9s' }).then((currentToken) => {
+            if (currentToken) {
+                console.log('Token du stagiaire :', currentToken);
+                // TODO: Enregistrer ce token dans Firestore sous le profil du stagiaire
+            } else {
+                console.log('Aucun token généré.');
+            }
+        });
+    }
+});
+
+// Écoute des messages quand la page de chat est ouverte
+onMessage(messaging, (payload) => {
+    console.log('Nouveau message reçu en direct : ', payload);
+    // Tu pourras ajouter ton fichier son-message.mp3 à la racine de ton projet
+    const audio = new Audio('audio/Votre_Reussite.mp3'); 
+    audio.play();
+});
+
         // --- GESTION DES MESSAGES NON LUS (Stockage local pour ne pas affecter la DB) ---
         let windowReadTimestamps = null;
         function getLocalReadTime(chatId) {
@@ -334,6 +386,104 @@
             }
         }
 
+        // --- GESTION PEERJS (APPELS P2P) ---
+        function initPeerJS(uid) {
+            peer = new Peer(uid);
+            
+            peer.on('call', (call) => {
+                incomingCall = call;
+                const callerUser = allUsersCache.find(u => u.uid === call.peer);
+                const callerName = callerUser ? (callerUser.nom || 'Inconnu') : 'Inconnu';
+                
+                document.getElementById('callName').textContent = callerName;
+                document.getElementById('callStatus').textContent = "Appel entrant...";
+                document.getElementById('btnAcceptCall').classList.remove('hidden');
+                document.getElementById('callOverlay').classList.remove('hidden');
+                
+                call.on('close', () => window.endCall(false));
+                call.on('error', (err) => {
+                    console.error("Erreur d'appel entrant:", err);
+                    window.endCall(false);
+                });
+            });
+        }
+
+        window.startAudioCall = async () => {
+            if (activeChatId === 'groupe') {
+                alert("Les appels vocaux ne sont pas disponibles dans la discussion générale.");
+                return;
+            }
+            const uids = activeChatId.split('_');
+            const targetUid = uids[0] === currentUser.uid ? uids[1] : uids[0];
+            const targetName = activeChatName;
+
+            try {
+                localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                document.getElementById('callName').textContent = targetName;
+                document.getElementById('callStatus').textContent = "Sonne...";
+                document.getElementById('btnAcceptCall').classList.add('hidden');
+                document.getElementById('callOverlay').classList.remove('hidden');
+
+                currentCall = peer.call(targetUid, localAudioStream);
+
+                currentCall.on('stream', (remoteStream) => {
+                    document.getElementById('remoteAudio').srcObject = remoteStream;
+                    document.getElementById('callStatus').textContent = "En communication";
+                });
+                
+                currentCall.on('close', () => window.endCall(false));
+                currentCall.on('error', (err) => {
+                    console.error("Erreur d'appel:", err);
+                    window.endCall(false);
+                });
+            } catch (err) {
+                console.error("Erreur d'accès au micro:", err);
+                alert("Impossible d'accéder au microphone.");
+            }
+        };
+
+        window.acceptCall = async () => {
+            if (!incomingCall) return;
+            try {
+                localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                currentCall = incomingCall;
+                incomingCall = null;
+                
+                document.getElementById('btnAcceptCall').classList.add('hidden');
+                document.getElementById('callStatus').textContent = "Connexion...";
+                
+                currentCall.answer(localAudioStream);
+                
+                currentCall.on('stream', (remoteStream) => {
+                    document.getElementById('remoteAudio').srcObject = remoteStream;
+                    document.getElementById('callStatus').textContent = "En communication";
+                });
+            } catch (err) {
+                console.error("Erreur accès micro (réponse):", err);
+                alert("Impossible d'accéder au microphone.");
+                window.endCall();
+            }
+        };
+
+        window.endCall = (closeConnection = true) => {
+            if (closeConnection) {
+                if (currentCall) currentCall.close();
+                if (incomingCall) incomingCall.close();
+            }
+            if (localAudioStream) {
+                localAudioStream.getTracks().forEach(track => track.stop());
+                localAudioStream = null;
+            }
+            currentCall = null;
+            incomingCall = null;
+            
+            const overlay = document.getElementById('callOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            
+            const remoteAudio = document.getElementById('remoteAudio');
+            if (remoteAudio) remoteAudio.srcObject = null;
+        };
+
         // 1. Vérification de la connexion et Initialisation
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -345,6 +495,8 @@
                 await loadStagiaireProfile(user.uid);
                 await loadAllUsers();
                 renderList();
+                // Initialisation de l'écoute des appels entrants
+                initPeerJS(user.uid);
             }
         });
 
