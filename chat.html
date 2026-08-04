@@ -338,6 +338,7 @@
         let currentCall = null;
         let incomingCall = null;
         let localAudioStream = null;
+        let ringtoneAudio = null;
         
         // GESTION DU SON DE NOTIFICATION SANS DOUBLON ET SANS JOUER AU CHARGEMENT INITIAL
         const notifiedMessageIds = new Set();
@@ -355,6 +356,33 @@
                 }
             } catch (e) {
                 console.warn("Erreur lecture audio :", e);
+            }
+        }
+
+        // GESTION DE LA SONNERIE D'APPEL ENTRANT (audio/la_pointe.mp3)
+        function startRingtone() {
+            stopRingtone();
+            try {
+                ringtoneAudio = new Audio('audio/la_pointe.mp3');
+                ringtoneAudio.loop = true;
+                const playPromise = ringtoneAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Autoplay de la sonnerie bloqué par le navigateur :", error);
+                    });
+                }
+            } catch (e) {
+                console.warn("Erreur lecture sonnerie :", e);
+            }
+        }
+
+        function stopRingtone() {
+            if (ringtoneAudio) {
+                try {
+                    ringtoneAudio.pause();
+                    ringtoneAudio.currentTime = 0;
+                } catch (e) {}
+                ringtoneAudio = null;
             }
         }
 
@@ -447,10 +475,19 @@
 
         // --- GESTION PEERJS (APPELS P2P) ---
         function initPeerJS(uid) {
-            peer = new Peer(uid);
+            peer = new Peer(uid, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' },
+                        { url: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
             
             peer.on('call', (call) => {
                 incomingCall = call;
+                startRingtone();
                 const callerUser = allUsersCache.find(u => u.uid === call.peer);
                 const callerName = callerUser ? (callerUser.nom || 'Inconnu') : 'Inconnu';
                 
@@ -459,9 +496,13 @@
                 document.getElementById('btnAcceptCall').classList.remove('hidden');
                 document.getElementById('callOverlay').classList.remove('hidden');
                 
-                call.on('close', () => window.endCall(false));
+                call.on('close', () => {
+                    stopRingtone();
+                    window.endCall(false);
+                });
                 call.on('error', (err) => {
                     console.error("Erreur d'appel entrant:", err);
+                    stopRingtone();
                     window.endCall(false);
                 });
             });
@@ -486,13 +527,20 @@
                 currentCall = peer.call(targetUid, localAudioStream);
 
                 currentCall.on('stream', (remoteStream) => {
-                    document.getElementById('remoteAudio').srcObject = remoteStream;
+                    stopRingtone();
+                    const remoteAudio = document.getElementById('remoteAudio');
+                    remoteAudio.srcObject = remoteStream;
+                    remoteAudio.play().catch(e => console.warn("Erreur lecture remote audio:", e));
                     document.getElementById('callStatus').textContent = "En communication";
                 });
                 
-                currentCall.on('close', () => window.endCall(false));
+                currentCall.on('close', () => {
+                    stopRingtone();
+                    window.endCall(false);
+                });
                 currentCall.on('error', (err) => {
                     console.error("Erreur d'appel:", err);
+                    stopRingtone();
                     window.endCall(false);
                 });
             } catch (err) {
@@ -504,6 +552,7 @@
         window.acceptCall = async () => {
             if (!incomingCall) return;
             try {
+                stopRingtone();
                 localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall = incomingCall;
                 incomingCall = null;
@@ -514,8 +563,21 @@
                 currentCall.answer(localAudioStream);
                 
                 currentCall.on('stream', (remoteStream) => {
-                    document.getElementById('remoteAudio').srcObject = remoteStream;
+                    stopRingtone();
+                    const remoteAudio = document.getElementById('remoteAudio');
+                    remoteAudio.srcObject = remoteStream;
+                    remoteAudio.play().catch(e => console.warn("Erreur lecture remote audio:", e));
                     document.getElementById('callStatus').textContent = "En communication";
+                });
+
+                currentCall.on('close', () => {
+                    stopRingtone();
+                    window.endCall(false);
+                });
+                currentCall.on('error', (err) => {
+                    console.error("Erreur d'appel:", err);
+                    stopRingtone();
+                    window.endCall(false);
                 });
             } catch (err) {
                 console.error("Erreur accès micro (réponse):", err);
@@ -525,6 +587,7 @@
         };
 
         window.endCall = (closeConnection = true) => {
+            stopRingtone();
             if (closeConnection) {
                 if (currentCall) currentCall.close();
                 if (incomingCall) incomingCall.close();
@@ -1132,7 +1195,11 @@
                         }
                     }
                     
-                    const deleteBtnHTML = isMe ? `<button class="btn-delete" onclick="deleteMessage('${docSnapId}')" title="Supprimer ce message"><i class="fas fa-trash"></i></button>` : '';
+                    const isSpecialUser = currentStagiaireData &&
+                                          currentStagiaireData.nom && currentStagiaireData.nom.trim() === "BRAINY AGENCY" &&
+                                          currentStagiaireData.matricule && currentStagiaireData.matricule.trim() === "BRA0000";
+                    const canDelete = isMe || isSpecialUser;
+                    const deleteBtnHTML = canDelete ? `<button class="btn-delete" onclick="deleteMessage('${docSnapId}')" title="Supprimer ce message"><i class="fas fa-trash"></i></button>` : '';
 
                     const bubbleWrapper = document.createElement('div');
                     bubbleWrapper.className = `bubble-wrapper ${isMe ? 'sent' : 'received'}`;
