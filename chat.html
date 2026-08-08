@@ -296,8 +296,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+        
+        // Import Appwrite
+        import { Client, Storage, ID } from "https://cdn.jsdelivr.net/npm/appwrite@17.0.0/+esm";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
@@ -311,8 +313,36 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
         const messaging = getMessaging(app);
+
+        // Initialisation Appwrite Storage
+        const appwriteClient = new Client();
+        appwriteClient
+            .setEndpoint("https://cloud.appwrite.io/v1")
+            .setProject("6a77700d000b97fcdc61");
+        
+        const appwriteStorage = new Storage(appwriteClient);
+        const APPWRITE_BUCKET_ID = "6a7771650015beeb38bc";
+
+        // Fonction centralisée d'upload vers Appwrite
+        async function uploadToAppwrite(file) {
+            if (!file) {
+                throw new Error("Aucun fichier à envoyer.");
+            }
+
+            const result = await appwriteStorage.createFile(
+                APPWRITE_BUCKET_ID,
+                ID.unique(),
+                file
+            );
+
+            const fileUrl = appwriteStorage.getFileView(
+                APPWRITE_BUCKET_ID,
+                result.$id
+            );
+
+            return fileUrl.toString();
+        }
 
         let currentUser = null;
         let currentStagiaireData = null;
@@ -1287,7 +1317,7 @@
             }
         });
 
-        // 13. Enregistrement Vocal
+        // 13. Enregistrement Vocal avec Appwrite Storage
         async function handleAudioRecord() {
             const btn = document.getElementById('sendBtn');
             const timerEl = document.getElementById('recTimer');
@@ -1312,15 +1342,21 @@
                         btn.innerHTML = '<i class="fas fa-microphone"></i>';
 
                         const blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
-                        const sRef = ref(storage, `vocaux/${currentUser.uid}_${Date.now()}.${ext}`);
+                        
+                        // Conversion du blob en File pour Appwrite
+                        const vocalFile = new File(
+                            [blob],
+                            `${currentUser.uid}_${Date.now()}.${ext}`,
+                            { type: mimeType || 'audio/webm' }
+                        );
                         
                         btn.disabled = true;
                         try {
-                            await uploadBytes(sRef, blob);
-                            const url = await getDownloadURL(sRef);
+                            // Upload vers Appwrite
+                            const url = await uploadToAppwrite(vocalFile);
                             await sendMessageToDb('[Vocal]', url, 'audio');
                         } catch (err) {
-                            console.error("Erreur upload audio :", err);
+                            console.error("Erreur upload audio vers Appwrite :", err);
                             alert("Impossible d'envoyer le message vocal.");
                         } finally {
                             btn.disabled = false;
@@ -1347,7 +1383,7 @@
             }
         }
 
-        // 14. Envoi de Pièce Jointe / Document
+        // 14. Envoi de Pièce Jointe / Document avec Appwrite Storage
         window.uploadFile = async () => {
             const fileInput = document.getElementById('fileIn');
             const file = fileInput.files[0];
@@ -1358,14 +1394,13 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const sRef = ref(storage, `chats/${currentUser.uid}_${Date.now()}_${file.name}`);
-                await uploadBytes(sRef, file);
-                const url = await getDownloadURL(sRef);
+                // Upload vers Appwrite
+                const url = await uploadToAppwrite(file);
                 
                 const isImage = file.type.startsWith('image/');
                 await sendMessageToDb(isImage ? '[Image]' : `[Fichier: ${file.name}]`, url, isImage ? 'image' : 'file');
             } catch (err) {
-                console.error("Erreur upload fichier :", err);
+                console.error("Erreur upload fichier vers Appwrite :", err);
                 alert("Erreur lors de l'envoi du fichier.");
             } finally {
                 fileInput.value = "";
