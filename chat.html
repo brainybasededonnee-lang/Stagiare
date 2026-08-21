@@ -298,9 +298,6 @@
         import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
         
-        // Import Appwrite
-        import { Client, Storage, ID } from "https://cdn.jsdelivr.net/npm/appwrite@17.0.0/+esm";
-
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
             authDomain: "stagiaire-afc7b.firebaseapp.com",
@@ -315,33 +312,51 @@
         const db = getFirestore(app);
         const messaging = getMessaging(app);
 
-        // Initialisation Appwrite Storage
-        const appwriteClient = new Client();
-        appwriteClient
-            .setEndpoint("https://cloud.appwrite.io/v1")
-            .setProject("6a77700d000b97fcdc61");
-        
-        const appwriteStorage = new Storage(appwriteClient);
-        const APPWRITE_BUCKET_ID = "6a7771650015beeb38bc";
-
-        // Fonction centralisée d'upload vers Appwrite
-        async function uploadToAppwrite(file) {
+        // --- NOUVELLE FONCTION CLOUDFLARE R2 ---
+        async function uploadToR2(file, folder) {
             if (!file) {
                 throw new Error("Aucun fichier à envoyer.");
             }
+            if (!currentUser) {
+                throw new Error("Utilisateur non connecté");
+            }
 
-            const result = await appwriteStorage.createFile(
-                APPWRITE_BUCKET_ID,
-                ID.unique(),
-                file
-            );
+            // Récupération du token Firebase de l'utilisateur connecté
+            const token = await currentUser.getIdToken();
+            
+            // Génération du chemin de fichier strict : stagiaires/{uid}/{dossier}/{timestamp}_{nom}
+            const timestamp = Date.now();
+            const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_') : 'fichier';
+            const fileName = `${timestamp}_${safeName}`;
+            const filePath = `stagiaires/${currentUser.uid}/${folder}/${fileName}`;
 
-            const fileUrl = appwriteStorage.getFileView(
-                APPWRITE_BUCKET_ID,
-                result.$id
-            );
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("path", filePath);
 
-            return fileUrl.toString();
+            // Envoi au Cloudflare Worker
+            const response = await fetch("https://brainy-stagiaire-api.komibrainy.workers.dev/", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}` 
+                    // Aucune clé UPLOAD_SECRET n'est présente ici. La vérification est côté Worker.
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de l'envoi vers R2 : ${response.statusText}`);
+            }
+
+            const resultText = await response.text();
+            try {
+                // Si le worker répond avec { "url": "https://..." }
+                const resultJson = JSON.parse(resultText);
+                return resultJson.url || resultText;
+            } catch (e) {
+                // Si le worker répond directement avec l'URL brute
+                return resultText;
+            }
         }
 
         let currentUser = null;
@@ -1317,7 +1332,7 @@
             }
         });
 
-        // 13. Enregistrement Vocal avec Appwrite Storage
+        // 13. Enregistrement Vocal avec Upload vers Cloudflare R2
         async function handleAudioRecord() {
             const btn = document.getElementById('sendBtn');
             const timerEl = document.getElementById('recTimer');
@@ -1343,20 +1358,20 @@
 
                         const blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
                         
-                        // Conversion du blob en File pour Appwrite
+                        // Conversion du blob en File pour R2
                         const vocalFile = new File(
                             [blob],
-                            `${currentUser.uid}_${Date.now()}.${ext}`,
+                            `vocal.${ext}`,
                             { type: mimeType || 'audio/webm' }
                         );
                         
                         btn.disabled = true;
                         try {
-                            // Upload vers Appwrite
-                            const url = await uploadToAppwrite(vocalFile);
+                            // Envoi au Worker Cloudflare
+                            const url = await uploadToR2(vocalFile, 'vocaux');
                             await sendMessageToDb('[Vocal]', url, 'audio');
                         } catch (err) {
-                            console.error("Erreur upload audio vers Appwrite :", err);
+                            console.error("Erreur upload audio vers R2 :", err);
                             alert("Impossible d'envoyer le message vocal.");
                         } finally {
                             btn.disabled = false;
@@ -1383,7 +1398,7 @@
             }
         }
 
-        // 14. Envoi de Pièce Jointe / Document avec Appwrite Storage
+        // 14. Envoi de Pièce Jointe / Document avec Upload vers Cloudflare R2
         window.uploadFile = async () => {
             const fileInput = document.getElementById('fileIn');
             const file = fileInput.files[0];
@@ -1394,13 +1409,15 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                // Upload vers Appwrite
-                const url = await uploadToAppwrite(file);
-                
                 const isImage = file.type.startsWith('image/');
+                const folder = isImage ? 'images' : 'documents';
+                
+                // Envoi au Worker Cloudflare
+                const url = await uploadToR2(file, folder);
+                
                 await sendMessageToDb(isImage ? '[Image]' : `[Fichier: ${file.name}]`, url, isImage ? 'image' : 'file');
             } catch (err) {
-                console.error("Erreur upload fichier vers Appwrite :", err);
+                console.error("Erreur upload fichier vers R2 :", err);
                 alert("Erreur lors de l'envoi du fichier.");
             } finally {
                 fileInput.value = "";
