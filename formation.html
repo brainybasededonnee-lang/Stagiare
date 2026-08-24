@@ -9,14 +9,16 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
         
+        /* Personnalisation de la scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* Animation d'apparition des cartes */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -25,12 +27,16 @@
             animation: fadeIn 0.4s ease-out forwards;
         }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Styles pour masquer la barre de défilement horizontale des catégories */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
         .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
 
+        /* Protection vidéo basique (désactiver le clic droit) */
         .protected-media {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -47,8 +53,8 @@
     <nav class="bg-green-700 p-4 text-white flex justify-between items-center shadow-md sticky top-0 z-40">
         <div class="flex items-center gap-3">
            <button onclick="window.location.href='stagiaire.html'" class="text-white hover:text-green-200 transition text-xl mr-2 md:hidden" title="Retour">
-                <i class="fas fa-arrow-left"></i>
-            </button>
+    <i class="fas fa-arrow-left"></i>
+</button>
             <div class="w-10 h-10 bg-white rounded-full overflow-hidden border-2 border-green-300 flex items-center justify-center">
                 <i class="fas fa-graduation-cap text-green-700 text-xl"></i>
             </div>
@@ -57,41 +63,71 @@
                 <p class="text-xs text-green-200 font-light">Espace Stagiaire</p>
             </div>
         </div>
+        
+       
     </nav>
 
     <!-- Zone de filtrage et recherche -->
     <div class="bg-white shadow-sm sticky top-[72px] z-30">
         <div class="max-w-3xl mx-auto px-4 py-3">
+            <!-- Barre de recherche -->
             <div class="relative mb-3 flex items-center gap-2">
-                <div class="relative flex-1">
-                    <input type="text" id="search-input" placeholder="Rechercher une formation, un mot-clé..." 
-                        class="w-full bg-gray-100 border border-gray-200 text-gray-800 text-sm rounded-full focus:ring-green-500 focus:border-green-500 block pl-10 p-2.5 outline-none transition shadow-inner">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
-                    </div>
-                </div>
-                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow transition flex items-center gap-2 shrink-0" onclick="document.getElementById('search-input').focus()">
-                    <i class="fas fa-search"></i>
-                    <span class="hidden sm:inline">Rechercher</span>
-                </button>
-            </div>
-
-            <div class="flex flex-wrap gap-2 py-1" id="category-filters">
-                <button class="filter-btn active whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-green-600 text-white shadow-md transition-colors" data-category="all">Toutes</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Bureautique">Info. Bureautique</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Industrielle">Info. Industrielle</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Électronique">Électronique</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Business">Business</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Excel">Excel</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Infographie">Infographie</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Programmation">Programmation</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="IA">IA</button>
-                <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Réseau">Réseau</button>
-            </div>
+    <div class="relative flex-1">
+        <input type="text" id="search-input" placeholder="Rechercher une formation, un mot-clé..." 
+            class="w-full bg-gray-100 border border-gray-200 text-gray-800 text-sm rounded-full focus:ring-green-500 focus:border-green-500 block pl-10 p-2.5 outline-none transition shadow-inner">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
         </div>
     </div>
+    <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow transition flex items-center gap-2 shrink-0" title="Rechercher" onclick="document.getElementById('search-input').focus()">
+        <i class="fas fa-search"></i>
+        <span class="hidden sm:inline">Rechercher</span>
+    </button>
+</div>
 
-    <!-- Barre d'administration -->
+        <!-- Filtres de catégories (Affichage complet avec retour à la ligne sur mobile) -->
+<div class="flex flex-wrap gap-2 py-1" id="category-filters">
+    <button class="filter-btn active whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-green-600 text-white shadow-md transition-colors" data-category="all">
+        Toutes
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Bureautique">
+        Info. Bureautique
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Informatique Industrielle">
+        Info. Industrielle
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Électronique">
+        Électronique
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Business">
+        Business
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Excel">
+        Excel
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Infographie">
+        Infographie
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Programmation">
+        Programmation
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="IA">
+        IA
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Réseau">
+        Réseau
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Internet">
+        Internet
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Évènement">
+        Évènement
+    </button>
+</div>
+    </div>
+	
+
+    <!-- Barre d'administration (Masquée par défaut) -->
     <div id="admin-bar" class="hidden max-w-3xl mx-auto px-4 mt-4">
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex justify-between items-center shadow-sm">
             <span class="font-bold text-blue-800 text-sm"><i class="fas fa-user-shield mr-2"></i>Compte Admin : BRAINY AGENCY</span>
@@ -103,7 +139,7 @@
         </div>
     </div>
 
-    <!-- Fil d'actualité -->
+    <!-- Conteneur principal (Fil d'actualité) -->
     <main class="max-w-3xl mx-auto px-4 py-4" id="feed-container">
         <div class="text-center py-10 text-gray-500">
             <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
@@ -111,22 +147,22 @@
         </div>
     </main>
 
-    <!-- Modale de nouvelle publication -->
+    <!-- Modale de nouvelle publication (Admin) -->
     <div id="publish-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl my-8 relative flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b flex justify-between items-center bg-white rounded-t-xl shrink-0">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-plus-circle text-blue-600"></i> Nouvelle Publication (Cloudflare R2)</h2>
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-plus-circle text-blue-600"></i> Nouvelle Publication</h2>
                 <button onclick="window.closePublishModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
             </div>
             
             <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar grow">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Titre de la publication</label>
-                    <input type="text" id="pub-titre" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none">
+                    <input type="text" id="pub-titre" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ex: Cours d'initiation Excel">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Description / Contenu textuel</label>
-                    <textarea id="pub-desc" rows="4" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+                    <textarea id="pub-desc" rows="4" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Écrivez votre message ici..."></textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -141,19 +177,22 @@
                             <option value="Programmation">Programmation</option>
                             <option value="IA">IA</option>
                             <option value="Réseau">Réseau</option>
+                            <option value="Internet">Internet</option>
+                            <option value="Évènement">Évènement</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Autoriser le téléchargement</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Autoriser le téléchargement du fichier</label>
                         <select id="pub-dl" class="w-full bg-gray-50 border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none font-bold">
-                            <option value="true">Oui, autoriser</option>
-                            <option value="false">Non (Lecture seule)</option>
+                            <option value="true">Oui, autoriser le téléchargement</option>
+                            <option value="false">Non, interdire (Lecture seule)</option>
                         </select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Joindre un fichier vers Cloudflare R2 (Optionnel)</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Joindre un fichier (Optionnel)</label>
                     <input type="file" id="pub-file" onchange="window.previewFile()" class="w-full bg-gray-50 border border-gray-300 rounded p-2 text-sm cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1">Vidéos, Images, PDF, Word, Excel, PowerPoint, ZIP, Audio...</p>
                 </div>
                 <div id="pub-preview-container" class="hidden mt-3 p-3 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center gap-3">
                     <div id="pub-preview-icon" class="text-3xl"></div>
@@ -168,7 +207,7 @@
                 <div id="pub-progress-bg" class="absolute top-0 left-0 h-full bg-green-100 w-0 transition-all duration-300 z-0"></div>
                 <button onclick="window.closePublishModal()" class="px-4 py-2 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded font-bold transition relative z-10">Annuler</button>
                 <button id="btn-publish" onclick="window.submitPublication()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold shadow-md transition flex items-center relative z-10">
-                    <span id="btn-publish-text">Publier sur R2</span>
+                    <span id="btn-publish-text">Publier</span>
                     <i id="btn-publish-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                 </button>
             </div>
@@ -178,13 +217,15 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // Suppression totale des imports firebase-storage.js
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, arrayUnion, arrayRemove, serverTimestamp, getDocs, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
+        // Configuration Firebase existante
         const firebaseConfig = {
             apiKey: "AIzaSyBRk9DTRauiYzF49pNly34vWPEChIBkMIo",
             authDomain: "stagiaire-afc7b.firebaseapp.com",
             projectId: "stagiaire-afc7b",
+            storageBucket: "stagiaire-afc7b.firebasestorage.app",
             messagingSenderId: "211607769009",
             appId: "1:211607769009:web:7676af127f0ae6927e3790"
         };
@@ -192,7 +233,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
+        // Variables globales
         let currentUserProfile = null;
         let isAdmin = false;
         let postsData = [];
@@ -203,24 +246,34 @@
         const searchInput = document.getElementById('search-input');
         const filterBtns = document.querySelectorAll('.filter-btn');
 
+        // ==========================================
+        // INITIALISATION ET AUTHENTIFICATION
+        // ==========================================
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "index.html";
                 return;
             }
+
             const qU = query(collection(db, "users"), where("uid", "==", user.uid));
             const snapU = await getDocs(qU);
             
             if (!snapU.empty) {
                 currentUserProfile = snapU.docs[0].data();
+                
                 if (currentUserProfile.matricule === 'BRA0000') {
                     isAdmin = true;
                     document.getElementById('admin-bar').classList.remove('hidden');
                 }
+                
                 chargerPublications();
             }
         });
 
+        // ==========================================
+        // LOGIQUE D'AFFICHAGE ET DE RENDU
+        // ==========================================
+        
         function getFileIcon(type) {
             switch(type) {
                 case 'pdf': return '<i class="fas fa-file-pdf text-red-500 text-3xl"></i>';
@@ -252,6 +305,7 @@
 
         function renderPost(post) {
             const formattedText = (post.description || '').replace(/\n/g, '<br>');
+
             let badgeColor = "bg-gray-100 text-gray-800";
             if(post.categorie === 'Informatique Bureautique') badgeColor = "bg-blue-100 text-blue-800";
             if(post.categorie === 'Informatique Industrielle') badgeColor = "bg-purple-100 text-purple-800";
@@ -279,7 +333,7 @@
 
                 mediaBlock = `
                     <div class="mt-3 relative rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
-                        <img src="${post.urlFichier}" class="w-full h-auto max-h-96 object-contain ${downloadStyle}" ${!post.allowDownload ? 'oncontextmenu="return false;"' : ''}>
+                        <img src="${post.urlFichier}" alt="Publication" class="w-full h-auto max-h-96 object-contain ${downloadStyle}" ${!post.allowDownload ? 'oncontextmenu="return false;"' : ''}>
                         ${lockBadge}
                     </div>
                 `;
@@ -287,26 +341,30 @@
             else if (post.typeFichier && post.typeFichier !== 'text' && post.urlFichier) {
                 const btnAction = post.allowDownload 
                     ? `<a href="${post.urlFichier}" target="_blank" download class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-lg font-bold text-sm transition flex items-center gap-2"><i class="fas fa-download"></i> <span class="hidden sm:inline">Télécharger</span></a>`
-                    : `<span class="bg-red-50 text-red-500 px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-red-100 cursor-not-allowed"><i class="fas fa-ban"></i> <span class="hidden sm:inline">Protégé</span></span>`;
+                    : `<span class="bg-red-50 text-red-500 px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-red-100 cursor-not-allowed" title="Lecture seule"><i class="fas fa-ban"></i> <span class="hidden sm:inline">Protégé</span></span>`;
 
                 mediaBlock = `
                     <div class="mt-3 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition">
                         <div class="flex items-center gap-3 overflow-hidden">
                             ${getFileIcon(post.typeFichier)}
                             <div class="truncate">
-                                <p class="text-sm font-bold text-gray-800 truncate">${post.nomFichier}</p>
+                                <p class="text-sm font-bold text-gray-800 truncate" title="${post.nomFichier}">${post.nomFichier}</p>
                                 <p class="text-xs text-gray-500 uppercase">${post.tailleFichier} • ${post.typeFichier}</p>
                             </div>
                         </div>
-                        <div class="ml-2 flex-shrink-0">${btnAction}</div>
+                        <div class="ml-2 flex-shrink-0">
+                            ${btnAction}
+                        </div>
                     </div>
                 `;
             }
 
             let commentsHtml = '';
-            (post.comments || []).forEach(c => {
+            const commentsArray = post.comments || [];
+            commentsArray.forEach(c => {
                 const isAgency = c.matricule === 'BRA0000';
-                const badge = isAgency ? `<span class="text-green-700 bg-green-100 px-1 rounded text-xs ml-1"><i class="fas fa-check-circle"></i> Auteur</span>` : '';
+                const authorClass = isAgency ? "text-green-700 bg-green-100 px-1 rounded text-xs ml-1" : "text-gray-900";
+                const badge = isAgency ? `<span class="${authorClass}"><i class="fas fa-check-circle"></i> Auteur</span>` : '';
                 const avatar = c.photoProfil || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.nom)}&background=random`;
                 
                 commentsHtml += `
@@ -325,6 +383,7 @@
 
             const likedBy = post.likedBy || [];
             const isLiked = currentUserProfile && likedBy.includes(currentUserProfile.uid);
+            const likesCount = likedBy.length;
             const authorAvatar = "https://ui-avatars.com/api/?name=Brainy+Agency&background=075e54&color=fff&bold=true";
             
             const adminControls = isAdmin ? `
@@ -337,10 +396,10 @@
                 <article class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 post-card overflow-hidden">
                     <div class="p-4 flex items-start justify-between border-b border-gray-50">
                         <div class="flex items-center gap-3">
-                            <img src="${authorAvatar}" class="w-12 h-12 rounded-full border-2 border-green-100 object-cover shadow-sm">
+                            <img src="${authorAvatar}" alt="Logo" class="w-12 h-12 rounded-full border-2 border-green-100 object-cover shadow-sm">
                             <div>
                                 <h3 class="font-bold text-gray-900 leading-tight flex items-center gap-1">
-                                    ${post.auteur} <i class="fas fa-badge-check text-blue-500 text-sm"></i>
+                                    ${post.auteur} <i class="fas fa-badge-check text-blue-500 text-sm" title="Compte Officiel"></i>
                                 </h3>
                                 <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                                     <span><i class="fas fa-id-card"></i> ${post.matricule}</span>
@@ -350,29 +409,39 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold whitespace-nowrap hidden sm:block">${post.categorie}</span>
+                            <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold whitespace-nowrap hidden sm:block">
+                                ${post.categorie}
+                            </span>
                             ${adminControls}
                         </div>
                     </div>
 
                     <div class="p-4">
-                        <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold mb-3 inline-block sm:hidden">${post.categorie}</span>
+                        <span class="${badgeColor} text-xs px-2.5 py-1 rounded-full font-bold mb-3 inline-block sm:hidden">
+                            ${post.categorie}
+                        </span>
+                        
                         ${post.titre ? `<h4 class="font-bold text-lg mb-2 text-gray-800">${post.titre}</h4>` : ''}
-                        <div class="text-gray-800 text-sm md:text-base leading-relaxed whitespace-pre-line">${formattedText}</div>
+                        <div class="text-gray-800 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                            ${formattedText}
+                        </div>
+                        
                         ${mediaBlock}
                     </div>
 
                     <div class="px-4 py-2 flex justify-between text-xs text-gray-500 font-medium border-t border-gray-50">
-                        <span>${likedBy.length} J'aime</span>
-                        <span>${(post.comments || []).length} Commentaires</span>
+                        <span>${likesCount} J'aime</span>
+                        <span>${commentsArray.length} Commentaires</span>
                     </div>
 
                     <div class="px-4 py-2 border-t border-b border-gray-100 flex gap-1 bg-gray-50">
                         <button onclick="window.toggleLike('${post.id}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded hover:bg-gray-200 transition font-bold text-sm ${isLiked ? 'text-blue-600' : 'text-gray-600'}">
-                            <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up text-lg"></i> J'aime
+                            <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up text-lg"></i>
+                            J'aime
                         </button>
                         <button onclick="window.toggleCommentSection('${post.id}')" class="flex-1 flex items-center justify-center gap-2 py-2 rounded hover:bg-gray-200 text-gray-600 transition font-bold text-sm">
-                            <i class="far fa-comment text-lg"></i> Commenter
+                            <i class="far fa-comment text-lg"></i>
+                            Commenter
                         </button>
                     </div>
 
@@ -380,11 +449,12 @@
                         <div id="comments-list-${post.id}" class="space-y-1 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                             ${commentsHtml || '<p class="text-xs text-gray-400 italic text-center py-2">Soyez le premier à commenter cette publication.</p>'}
                         </div>
+                        
                         <div class="flex gap-2 items-center">
                             <img src="${currentUserProfile?.photoProfil || `https://ui-avatars.com/api/?name=${currentUserProfile?.nom || 'U'}`}" class="w-8 h-8 rounded-full border border-gray-200 object-cover">
                             <div class="flex-1 relative">
                                 <input type="text" id="comment-input-${post.id}" placeholder="Écrire un commentaire..." 
-                                    class="w-full bg-gray-100 text-sm rounded-full py-2.5 pl-4 pr-10 outline-none focus:ring-2 focus:ring-green-500 transition"
+                                    class="w-full bg-gray-100 text-sm rounded-full py-2.5 pl-4 pr-10 outline-none focus:ring-2 focus:ring-green-500 transition border border-transparent focus:border-green-500"
                                     onkeypress="window.handleCommentEnter(event, '${post.id}')">
                                 <button onclick="window.addComment('${post.id}')" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-600 hover:text-green-800 p-1">
                                     <i class="fas fa-paper-plane"></i>
@@ -398,19 +468,24 @@
 
         function renderFeed() {
             feedContainer.innerHTML = '';
+            
             const filteredPosts = postsData.filter(post => {
                 const matchCategory = currentFilter === 'all' || post.categorie === currentFilter;
                 const matchSearch = (post.description || '').toLowerCase().includes(searchQuery) || 
                                     (post.titre || '').toLowerCase().includes(searchQuery) ||
-                                    (post.nomFichier || '').toLowerCase().includes(searchQuery);
+                                    (post.nomFichier || '').toLowerCase().includes(searchQuery) ||
+                                    (post.categorie || '').toLowerCase().includes(searchQuery);
                 return matchCategory && matchSearch;
             });
 
             if (filteredPosts.length === 0) {
                 feedContainer.innerHTML = `
                     <div class="text-center py-12">
-                        <div class="inline-block p-4 bg-gray-100 rounded-full mb-3 text-gray-400 text-4xl"><i class="fas fa-folder-open"></i></div>
+                        <div class="inline-block p-4 bg-gray-100 rounded-full mb-3 text-gray-400 text-4xl">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-gray-700">Aucune publication trouvée</h3>
+                        <p class="text-gray-500 text-sm mt-1">Essayez de modifier vos filtres ou votre recherche.</p>
                     </div>
                 `;
                 return;
@@ -425,14 +500,19 @@
             const q = query(collection(db, "publications"), orderBy("datePublication", "desc"));
             onSnapshot(q, (snapshot) => {
                 postsData = [];
-                snapshot.forEach((doc) => { postsData.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach((doc) => {
+                    postsData.push({ id: doc.id, ...doc.data() });
+                });
                 renderFeed();
             }, (error) => {
-                console.error("Erreur de chargement: ", error);
+                console.error("Erreur de chargement des publications: ", error);
                 feedContainer.innerHTML = `<p class="text-red-500 text-center py-10">Erreur de connexion à la base de données.</p>`;
             });
         }
 
+        // ==========================================
+        // GESTION DES FILTRES
+        // ==========================================
         filterBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 filterBtns.forEach(b => {
@@ -442,6 +522,7 @@
                 const clickedBtn = e.currentTarget;
                 clickedBtn.classList.remove('bg-gray-100', 'text-gray-600');
                 clickedBtn.classList.add('bg-green-600', 'text-white');
+
                 currentFilter = clickedBtn.dataset.category;
                 renderFeed();
             });
@@ -452,10 +533,15 @@
             renderFeed();
         });
 
+        // ==========================================
+        // ACTIONS SUR LES PUBLICATIONS (Global pour onclick)
+        // ==========================================
+        
         window.toggleLike = async function(postId) {
             if (!currentUserProfile) return;
             const post = postsData.find(p => p.id === postId);
             if(!post) return;
+            
             const postRef = doc(db, "publications", postId);
             const uid = currentUserProfile.uid;
             
@@ -469,7 +555,9 @@
         window.toggleCommentSection = function(postId) {
             const section = document.getElementById(`comments-section-${postId}`);
             section.classList.toggle('hidden');
-            if(!section.classList.contains('hidden')) document.getElementById(`comment-input-${postId}`).focus();
+            if(!section.classList.contains('hidden')) {
+                document.getElementById(`comment-input-${postId}`).focus();
+            }
         };
 
         window.handleCommentEnter = function(e, postId) {
@@ -489,6 +577,7 @@
                     commentaire: text,
                     date: new Date().toISOString()
                 };
+                
                 input.value = ''; 
                 await updateDoc(postRef, { comments: arrayUnion(newComment) });
                 setTimeout(() => {
@@ -498,7 +587,14 @@
             }
         };
 
-        window.openPublishModal = function() { document.getElementById('publish-modal').classList.remove('hidden'); };
+        // ==========================================
+        // ADMINISTRATION (Ajout, Supression, Fichiers)
+        // ==========================================
+        
+        window.openPublishModal = function() {
+            document.getElementById('publish-modal').classList.remove('hidden');
+        };
+
         window.closePublishModal = function() {
             document.getElementById('publish-modal').classList.add('hidden');
             document.getElementById('pub-titre').value = '';
@@ -559,7 +655,7 @@
             const btnSpinner = document.getElementById('btn-publish-spinner');
             const progressBg = document.getElementById('pub-progress-bg');
             
-            btnText.innerText = "Envoi sur R2...";
+            btnText.innerText = "Envoi...";
             btnSpinner.classList.remove('hidden');
             document.getElementById('btn-publish').disabled = true;
 
@@ -569,7 +665,7 @@
                 let fileSize = "";
                 let fileType = 'text';
 
-                // Envoi DIRECT vers l'API Cloudflare Worker (qui gère R2)
+                // Si un fichier est joint, on l'envoie via l'API Worker
                 if (file) {
                     fileType = getFileTypeCat(file.name, file.type);
                     fileName = file.name;
@@ -591,28 +687,31 @@
                                 if (xhr.status >= 200 && xhr.status < 300) {
                                     try {
                                         let resultText = xhr.responseText.trim();
+                                        // Analyse flexible pour récupérer l'URL selon divers formats possibles du Worker
                                         try {
                                             const responseObj = JSON.parse(resultText);
-                                            fileUrl = responseObj.url || responseObj.fileUrl || responseObj.secure_url || responseObj.link || resultText;
+                                            fileUrl = responseObj.url || responseObj.fileUrl || responseObj.secure_url || responseObj.link || responseObj.file || resultText;
                                         } catch (e) {
-                                            fileUrl = resultText;
+                                            fileUrl = resultText; // Si ce n'est pas du JSON, on prend la réponse brute
                                         }
                                         
+                                        // Vérification basique que c'est bien une URL
                                         if(fileUrl && fileUrl.startsWith('http')) {
                                             resolve();
                                         } else {
-                                            reject(new Error("L'API R2 n'a pas renvoyé une URL valide."));
+                                            reject(new Error("L'API n'a pas renvoyé une URL valide. Réponse : " + xhr.responseText.substring(0, 50)));
                                         }
                                     } catch (e) {
-                                        reject(new Error("Erreur de lecture de l'API R2."));
+                                        reject(new Error("Erreur lors de la lecture de la réponse de l'API."));
                                     }
                                 } else {
-                                    // Si vous avez toujours l'erreur ici avec une vidéo, c'est la limite de taille du Worker Cloudflare
-                                    reject(new Error(`Code serveur ${xhr.status}. La vidéo est peut-être trop lourde pour le Worker.`));
+                                    // Affichage clair de l'erreur du serveur (ex: 413 Payload Too Large)
+                                    reject(new Error(`Code serveur ${xhr.status}. La vidéo est peut-être trop lourde pour l'API.`));
                                 }
                             }
                         };
-                        xhr.onerror = () => reject(new Error("Échec réseau avec l'API Cloudflare R2."));
+                        
+                        xhr.onerror = () => reject(new Error("Échec de la connexion réseau avec l'API Cloudflare."));
                         
                         const formData = new FormData();
                         formData.append("file", file);
@@ -620,7 +719,7 @@
                     });
                 }
 
-                // Enregistrement des données textuelles et de l'URL R2 dans Firestore
+                // Enregistrement dans Firestore avec initialisation propre des champs vides
                 await addDoc(collection(db, "publications"), {
                     titre: titre,
                     description: desc,
@@ -639,10 +738,10 @@
 
                 window.closePublishModal();
             } catch (error) {
-                console.error("Détail de l'erreur :", error);
-                alert("Erreur : " + error.message);
+                console.error("Détail de l'erreur de publication :", error);
+                alert("Erreur de publication : " + error.message);
             } finally {
-                btnText.innerText = "Publier sur R2";
+                btnText.innerText = "Publier";
                 btnSpinner.classList.add('hidden');
                 document.getElementById('btn-publish').disabled = false;
                 progressBg.style.width = '0%';
@@ -653,11 +752,7 @@
             if(!isAdmin) return;
             if(confirm("Voulez-vous vraiment supprimer cette publication ?")) {
                 try {
-                    // Supprime le document de Firestore
                     await deleteDoc(doc(db, "publications", postId));
-                    
-                    // Note : Si vous souhaitez également supprimer le fichier physique sur Cloudflare R2, 
-                    // il faudra faire un appel 'DELETE' vers votre API Worker ici.
                 } catch (error) {
                     console.error("Erreur lors de la suppression:", error);
                     alert("Erreur lors de la suppression.");
