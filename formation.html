@@ -102,6 +102,27 @@
     <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Business">
         Business
     </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Excel">
+        Excel
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Infographie">
+        Infographie
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Programmation">
+        Programmation
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="IA">
+        IA
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Réseau">
+        Réseau
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Internet">
+        Internet
+    </button>
+    <button class="filter-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" data-category="Évènement">
+        Évènement
+    </button>
 </div>
     </div>
 	
@@ -151,6 +172,13 @@
                             <option value="Informatique Industrielle">Informatique Industrielle</option>
                             <option value="Électronique">Électronique</option>
                             <option value="Business">Business</option>
+                            <option value="Excel">Excel</option>
+                            <option value="Infographie">Infographie</option>
+                            <option value="Programmation">Programmation</option>
+                            <option value="IA">IA</option>
+                            <option value="Réseau">Réseau</option>
+                            <option value="Internet">Internet</option>
+                            <option value="Évènement">Évènement</option>
                         </select>
                     </div>
                     <div>
@@ -657,22 +685,40 @@
                     fileName = file.name;
                     fileSize = formatBytes(file.size);
                     
-                    const storageReference = storageRef(storage, `publications_media/${Date.now()}_${file.name}`);
-                    const uploadTask = uploadBytesResumable(storageReference, file);
-
-                    // Attente de l'upload via Promesse pour gérer la barre de progression
+                    // Attente de l'upload via Promesse pour gérer la barre de progression avec l'API Cloudflare Worker
                     await new Promise((resolve, reject) => {
-                        uploadTask.on('state_changed', 
-                            (snapshot) => {
-                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'https://brainy-stagiaire-api.komibrainy.workers.dev/', true);
+                        
+                        xhr.upload.addEventListener("progress", (event) => {
+                            if (event.lengthComputable) {
+                                const progress = (event.loaded / event.total) * 100;
                                 progressBg.style.width = progress + '%';
-                            }, 
-                            (error) => reject(error), 
-                            async () => {
-                                fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                                resolve();
                             }
-                        );
+                        });
+
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    try {
+                                        const response = JSON.parse(xhr.responseText);
+                                        // Gérer les différentes structures de réponse possibles
+                                        fileUrl = response.url || response.fileUrl || response.secure_url || xhr.responseText;
+                                    } catch (e) {
+                                        fileUrl = xhr.responseText.trim();
+                                    }
+                                    resolve();
+                                } else {
+                                    reject(new Error("Erreur d'upload via l'API"));
+                                }
+                            }
+                        };
+                        
+                        xhr.onerror = () => reject(new Error('Erreur réseau lors du téléversement'));
+                        
+                        const formData = new FormData();
+                        formData.append("file", file);
+                        xhr.send(formData);
                     });
                 }
 
