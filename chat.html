@@ -930,7 +930,7 @@
             if (typeof onProgress === 'function') {
                 return await new Promise((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
-                    xhr.open('POST', "https://brainy-stagiaire-api.komibrainy.workers.dev/");
+                    xhr.open('POST', "https://cold-sunset-1cb7.brainybasededonnee.workers.dev/");
                     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
                     xhr.upload.onprogress = (e) => {
@@ -960,7 +960,7 @@
             }
 
             // Envoi au Cloudflare Worker
-            const response = await fetch("https://brainy-stagiaire-api.komibrainy.workers.dev/", {
+            const response = await fetch("https://cold-sunset-1cb7.brainybasededonnee.workers.dev/", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}` 
