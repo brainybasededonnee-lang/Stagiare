@@ -603,6 +603,45 @@
             document.getElementById('pub-preview-container').classList.add('hidden');
         };
 
+        // --- AJOUT: Interception du clic sur l'input file pour filtrer par type ---
+        const pubFileInput = document.getElementById('pub-file');
+        if (pubFileInput) {
+            pubFileInput.addEventListener('click', function(e) {
+                // Éviter la boucle infinie après notre `.click()` programmé
+                if (this.dataset.bypass === 'true') {
+                    this.dataset.bypass = 'false';
+                    return;
+                }
+                
+                e.preventDefault(); // Suspendre temporairement l'ouverture du sélecteur
+                
+                const choix = prompt(
+                    "Quel type de fichier souhaitez-vous envoyer ?\n\n" +
+                    "1 - Vidéo\n" +
+                    "2 - Image\n" +
+                    "3 - Audio\n" +
+                    "4 - PDF\n" +
+                    "5 - Autre (Tous les types de fichiers)\n\n" +
+                    "Veuillez saisir le numéro correspondant (1 à 5) :"
+                );
+
+                if (choix === null) return; // L'utilisateur a cliqué sur "Annuler"
+
+                // Appliquer le filtre (accept) correspondant au choix
+                switch (choix.trim()) {
+                    case '1': this.accept = "video/*"; break;
+                    case '2': this.accept = "image/*"; break;
+                    case '3': this.accept = "audio/*"; break;
+                    case '4': this.accept = "application/pdf"; break;
+                    default: this.removeAttribute('accept'); break; // "5" ou autre : accepter tout
+                }
+
+                this.dataset.bypass = 'true';
+                this.click(); // Relancer l'ouverture native du sélecteur
+            });
+        }
+        // --------------------------------------------------------------------------
+
         function getFileTypeCat(fileName, mime) {
             const ext = fileName.split('.').pop().toLowerCase();
             if (['mp4', 'webm', 'mov', 'avi'].includes(ext) || mime.startsWith('video/')) return 'video';
