@@ -244,12 +244,18 @@
         .bubble {
             padding: 10px 13px;
             border-radius: var(--brainy-radius-md);
-            max-width: 82%;
+            /* La bulle s'adapte à son contenu (comme WhatsApp) : elle ne prend jamais plus
+               de place que nécessaire, mais peut s'étendre jusqu'à cette limite pour les
+               messages longs, puis le texte revient à la ligne. */
+            width: fit-content;
+            max-width: min(82%, 480px);
+            min-width: 56px;
             font-size: 0.94rem;
             line-height: 1.42;
             box-shadow: var(--brainy-shadow-xs);
             position: relative;
             word-wrap: break-word;
+            overflow-wrap: anywhere;
             transition: box-shadow 0.2s var(--ease-out);
         }
         .bubble:hover { box-shadow: var(--brainy-shadow-sm); }
@@ -312,8 +318,19 @@
         .msg-file-dl:hover { background: rgba(0,0,0,0.06); opacity: 1; }
         .sent .msg-file-dl:hover { background: rgba(255,255,255,0.14); }
 
-        .msg-image-wrap { position: relative; display: inline-block; width: 100%; border-radius: var(--brainy-radius-sm); overflow: hidden; box-shadow: var(--brainy-shadow-xs); }
-        .msg-image-wrap img { max-width: 100%; display: block; cursor: pointer; transition: transform 0.35s var(--ease-out); }
+        /* Les images s'adaptent à leur taille réelle (jusqu'à un plafond raisonnable),
+           conservent leur ratio et ne dépassent jamais la largeur de la bulle ni de l'écran. */
+        .msg-image-wrap { position: relative; display: block; width: fit-content; max-width: 100%; border-radius: var(--brainy-radius-sm); overflow: hidden; box-shadow: var(--brainy-shadow-xs); }
+        .msg-image-wrap img {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: min(320px, 62vw);
+            max-height: 380px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.35s var(--ease-out);
+        }
         .msg-image-wrap:hover img { transform: scale(1.035); }
         .msg-image-dl {
             position: absolute; bottom: 8px; right: 8px;
@@ -366,6 +383,47 @@
         /* Message sélectionné pour répondre */
         .bubble.bubble-selected { outline: 2px solid var(--brainy-accent); outline-offset: 2px; }
 
+        /* ── SÉLECTION MULTIPLE DE MESSAGES (façon WhatsApp) ── */
+        /* Pastille de sélection : toujours présente dans le DOM (rendu une seule fois avec le
+           message), simplement révélée en CSS via la classe posée sur <body>, afin de ne jamais
+           avoir à reconstruire les messages déjà rendus quand on entre/sort du mode sélection. */
+        .select-indicator {
+            position: absolute; top: 6px; right: 6px;
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.22);
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center; justify-content: center;
+            font-size: 0.58rem; color: transparent;
+            transition: background 0.15s var(--ease-out), border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+            z-index: 2;
+            pointer-events: none;
+        }
+        .sent .select-indicator { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.18); }
+        body.selection-mode .bubble .select-indicator { display: flex; }
+        .bubble-wrapper.msg-selected .select-indicator { background: var(--brainy-accent); border-color: var(--brainy-accent); color: white; }
+        .bubble-wrapper.msg-selected .bubble { box-shadow: 0 0 0 2px var(--brainy-accent); }
+        body.selection-mode .bubble-wrapper { cursor: pointer; }
+        body.selection-mode .msg-actions { display: none !important; }
+
+        /* Barre d'actions affichée en haut de la conversation lorsque le mode sélection est actif */
+        .selection-bar {
+            position: absolute; inset: 0 0 auto 0; z-index: 6;
+            background: linear-gradient(120deg, var(--brainy-navy) 0%, var(--wa-primary) 60%, var(--brainy-navy-light) 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: var(--brainy-shadow-md);
+        }
+        .selection-bar-close { background: rgba(255,255,255,0.08); border: none; color: white; font-size: 1.05rem; cursor: pointer; padding: 8px 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: background 0.2s var(--ease-out); }
+        .selection-bar-close:hover { background: rgba(255,255,255,0.16); }
+        .selection-bar-count { flex: 1; font-weight: 700; font-size: 0.98rem; }
+        .selection-bar-actions { display: flex; align-items: center; gap: 4px; }
+        .selection-action-btn { background: rgba(255,255,255,0.08); border: none; color: white; font-size: 1rem; cursor: pointer; padding: 8px 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: background 0.2s var(--ease-out); }
+        .selection-action-btn:hover { background: rgba(255,255,255,0.16); }
+        .selection-action-btn.danger { color: #ffb4b4; }
+        .selection-action-btn.danger:hover { background: rgba(239,68,68,0.28); }
+
         /* Citation du message d'origine (réponse façon WhatsApp) */
         .msg-reply-quote {
             display: flex; align-items: flex-start; gap: 8px;
@@ -383,8 +441,9 @@
         .msg-reply-quote-text { font-size: 0.78rem; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
 
         /* Lecteur vidéo intégré */
-        .msg-video-wrap { border-radius: var(--brainy-radius-sm); overflow: hidden; box-shadow: var(--brainy-shadow-xs); max-width: 280px; }
-        .msg-video-wrap video { width: 100%; max-height: 320px; display: block; background: #000; border-radius: inherit; }
+        .msg-video-wrap { position: relative; border-radius: var(--brainy-radius-sm); overflow: hidden; box-shadow: var(--brainy-shadow-xs); width: fit-content; max-width: 100%; }
+        .msg-video-wrap video { display: block; width: auto; height: auto; max-width: min(280px, 68vw); max-height: 320px; background: #000; border-radius: inherit; }
+        .msg-video-wrap .msg-image-dl { opacity: 0.85; }
 
         /* Variante PDF pour la carte de fichier */
         .msg-file-icon.is-pdf { background: linear-gradient(135deg, #ef4444, #dc2626); }
@@ -678,8 +737,9 @@
         .upload-progress-pct { font-size: 0.75rem; font-weight: 700; color: var(--upload-blue); flex-shrink: 0; min-width: 34px; text-align: right; }
 
         /* Contenu multimédia dans les bulles */
-        .bubble img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
-        .bubble audio { max-width: 240px; margin: 4px 0; }
+        .bubble img { max-width: 100%; height: auto; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
+        .bubble audio { max-width: 240px; width: 100%; margin: 4px 0; }
+        .bubble video { max-width: 100%; height: auto; }
         .bubble a { color: #0277bd; text-decoration: none; font-weight: 600; }
         .bubble a:hover { text-decoration: underline; }
 
@@ -713,7 +773,10 @@
             .avatar { width: 46px; height: 46px; }
             .chat-header { padding: 10px 12px; }
             .chat-messages { padding: 14px 10px; }
-            .bubble { max-width: 88%; }
+            .bubble { max-width: min(88%, 340px); }
+            .msg-image-wrap img { max-width: min(240px, 72vw); }
+            .msg-video-wrap video { max-width: min(240px, 72vw); }
+            .scroll-bottom-btn { right: 12px; bottom: 78px; }
             .input-area { padding: 8px 8px; }
             .btn-action { width: 42px; height: 42px; }
             .msg-file-card, .msg-location-card { min-width: 0; width: 100%; }
@@ -725,6 +788,91 @@
             .attach-menu { min-width: 150px; }
             .reply-preview-snippet { max-width: 48vw; }
             .modal-card { padding: 14px; }
+        }
+
+        /* ── PHOTO DE PROFIL EN GRAND (façon WhatsApp) ── */
+        .profile-photo-viewer {
+            position: fixed; inset: 0; z-index: 4200;
+            background: rgba(8, 12, 24, 0.86);
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            cursor: zoom-out;
+        }
+        .profile-photo-viewer.hidden { display: none !important; }
+        .profile-photo-viewer:not(.hidden) { animation: popupFadeIn 0.22s var(--ease-out); }
+        .profile-photo-viewer img {
+            max-width: min(92vw, 520px);
+            max-height: 82vh;
+            width: auto; height: auto;
+            object-fit: contain;
+            border-radius: 14px;
+            box-shadow: var(--brainy-shadow-lg);
+            cursor: default;
+            animation: popupContentIn 0.28s var(--ease-out);
+        }
+        .profile-photo-viewer-close {
+            position: absolute; top: 18px; right: 20px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+            color: white; font-size: 1.2rem; cursor: pointer;
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s var(--ease-out), opacity 0.2s var(--ease-out);
+        }
+        .profile-photo-viewer-close:hover { transform: scale(1.08); opacity: 0.85; }
+        #chatHeaderAvatar.clickable { cursor: pointer; transition: transform 0.15s var(--ease-out), box-shadow 0.2s var(--ease-out); }
+        #chatHeaderAvatar.clickable:hover { transform: scale(1.05); box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+        /* ── BOUTON "REVENIR EN BAS" / INDICATEUR NOUVEAU MESSAGE ── */
+        .scroll-bottom-btn {
+            position: absolute;
+            right: 20px;
+            bottom: 92px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--wa-primary), var(--brainy-navy-light));
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 24px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: var(--brainy-shadow-md);
+            transition: transform 0.15s var(--ease-out), opacity 0.2s var(--ease-out);
+            animation: scrollBtnIn 0.22s var(--ease-out);
+        }
+        .scroll-bottom-btn.hidden { display: none !important; }
+        .scroll-bottom-btn:hover { transform: translateY(-2px); }
+        .scroll-bottom-btn:active { transform: scale(0.96); }
+        .scroll-bottom-btn .badge-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--unread-red);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+        }
+        @keyframes scrollBtnIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── BANDEAU DISCRET D'ÉTAT DE CONNEXION ── */
+        .connection-banner {
+            font-size: 0.68rem; font-weight: 700;
+            color: #ffd7a3;
+            display: flex; align-items: center; gap: 5px;
+            opacity: 0.9;
+        }
+        .connection-banner.hidden { display: none !important; }
+        .connection-banner i { font-size: 0.62rem; }
+
+        /* Légère mise en avant du dernier message reçu uniquement (pas de rejeu global) */
+        .bubble-wrapper.is-new-arrival .bubble { animation: newArrivalPulse 0.9s var(--ease-out); }
+        @keyframes newArrivalPulse {
+            0% { box-shadow: 0 0 0 0 rgba(34,193,220,0.35); }
+            100% { box-shadow: var(--brainy-shadow-xs); }
         }
     </style>
 </head>
@@ -766,12 +914,21 @@
     </main>
 
     <div id="chatOverlay" class="chat-overlay hidden">
+        <div id="selectionBar" class="selection-bar hidden">
+            <button type="button" class="selection-bar-close" onclick="exitSelectionMode()" title="Annuler la sélection" aria-label="Annuler la sélection"><i class="fas fa-times"></i></button>
+            <div class="selection-bar-count" id="selectionBarCount">0 message sélectionné</div>
+            <div class="selection-bar-actions">
+                <button type="button" id="selectionReplyBtn" class="selection-action-btn hidden" onclick="replySelectedMessage()" title="Répondre" aria-label="Répondre au message sélectionné"><i class="fas fa-reply"></i></button>
+                <button type="button" id="selectionDeleteBtn" class="selection-action-btn danger hidden" onclick="confirmDeleteSelectedMessages()" title="Supprimer" aria-label="Supprimer les messages sélectionnés"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
         <div class="chat-header">
             <button onclick="closeChat()" title="Retour à la liste"><i class="fas fa-arrow-left"></i></button>
-            <div id="chatHeaderAvatar" class="avatar" style="width:40px; height:40px; font-size:1rem; margin:0;">💬</div>
+            <div id="chatHeaderAvatar" class="avatar" style="width:40px; height:40px; font-size:1rem; margin:0;" onclick="openProfilePhotoView()">💬</div>
             <div class="chat-header-info">
                 <div id="chatHeaderName" class="chat-header-name">Discussion Générale</div>
                 <div id="chatHeaderDesc" class="chat-header-desc">Échangez avec tous les stagiaires</div>
+                <div id="connectionBanner" class="connection-banner hidden"><i class="fas fa-rotate"></i><span id="connectionBannerText">Connexion...</span></div>
             </div>
             <!-- Icône d'Appel Audio -->
             <i class="fas fa-phone action-icon" onclick="startAudioCall()" style="color: white; font-size: 1.1rem; cursor: pointer; margin-right: 8px;" title="Appel Audio"></i>
@@ -783,6 +940,11 @@
                 Chargement de l'historique...
             </div>
         </div>
+
+        <button type="button" id="scrollToBottomBtn" class="scroll-bottom-btn hidden" onclick="scrollChatToBottom(true)" title="Revenir au dernier message" aria-label="Revenir au dernier message">
+            <i class="fas fa-arrow-down"></i>
+            <span id="scrollToBottomLabel">Nouveau message</span>
+        </button>
 
         <form id="chat-form" class="input-area" onsubmit="return false;">
             <div id="uploadProgressWrap" class="upload-progress-wrap hidden">
@@ -828,7 +990,7 @@
 
                 <span id="recTimer"><span id="recDot"></span><span id="recTime">0:00</span></span>
 
-                <button type="button" id="sendBtn" class="btn-action" onclick="handleSendAction()">
+                <button type="button" id="sendBtn" class="btn-action" onclick="handleSendAction()" aria-label="Envoyer le message">
                     <i class="fas fa-microphone"></i>
                 </button>
             </div>
@@ -856,6 +1018,12 @@
         </div>
     </div>
 
+    <!-- Vue grand format de la photo de profil (façon WhatsApp) -->
+    <div id="profilePhotoViewer" class="hidden profile-photo-viewer" onclick="closeProfilePhotoView(event)">
+        <button type="button" class="profile-photo-viewer-close" onclick="closeProfilePhotoView(event)" title="Fermer"><i class="fas fa-times"></i></button>
+        <img id="profilePhotoViewerImg" src="" alt="Photo de profil" onclick="event.stopPropagation();">
+    </div>
+
     <!-- Modal de modification de message -->
     <div id="editModal" class="hidden modal-overlay">
         <div class="modal-card">
@@ -867,6 +1035,21 @@
             <div class="modal-card-actions">
                 <button type="button" onclick="closeEditModal()" class="modal-btn modal-btn-secondary">Annuler</button>
                 <button type="button" onclick="saveEditMessage()" class="modal-btn modal-btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression multiple -->
+    <div id="deleteSelectionModal" class="hidden modal-overlay">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3>Supprimer les messages sélectionnés ?</h3>
+                <button type="button" onclick="closeDeleteSelectionModal()" class="modal-close-btn" title="Fermer"><i class="fas fa-times"></i></button>
+            </div>
+            <p id="deleteSelectionText" style="margin:0 0 4px; color:var(--brainy-text-soft); font-size:0.9rem;">Cette action est irréversible.</p>
+            <div class="modal-card-actions">
+                <button type="button" onclick="closeDeleteSelectionModal()" class="modal-btn modal-btn-secondary">Annuler</button>
+                <button type="button" onclick="performDeleteSelectedMessages()" class="modal-btn modal-btn-primary" style="background:#ef4444; border-color:#ef4444;">Supprimer</button>
             </div>
         </div>
     </div>
@@ -1003,6 +1186,13 @@
         let renderedMessagesMap = {};       // cache des messages affichés (id -> data) pour Répondre / Transférer / Modifier
         let editingMessageId = null;        // id du message en cours de modification
         let forwardingMessageId = null;     // id du message en cours de transfert
+
+        // ── SÉLECTION MULTIPLE DE MESSAGES ──
+        let selectionMode = false;          // true dès qu'au moins un message est sélectionné
+        let selectedMessageIds = new Set(); // ids des messages actuellement sélectionnés
+        let longPressTimer = null;          // minuteur de l'appui long (mobile)
+        let longPressTriggered = false;     // évite un double-basculement juste après un appui long
+        let longPressStartX = 0, longPressStartY = 0;
         let pendingUploadCategory = 'auto'; // catégorie choisie dans le menu pièce jointe (image/video/pdf/other/auto)
 
         // Variables Enregistrement Audio
@@ -1038,6 +1228,65 @@
                 .join('');
         }
 
+        // Extrait un nom de fichier plausible depuis une URL (dernier segment du chemin),
+        // avec repli sur un nom par défaut si l'extraction échoue.
+        function extractFileNameFromUrl(url, fallback) {
+            try {
+                const clean = String(url).split('?')[0].split('#')[0];
+                const parts = clean.split('/');
+                const last = decodeURIComponent(parts[parts.length - 1] || '');
+                return last || fallback;
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        // Échappe une chaîne pour une insertion sûre à l'intérieur d'un attribut onclick="..."
+        // utilisant des guillemets simples (nom de fichier pouvant contenir des caractères spéciaux).
+        function escapeJsStr(str) {
+            return String(str || '')
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;');
+        }
+
+        // TÉLÉCHARGEMENT DIRECT DES FICHIERS (image / vidéo / audio / document / PDF)
+        // Récupère le fichier via fetch() et le télécharge immédiatement via un Blob, sans jamais
+        // envoyer l'utilisateur vers une autre page ni afficher d'aperçu intermédiaire. Conserve le
+        // nom de fichier d'origine lorsqu'il est disponible. Si le fichier ne peut pas être récupéré
+        // (restriction CORS du bucket Cloudflare R2, par exemple), on se replie proprement sur un
+        // téléchargement classique via un lien natif plutôt que de casser l'expérience utilisateur.
+        // Remarque : pour un téléchargement 100% direct dans tous les cas, le Worker R2 devrait
+        // idéalement renvoyer les en-têtes "Content-Disposition: attachment" et
+        // "Access-Control-Allow-Origin" adaptés — mais aucune modification n'est faite ici sur R2.
+        window.downloadFile = async (url, filename, evt) => {
+            if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+            if (!url) return;
+            try {
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) throw new Error('Réponse réseau invalide (' + response.status + ')');
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename || '';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+            } catch (error) {
+                console.warn("Téléchargement direct impossible (CORS/réseau), repli sur téléchargement standard :", error);
+                const fallback = document.createElement('a');
+                fallback.href = url;
+                fallback.download = filename || '';
+                fallback.target = '_blank';
+                fallback.rel = 'noopener';
+                document.body.appendChild(fallback);
+                fallback.click();
+                fallback.remove();
+            }
+        };
+
         // Formatage lisible d'une taille de fichier en octets
         function formatFileSize(bytes) {
             if (!bytes) return '';
@@ -1048,22 +1297,50 @@
 
         // GESTION DU SON DE NOTIFICATION SANS DOUBLON ET SANS JOUER AU CHARGEMENT INITIAL
         const notifiedMessageIds = new Set();
+        // Référence vers le son de notification actuellement en cours de lecture, afin de
+        // pouvoir l'arrêter immédiatement dès que l'utilisateur interagit avec la page.
+        let activeNotificationAudio = null;
         function playNotificationSound(msgId, senderUid) {
             if (!currentUser || senderUid === currentUser.uid) return;
             if (notifiedMessageIds.has(msgId)) return;
             notifiedMessageIds.add(msgId);
             try {
                 const audio = new Audio('audio/Votre_Reussite.mp3');
+                activeNotificationAudio = audio;
+                audio.addEventListener('ended', () => {
+                    if (activeNotificationAudio === audio) activeNotificationAudio = null;
+                });
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(error => {
                         console.warn("Autoplay audio bloqué par le navigateur :", error);
+                        if (activeNotificationAudio === audio) activeNotificationAudio = null;
                     });
                 }
             } catch (e) {
                 console.warn("Erreur lecture audio :", e);
             }
         }
+
+        // Arrête immédiatement le son de notification en cours (dès la moindre interaction utilisateur).
+        // Fonction centralisée et sans effet si aucun son n'est en train de jouer.
+        function stopNotificationSound() {
+            if (activeNotificationAudio) {
+                try {
+                    activeNotificationAudio.pause();
+                    activeNotificationAudio.currentTime = 0;
+                } catch (e) {}
+                activeNotificationAudio = null;
+            }
+        }
+
+        // Écouteurs centralisés : dès que l'utilisateur touche, clique, tape au clavier
+        // (y compris le clavier virtuel mobile) ou interagit de quelque façon que ce soit,
+        // le son de notification est coupé. Passifs et non-bloquants : n'interfèrent jamais
+        // avec l'envoi de messages, les boutons, les appels, les pièces jointes ou les modales.
+        document.addEventListener('pointerdown', stopNotificationSound, { passive: true });
+        document.addEventListener('touchstart', stopNotificationSound, { passive: true });
+        document.addEventListener('keydown', stopNotificationSound);
 
         // GESTION DE LA SONNERIE D'APPEL ENTRANT (audio/la_pointe.mp3)
         function startRingtone() {
@@ -1311,6 +1588,20 @@
             const remoteAudio = document.getElementById('remoteAudio');
             if (remoteAudio) remoteAudio.srcObject = null;
         };
+
+        // Bandeau discret "connexion perdue" / "reconnexion..." (amélioration UX légère,
+        // sans impact sur la logique métier ni sur le temps réel Firestore lui-même).
+        function setConnectionBanner(text, autoHide) {
+            const banner = document.getElementById('connectionBanner');
+            const textEl = document.getElementById('connectionBannerText');
+            if (!banner || !textEl) return;
+            if (!text) { banner.classList.add('hidden'); return; }
+            textEl.textContent = text;
+            banner.classList.remove('hidden');
+            if (autoHide) setTimeout(() => banner.classList.add('hidden'), 2500);
+        }
+        window.addEventListener('offline', () => setConnectionBanner('Connexion perdue...', false));
+        window.addEventListener('online', () => setConnectionBanner('Reconnexion...', true));
 
         // 1. Vérification de la connexion et Initialisation
         onAuthStateChanged(auth, async (user) => {
@@ -1694,12 +1985,21 @@
         }
 
         // 8. Ouvrir le Chat en Overlay
+        // URL de la photo de profil actuellement affichée dans l'en-tête du chat ouvert
+        // (utilisée uniquement pour la vue grand format façon WhatsApp — n'affecte pas
+        // la façon dont photoProfil / photoURL sont récupérés depuis Firestore).
+        let activeChatPhotoURL = null;
+
         window.openChat = (targetUid, targetName, photoURL) => {
+            const avatarEl = document.getElementById('chatHeaderAvatar');
+            activeChatPhotoURL = null;
+            avatarEl.classList.remove('clickable');
+
             if (targetUid === 'groupe') {
                 activeChatId = 'groupe';
                 activeChatName = 'Discussion Générale';
-                document.getElementById('chatHeaderAvatar').innerHTML = "💬";
-                document.getElementById('chatHeaderAvatar').style.background = "#e8f5e9";
+                avatarEl.innerHTML = "💬";
+                avatarEl.style.background = "#e8f5e9";
                 document.getElementById('chatHeaderDesc').textContent = "Échangez avec tous les stagiaires";
                 
                 if (groupeLastMsgDate > 0) {
@@ -1710,14 +2010,17 @@
                 activeChatId = currentUser.uid < targetUid ? `${currentUser.uid}_${targetUid}` : `${targetUid}_${currentUser.uid}`;
                 activeChatName = targetName;
                 
-                const avatarEl = document.getElementById('chatHeaderAvatar');
                 if (photoURL) {
                     avatarEl.innerHTML = `<img src="${photoURL}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                     avatarEl.style.background = "transparent";
+                    // Photo présente : on active la vue grand format au clic (comme WhatsApp).
+                    activeChatPhotoURL = photoURL;
+                    avatarEl.classList.add('clickable');
                 } else {
                     avatarEl.innerHTML = targetName.charAt(0).toUpperCase();
                     avatarEl.style.background = "#e3f2fd";
                     avatarEl.style.color = "#1565c0";
+                    // Pas de photo : on garde simplement l'avatar avec l'initiale, pas de popup.
                 }
                 document.getElementById('chatHeaderDesc').textContent = "Messagerie chiffrée de bout en bout";
                 
@@ -1736,6 +2039,23 @@
             initChatMessages();
         };
 
+        // Ouvre la photo de profil du stagiaire en grand format (façon WhatsApp).
+        // Ne fait rien si aucune photo n'est disponible pour la discussion ouverte (pas de popup inutile).
+        window.openProfilePhotoView = () => {
+            if (!activeChatPhotoURL) return;
+            const viewer = document.getElementById('profilePhotoViewer');
+            const img = document.getElementById('profilePhotoViewerImg');
+            if (!viewer || !img) return;
+            img.src = activeChatPhotoURL;
+            viewer.classList.remove('hidden');
+        };
+
+        window.closeProfilePhotoView = (e) => {
+            if (e) e.stopPropagation();
+            const viewer = document.getElementById('profilePhotoViewer');
+            if (viewer) viewer.classList.add('hidden');
+        };
+
         // 9. Fermer l'Overlay Chat
         window.closeChat = () => {
             document.getElementById('chatOverlay').classList.add('hidden');
@@ -1743,12 +2063,238 @@
                 unsubscribeChat();
                 unsubscribeChat = null;
             }
+            activeChatPhotoURL = null;
+            if (typeof exitSelectionMode === 'function') exitSelectionMode();
+        };
+
+        // Cache des éléments DOM déjà rendus pour la conversation ouverte (id -> élément .bubble-wrapper).
+        // Permet de ne mettre à jour que ce qui change réellement lors du temps réel, sans jamais
+        // reconstruire toute la conversation (fini les clignotements / sauts de scroll / pertes de coches).
+        let renderedMessageEls = {};
+        let pendingNewMessagesCount = 0;
+
+        // Construit (sans l'attacher au DOM) la bulle complète d'un message : avatar, citation de réponse,
+        // contenu (texte / image / vidéo / audio / fichier / position), coches, badges et actions.
+        // Cette logique est strictement identique à celle utilisée auparavant ; elle est simplement
+        // isolée dans une fonction réutilisable pour permettre les mises à jour incrémentielles.
+        function buildBubbleWrapperElement(docSnapId, msg) {
+            const isMe = msg.senderUid === currentUser.uid;
+
+            renderedMessagesMap[docSnapId] = msg;
+
+            let msgTs = Date.now();
+            let timeString = "";
+            if (msg.date) {
+                msgTs = msg.date.toMillis ? msg.date.toMillis() : new Date(msg.date).getTime();
+                const dateObj = new Date(msgTs);
+                timeString = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeString = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            let senderPhoto = null;
+            if (isMe && currentStagiaireData) {
+                senderPhoto = currentStagiaireData.photoProfil || currentStagiaireData.photoURL;
+            } else {
+                const senderUser = allUsersCache.find(u => u.uid === msg.senderUid);
+                if (senderUser) {
+                    senderPhoto = senderUser.photoProfil || senderUser.photoURL;
+                }
+            }
+
+            const avatarMini = senderPhoto
+                ? `<img src="${senderPhoto}" style="width:18px; height:18px; border-radius:50%; object-fit:cover; flex-shrink:0;">`
+                : `<div style="width:18px; height:18px; border-radius:50%; background:#e3f2fd; color:#1565c0; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:bold; flex-shrink:0;">${escapeHTML((msg.senderName || '?').charAt(0).toUpperCase())}</div>`;
+
+            const showSender = `<div class="sender-name" style="display:flex; align-items:center; gap:5px; margin-bottom:4px; ${isMe ? 'justify-content:flex-end; color:#888;' : ''}">
+                ${!isMe ? avatarMini : ''}
+                <span>${isMe ? 'Moi' : escapeHTML(msg.senderName || 'Inconnu')}</span>
+                ${isMe ? avatarMini : ''}
+            </div>`;
+
+            // Citation du message d'origine si ce message est une réponse (rétrocompatible : absent sur les anciens messages)
+            let replyQuoteHTML = '';
+            if (msg.replyToId) {
+                replyQuoteHTML = `
+                    <div class="msg-reply-quote">
+                        <i class="fas fa-reply msg-reply-quote-icon"></i>
+                        <div class="msg-reply-quote-body">
+                            <div class="msg-reply-quote-sender">${escapeHTML(msg.replyToSender || 'Message')}</div>
+                            <div class="msg-reply-quote-text">${escapeHTML(msg.replyToText || '')}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let contentHTML = '';
+            if (msg.type === 'image' || (msg.url && (msg.texte === '[Image]' || msg.texte === ''))) {
+                const imgDlName = extractFileNameFromUrl(msg.url, 'photo.jpg');
+                contentHTML = `
+                    <div class="msg-image-wrap">
+                        <img src="${msg.url}" alt="Photo jointe" loading="lazy" onclick="openFilePopup('${msg.url}', 'image')">
+                        <a href="${msg.url}" onclick="downloadFile('${msg.url}', '${escapeJsStr(imgDlName)}', event); return false;" title="Télécharger l'image" class="msg-image-dl" aria-label="Télécharger l'image"><i class="fas fa-download"></i></a>
+                    </div>
+                `;
+            } else if (msg.type === 'video' || (msg.url && msg.texte && msg.texte.startsWith('[Vidéo'))) {
+                const vidDlName = extractFileNameFromUrl(msg.url, 'video.mp4');
+                contentHTML = `
+                    <div class="msg-video-wrap">
+                        <video src="${msg.url}" controls preload="metadata"></video>
+                        <a href="${msg.url}" onclick="downloadFile('${msg.url}', '${escapeJsStr(vidDlName)}', event); return false;" title="Télécharger la vidéo" class="msg-image-dl" aria-label="Télécharger la vidéo"><i class="fas fa-download"></i></a>
+                    </div>
+                `;
+            } else if (msg.type === 'audio' || (msg.url && msg.texte === '[Vocal]')) {
+                const audioDlName = extractFileNameFromUrl(msg.url, 'Vocal.webm');
+                contentHTML = `
+                    <div class="msg-audio-card">
+                        <div class="msg-audio-icon"><i class="fas fa-microphone"></i></div>
+                        <audio src="${msg.url}" controls></audio>
+                        <a href="${msg.url}" onclick="downloadFile('${msg.url}', '${escapeJsStr(audioDlName)}', event); return false;" title="Télécharger le vocal" class="msg-audio-dl" aria-label="Télécharger le vocal"><i class="fas fa-download"></i></a>
+                    </div>
+                `;
+            } else if (msg.type === 'location' || (msg.url && msg.texte === '[Position GPS]')) {
+                contentHTML = `
+                    <a href="${msg.url}" target="_blank" class="msg-location-card">
+                        <div class="msg-location-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="msg-location-text">
+                            <span class="msg-location-title">Position partagée</span>
+                            <span class="msg-location-sub">Voir sur la carte</span>
+                        </div>
+                    </a>
+                `;
+            } else if (msg.type === 'file' || (msg.url && msg.texte && msg.texte.startsWith('[Fichier'))) {
+                const fileName = msg.texte.replace('[Fichier: ', '').replace(']', '');
+                const extMatch = (fileName || '').match(/\.([a-zA-Z0-9]+)$/);
+                const ext = extMatch ? extMatch[1].toUpperCase() : 'FICHIER';
+                const isPdf = ext === 'PDF';
+                const sizeLabel = msg.fileSize ? formatFileSize(msg.fileSize) : '';
+                contentHTML = `
+                    <div class="msg-file-card" onclick="openFilePopup('${msg.url}', 'document')">
+                        <div class="msg-file-icon ${isPdf ? 'is-pdf' : ''}"><i class="fas ${isPdf ? 'fa-file-pdf' : 'fa-file-alt'}"></i></div>
+                        <div class="msg-file-info">
+                            <div class="msg-file-name">${escapeHTML(fileName || 'Document joint')}</div>
+                            <div class="msg-file-sub">${escapeHTML(ext)}${sizeLabel ? ' • ' + escapeHTML(sizeLabel) : ''}</div>
+                        </div>
+                        <a href="${msg.url}" onclick="downloadFile('${msg.url}', '${escapeJsStr(fileName || 'Document')}', event); return false;" title="Télécharger le fichier" class="msg-file-dl" aria-label="Télécharger le fichier"><i class="fas fa-download"></i></a>
+                    </div>
+                `;
+            } else {
+                contentHTML = `<div class="msg-text">${formatMessageText(msg.texte)}</div>`;
+            }
+
+            // GESTION DU SYSTÈMES DES COCHES WHATSAPP (✓, ✓✓ GRIS, ✓✓ BLEU)
+            let ticksHTML = '';
+            if (isMe) {
+                if (msg.seen) {
+                    ticksHTML = `<span class="ticks read" title="Lu">✓✓</span>`;
+                } else if (msg.delivered) {
+                    ticksHTML = `<span class="ticks delivered" title="Reçu">✓✓</span>`;
+                } else {
+                    ticksHTML = `<span class="ticks delivered" title="Envoyé">✓</span>`;
+                }
+            }
+
+            const isSpecialUser = currentStagiaireData &&
+                                  currentStagiaireData.nom && currentStagiaireData.nom.trim() === "BRAINY AGENCY" &&
+                                  currentStagiaireData.matricule && currentStagiaireData.matricule.trim() === "BRA0000";
+            const canDelete = isMe || isSpecialUser;
+            const canEdit = isMe && msg.type === 'text';
+
+            // Bandeau "modifié" / "transféré" (rétrocompatible : absent sur les anciens messages)
+            const editedBadgeHTML = msg.edited ? `<span class="msg-edited-badge" title="Message modifié">modifié</span>` : '';
+            const forwardedBadgeHTML = msg.forwarded ? `<span class="msg-forwarded-badge" title="Message transféré"><i class="fas fa-share"></i> Transféré</span>` : '';
+
+            // Actions sous le message : Répondre / Transférer / Modifier / Supprimer
+            // (utilise les fonctions existantes deleteMessage() et les nouvelles fonctions dédiées)
+            const actionsHTML = `
+                <div class="msg-actions">
+                    <button type="button" class="msg-action-btn" onclick="startReply('${docSnapId}')" title="Répondre"><i class="fas fa-reply"></i><span>Répondre</span></button>
+                    <button type="button" class="msg-action-btn" onclick="openForwardModal('${docSnapId}')" title="Transférer"><i class="fas fa-share"></i><span>Transférer</span></button>
+                    ${canEdit ? `<button type="button" class="msg-action-btn" onclick="openEditModal('${docSnapId}')" title="Modifier"><i class="fas fa-pen"></i><span>Modifier</span></button>` : ''}
+                    ${canDelete ? `<button type="button" class="msg-action-btn danger" onclick="deleteMessage('${docSnapId}')" title="Supprimer"><i class="fas fa-trash"></i><span>Supprimer</span></button>` : ''}
+                </div>
+            `;
+
+            const isSelectedForReply = replyingTo && replyingTo.id === docSnapId;
+            const isSelectedForDeletion = typeof selectedMessageIds !== 'undefined' && selectedMessageIds.has(docSnapId);
+
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = `bubble-wrapper ${isMe ? 'sent' : 'received'} ${isSelectedForDeletion ? 'msg-selected' : ''}`;
+            bubbleWrapper.dataset.msgId = docSnapId;
+            bubbleWrapper.dataset.ts = String(msgTs);
+            bubbleWrapper.innerHTML = `
+                <div class="bubble ${isMe ? 'sent' : 'received'} ${isSelectedForReply ? 'bubble-selected' : ''}">
+                    <div class="select-indicator"><i class="fas fa-check"></i></div>
+                    ${showSender}
+                    ${replyQuoteHTML}
+                    ${contentHTML}
+                    <div class="msg-meta">
+                        ${forwardedBadgeHTML}
+                        ${editedBadgeHTML}
+                        <span>${timeString}</span>
+                        ${ticksHTML}
+                    </div>
+                </div>
+                ${actionsHTML}
+            `;
+
+            return bubbleWrapper;
+        }
+
+        // Retire le message d'accueil / de chargement (le cas échéant) dès qu'il faut afficher de vrais messages.
+        function clearChatPlaceholder(chatBox) {
+            if (chatBox.querySelector('.bubble-wrapper')) return;
+            chatBox.innerHTML = '';
+        }
+
+        // Insère un nouveau message à la bonne position chronologique (utile notamment pour les
+        // discussions privées, dont la requête Firestore n'est pas triée côté serveur).
+        function insertBubbleInOrder(chatBox, wrapperEl) {
+            const ts = Number(wrapperEl.dataset.ts) || 0;
+            let ref = null;
+            for (const child of chatBox.children) {
+                if (!child.dataset || child.dataset.ts === undefined) continue;
+                if (Number(child.dataset.ts) > ts) { ref = child; break; }
+            }
+            if (ref) chatBox.insertBefore(wrapperEl, ref);
+            else chatBox.appendChild(wrapperEl);
+        }
+
+        function isChatScrolledNearBottom(chatBox, threshold = 140) {
+            return (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < threshold;
+        }
+
+        function hideScrollToBottomBtn() {
+            const btn = document.getElementById('scrollToBottomBtn');
+            if (btn) btn.classList.add('hidden');
+            pendingNewMessagesCount = 0;
+        }
+
+        function showScrollToBottomBtn() {
+            const btn = document.getElementById('scrollToBottomBtn');
+            const label = document.getElementById('scrollToBottomLabel');
+            if (!btn) return;
+            pendingNewMessagesCount++;
+            if (label) label.textContent = pendingNewMessagesCount > 1 ? `${pendingNewMessagesCount} nouveaux messages` : 'Nouveau message';
+            btn.classList.remove('hidden');
+        }
+
+        // Revient au dernier message (bouton flottant "↓", façon WhatsApp).
+        window.scrollChatToBottom = (smooth) => {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+            hideScrollToBottomBtn();
         };
 
         // 10. Initialiser l'écoute en temps réel des messages et rendu des fichiers
         function initChatMessages() {
             const chatBox = document.getElementById('chatBox');
             chatBox.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Chargement des messages...</div>';
+            renderedMessageEls = {};
+            renderedMessagesMap = {};
+            hideScrollToBottomBtn();
+            if (typeof exitSelectionMode === 'function') exitSelectionMode();
 
             if (unsubscribeChat) unsubscribeChat();
 
@@ -1763,15 +2309,27 @@
             unsubscribeChat = onSnapshot(qChat, (snapshot) => {
                 const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
 
+                // Position de scroll AVANT toute modification du DOM, pour un défilement intelligent
+                // façon WhatsApp : on ne force la descente que si l'utilisateur était déjà en bas,
+                // ou si c'est lui-même qui vient d'envoyer un message.
+                const wasInitialLoad = isInitialChatLoad;
+                const wasNearBottom = wasInitialLoad || isChatScrolledNearBottom(chatBox);
+
+                let receivedWhileScrolledUp = false;
+                let selfJustSent = false;
+
                 // Gestion du son pour les nouveaux messages reçus dans la conversation ouverte
                 snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
                         const msg = change.doc.data();
                         const msgId = change.doc.id;
-                        if (isInitialChatLoad) {
+                        if (wasInitialLoad) {
                             notifiedMessageIds.add(msgId);
                         } else if (msg.senderUid !== currentUser.uid) {
                             playNotificationSound(msgId, msg.senderUid);
+                            if (!wasNearBottom) receivedWhileScrolledUp = true;
+                        } else {
+                            selfJustSent = true;
                         }
                     }
                 });
@@ -1780,10 +2338,11 @@
                 // Marquer immédiatement tous les messages reçus comme "lu" (seen = 2 coches bleues ✓✓)
                 markMessagesAsSeen(snapshot.docs, colName);
 
-                chatBox.innerHTML = ''; 
-
                 if (snapshot.empty) {
                     chatBox.innerHTML = `<div style="text-align:center; color:#888; padding:30px; font-size:0.9rem;">Aucun message. Dites bonjour à ${activeChatName} !</div>`;
+                    renderedMessageEls = {};
+                    renderedMessagesMap = {};
+                    hideScrollToBottomBtn();
                     return;
                 }
 
@@ -1826,167 +2385,248 @@
                 }
                 if (currentTab === 'discussions') renderList();
 
-                renderedMessagesMap = {};
+                clearChatPlaceholder(chatBox);
 
-                docsList.forEach((docItem) => {
-                    const msg = docItem.data;
-                    const docSnapId = docItem.id;
-                    const isMe = msg.senderUid === currentUser.uid;
-
-                    renderedMessagesMap[docSnapId] = msg;
-
-                    let timeString = "";
-                    if (msg.date) {
-                        const dateObj = msg.date.toMillis ? new Date(msg.date.toMillis()) : new Date(msg.date);
-                        timeString = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    } else {
-                        timeString = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    }
-
-                    let senderPhoto = null;
-                    if (isMe && currentStagiaireData) {
-                        senderPhoto = currentStagiaireData.photoProfil || currentStagiaireData.photoURL;
-                    } else {
-                        const senderUser = allUsersCache.find(u => u.uid === msg.senderUid);
-                        if (senderUser) {
-                            senderPhoto = senderUser.photoProfil || senderUser.photoURL;
-                        }
-                    }
-
-                    const avatarMini = senderPhoto
-                        ? `<img src="${senderPhoto}" style="width:18px; height:18px; border-radius:50%; object-fit:cover; flex-shrink:0;">`
-                        : `<div style="width:18px; height:18px; border-radius:50%; background:#e3f2fd; color:#1565c0; display:flex; align-items:center; justify-content:center; font-size:0.55rem; font-weight:bold; flex-shrink:0;">${escapeHTML((msg.senderName || '?').charAt(0).toUpperCase())}</div>`;
-
-                    const showSender = `<div class="sender-name" style="display:flex; align-items:center; gap:5px; margin-bottom:4px; ${isMe ? 'justify-content:flex-end; color:#888;' : ''}">
-                        ${!isMe ? avatarMini : ''}
-                        <span>${isMe ? 'Moi' : escapeHTML(msg.senderName || 'Inconnu')}</span>
-                        ${isMe ? avatarMini : ''}
-                    </div>`;
-
-                    // Citation du message d'origine si ce message est une réponse (rétrocompatible : absent sur les anciens messages)
-                    let replyQuoteHTML = '';
-                    if (msg.replyToId) {
-                        replyQuoteHTML = `
-                            <div class="msg-reply-quote">
-                                <i class="fas fa-reply msg-reply-quote-icon"></i>
-                                <div class="msg-reply-quote-body">
-                                    <div class="msg-reply-quote-sender">${escapeHTML(msg.replyToSender || 'Message')}</div>
-                                    <div class="msg-reply-quote-text">${escapeHTML(msg.replyToText || '')}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    let contentHTML = '';
-                    if (msg.type === 'image' || (msg.url && (msg.texte === '[Image]' || msg.texte === ''))) {
-                        contentHTML = `
-                            <div class="msg-image-wrap">
-                                <img src="${msg.url}" alt="Photo jointe" onclick="openFilePopup('${msg.url}', 'image')">
-                                <a href="${msg.url}" target="_blank" download onclick="event.stopPropagation();" title="Télécharger l'image" class="msg-image-dl"><i class="fas fa-download"></i></a>
-                            </div>
-                        `;
-                    } else if (msg.type === 'video' || (msg.url && msg.texte && msg.texte.startsWith('[Vidéo'))) {
-                        contentHTML = `
-                            <div class="msg-video-wrap">
-                                <video src="${msg.url}" controls preload="metadata"></video>
-                            </div>
-                        `;
-                    } else if (msg.type === 'audio' || (msg.url && msg.texte === '[Vocal]')) {
-                        contentHTML = `
-                            <div class="msg-audio-card">
-                                <div class="msg-audio-icon"><i class="fas fa-microphone"></i></div>
-                                <audio src="${msg.url}" controls></audio>
-                                <a href="${msg.url}" target="_blank" download="Vocal.webm" title="Télécharger le vocal" class="msg-audio-dl"><i class="fas fa-download"></i></a>
-                            </div>
-                        `;
-                    } else if (msg.type === 'location' || (msg.url && msg.texte === '[Position GPS]')) {
-                        contentHTML = `
-                            <a href="${msg.url}" target="_blank" class="msg-location-card">
-                                <div class="msg-location-icon"><i class="fas fa-map-marker-alt"></i></div>
-                                <div class="msg-location-text">
-                                    <span class="msg-location-title">Position partagée</span>
-                                    <span class="msg-location-sub">Voir sur la carte</span>
-                                </div>
-                            </a>
-                        `;
-                    } else if (msg.type === 'file' || (msg.url && msg.texte && msg.texte.startsWith('[Fichier'))) {
-                        const fileName = msg.texte.replace('[Fichier: ', '').replace(']', '');
-                        const extMatch = (fileName || '').match(/\.([a-zA-Z0-9]+)$/);
-                        const ext = extMatch ? extMatch[1].toUpperCase() : 'FICHIER';
-                        const isPdf = ext === 'PDF';
-                        const sizeLabel = msg.fileSize ? formatFileSize(msg.fileSize) : '';
-                        contentHTML = `
-                            <div class="msg-file-card" onclick="openFilePopup('${msg.url}', 'document')">
-                                <div class="msg-file-icon ${isPdf ? 'is-pdf' : ''}"><i class="fas ${isPdf ? 'fa-file-pdf' : 'fa-file-alt'}"></i></div>
-                                <div class="msg-file-info">
-                                    <div class="msg-file-name">${escapeHTML(fileName || 'Document joint')}</div>
-                                    <div class="msg-file-sub">${escapeHTML(ext)}${sizeLabel ? ' • ' + escapeHTML(sizeLabel) : ''}</div>
-                                </div>
-                                <a href="${msg.url}" target="_blank" download="${escapeHTML(fileName || 'Document')}" onclick="event.stopPropagation();" title="Télécharger le fichier" class="msg-file-dl"><i class="fas fa-download"></i></a>
-                            </div>
-                        `;
-                    } else {
-                        contentHTML = `<div class="msg-text">${formatMessageText(msg.texte)}</div>`;
-                    }
-
-                    // GESTION DU SYSTÈMES DES COCHES WHATSAPP (✓, ✓✓ GRIS, ✓✓ BLEU)
-                    let ticksHTML = '';
-                    if (isMe) {
-                        if (msg.seen) {
-                            ticksHTML = `<span class="ticks read" title="Lu">✓✓</span>`;
-                        } else if (msg.delivered) {
-                            ticksHTML = `<span class="ticks delivered" title="Reçu">✓✓</span>`;
+                if (wasInitialLoad) {
+                    // Premier chargement de la conversation : construction complète, en une seule passe,
+                    // déjà dans le bon ordre chronologique.
+                    const frag = document.createDocumentFragment();
+                    docsList.forEach((docItem) => {
+                        const wrapperEl = buildBubbleWrapperElement(docItem.id, docItem.data);
+                        renderedMessageEls[docItem.id] = wrapperEl;
+                        frag.appendChild(wrapperEl);
+                    });
+                    chatBox.appendChild(frag);
+                } else {
+                    // Mises à jour suivantes : on ne touche qu'aux messages réellement ajoutés,
+                    // modifiés ou supprimés (coches, texte modifié, nouveaux messages...), sans jamais
+                    // reconstruire toute la conversation. onSnapshot() et le temps réel restent actifs.
+                    snapshot.docChanges().forEach(change => {
+                        const docId = change.doc.id;
+                        if (change.type === 'removed') {
+                            const existingEl = renderedMessageEls[docId];
+                            if (existingEl && existingEl.parentNode) existingEl.parentNode.removeChild(existingEl);
+                            delete renderedMessageEls[docId];
+                            delete renderedMessagesMap[docId];
                         } else {
-                            ticksHTML = `<span class="ticks delivered" title="Envoyé">✓</span>`;
+                            const msg = change.doc.data();
+                            const existingEl = renderedMessageEls[docId];
+                            if (existingEl) {
+                                // Modification (texte édité, coches, etc.) : mise à jour en place du
+                                // même élément DOM -> aucune animation rejouée, aucun saut de scroll.
+                                const updatedEl = buildBubbleWrapperElement(docId, msg);
+                                existingEl.className = updatedEl.className;
+                                existingEl.dataset.ts = updatedEl.dataset.ts;
+                                existingEl.innerHTML = updatedEl.innerHTML;
+                            } else {
+                                // Nouveau message : insertion à la bonne position chronologique.
+                                const newWrapperEl = buildBubbleWrapperElement(docId, msg);
+                                insertBubbleInOrder(chatBox, newWrapperEl);
+                                renderedMessageEls[docId] = newWrapperEl;
+                            }
                         }
-                    }
-                    
-                    const isSpecialUser = currentStagiaireData &&
-                                          currentStagiaireData.nom && currentStagiaireData.nom.trim() === "BRAINY AGENCY" &&
-                                          currentStagiaireData.matricule && currentStagiaireData.matricule.trim() === "BRA0000";
-                    const canDelete = isMe || isSpecialUser;
-                    const canEdit = isMe && msg.type === 'text';
+                    });
+                }
 
-                    // Bandeau "modifié" / "transféré" (rétrocompatible : absent sur les anciens messages)
-                    const editedBadgeHTML = msg.edited ? `<span class="msg-edited-badge" title="Message modifié">modifié</span>` : '';
-                    const forwardedBadgeHTML = msg.forwarded ? `<span class="msg-forwarded-badge" title="Message transféré"><i class="fas fa-share"></i> Transféré</span>` : '';
-
-                    // Actions sous le message : Répondre / Transférer / Modifier / Supprimer
-                    // (utilise les fonctions existantes deleteMessage() et les nouvelles fonctions dédiées)
-                    const actionsHTML = `
-                        <div class="msg-actions">
-                            <button type="button" class="msg-action-btn" onclick="startReply('${docSnapId}')" title="Répondre"><i class="fas fa-reply"></i><span>Répondre</span></button>
-                            <button type="button" class="msg-action-btn" onclick="openForwardModal('${docSnapId}')" title="Transférer"><i class="fas fa-share"></i><span>Transférer</span></button>
-                            ${canEdit ? `<button type="button" class="msg-action-btn" onclick="openEditModal('${docSnapId}')" title="Modifier"><i class="fas fa-pen"></i><span>Modifier</span></button>` : ''}
-                            ${canDelete ? `<button type="button" class="msg-action-btn danger" onclick="deleteMessage('${docSnapId}')" title="Supprimer"><i class="fas fa-trash"></i><span>Supprimer</span></button>` : ''}
-                        </div>
-                    `;
-
-                    const isSelectedForReply = replyingTo && replyingTo.id === docSnapId;
-
-                    const bubbleWrapper = document.createElement('div');
-                    bubbleWrapper.className = `bubble-wrapper ${isMe ? 'sent' : 'received'}`;
-                    bubbleWrapper.innerHTML = `
-                        <div class="bubble ${isMe ? 'sent' : 'received'} ${isSelectedForReply ? 'bubble-selected' : ''}">
-                            ${showSender}
-                            ${replyQuoteHTML}
-                            ${contentHTML}
-                            <div class="msg-meta">
-                                ${forwardedBadgeHTML}
-                                ${editedBadgeHTML}
-                                <span>${timeString}</span>
-                                ${ticksHTML}
-                            </div>
-                        </div>
-                        ${actionsHTML}
-                    `;
-                    
-                    chatBox.appendChild(bubbleWrapper);
-                });
-
-                chatBox.scrollTop = chatBox.scrollHeight;
+                // Défilement intelligent façon WhatsApp
+                if (wasInitialLoad || wasNearBottom || selfJustSent) {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    hideScrollToBottomBtn();
+                } else if (receivedWhileScrolledUp) {
+                    showScrollToBottomBtn();
+                }
             });
         }
+
+        // Écouteur unique (posé une seule fois, pas à chaque ouverture de discussion) : si l'utilisateur
+        // remonte lui-même jusqu'en bas de la conversation, on masque discrètement l'indicateur.
+        (function initChatScrollListener() {
+            const chatBoxEl = document.getElementById('chatBox');
+            if (!chatBoxEl) return;
+            chatBoxEl.addEventListener('scroll', () => {
+                if (isChatScrolledNearBottom(chatBoxEl)) {
+                    hideScrollToBottomBtn();
+                }
+            }, { passive: true });
+        })();
+
+        // ── SÉLECTION MULTIPLE DE MESSAGES (appui long / clic droit, façon WhatsApp) ──
+        function updateSelectionUI() {
+            const bar = document.getElementById('selectionBar');
+            const countEl = document.getElementById('selectionBarCount');
+            const replyBtn = document.getElementById('selectionReplyBtn');
+            const deleteBtn = document.getElementById('selectionDeleteBtn');
+            if (!bar) return;
+
+            if (!selectionMode || selectedMessageIds.size === 0) {
+                bar.classList.add('hidden');
+                document.body.classList.remove('selection-mode');
+                return;
+            }
+
+            document.body.classList.add('selection-mode');
+            bar.classList.remove('hidden');
+            const n = selectedMessageIds.size;
+            if (countEl) countEl.textContent = n === 1 ? '1 message sélectionné' : `${n} messages sélectionnés`;
+            if (replyBtn) replyBtn.classList.toggle('hidden', n !== 1);
+            if (deleteBtn) deleteBtn.classList.remove('hidden');
+        }
+
+        // Applique/retire la classe visuelle 'msg-selected' sur l'élément DOM d'un message,
+        // sans jamais reconstruire son contenu (aucun impact sur le temps réel / le scroll).
+        function setBubbleSelectedClass(msgId, isSelected) {
+            const el = renderedMessageEls[msgId];
+            if (el) el.classList.toggle('msg-selected', isSelected);
+        }
+
+        window.enterSelectionMode = (msgId) => {
+            selectionMode = true;
+            selectedMessageIds.add(msgId);
+            setBubbleSelectedClass(msgId, true);
+            updateSelectionUI();
+        };
+
+        window.toggleMessageSelection = (msgId) => {
+            if (!msgId) return;
+            if (selectedMessageIds.has(msgId)) {
+                selectedMessageIds.delete(msgId);
+                setBubbleSelectedClass(msgId, false);
+            } else {
+                selectedMessageIds.add(msgId);
+                setBubbleSelectedClass(msgId, true);
+            }
+            if (selectedMessageIds.size === 0) {
+                selectionMode = false;
+            }
+            updateSelectionUI();
+        };
+
+        window.exitSelectionMode = () => {
+            selectedMessageIds.forEach(id => setBubbleSelectedClass(id, false));
+            selectedMessageIds.clear();
+            selectionMode = false;
+            updateSelectionUI();
+        };
+
+        window.replySelectedMessage = () => {
+            if (selectedMessageIds.size !== 1) return;
+            const id = Array.from(selectedMessageIds)[0];
+            exitSelectionMode();
+            startReply(id);
+        };
+
+        function currentUserCanBulkDelete() {
+            return currentStagiaireData &&
+                   currentStagiaireData.nom && currentStagiaireData.nom.trim() === "BRAINY AGENCY" &&
+                   currentStagiaireData.matricule && currentStagiaireData.matricule.trim() === "BRA0000";
+        }
+
+        window.confirmDeleteSelectedMessages = () => {
+            if (selectedMessageIds.size === 0) return;
+            const n = selectedMessageIds.size;
+            const textEl = document.getElementById('deleteSelectionText');
+            if (textEl) textEl.textContent = n === 1 ? "Ce message sera définitivement supprimé." : `Ces ${n} messages seront définitivement supprimés.`;
+            document.getElementById('deleteSelectionModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteSelectionModal = () => {
+            document.getElementById('deleteSelectionModal').classList.add('hidden');
+        };
+
+        // Suppression multiple : ne supprime que les messages que l'utilisateur est autorisé à
+        // supprimer (les siens, ou tous s'il s'agit du compte administrateur spécial existant),
+        // exactement selon la même logique de permission que la suppression individuelle.
+        window.performDeleteSelectedMessages = async () => {
+            const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
+            const isAdmin = currentUserCanBulkDelete();
+            const idsToDelete = Array.from(selectedMessageIds).filter(id => {
+                const data = renderedMessagesMap[id];
+                return data && (data.senderUid === currentUser.uid || isAdmin);
+            });
+
+            closeDeleteSelectionModal();
+
+            if (idsToDelete.length === 0) {
+                exitSelectionMode();
+                alert("Vous n'avez pas la permission de supprimer ces messages.");
+                return;
+            }
+
+            try {
+                const batch = writeBatch(db);
+                idsToDelete.forEach(id => batch.delete(doc(db, colName, id)));
+                await batch.commit();
+            } catch (error) {
+                console.error("Erreur suppression multiple :", error);
+                alert("Erreur lors de la suppression des messages sélectionnés.");
+            }
+            exitSelectionMode();
+        };
+
+        // Écouteurs délégués sur le conteneur des messages (persistant, jamais recréé) : gèrent
+        // l'appui long (mobile/tactile) et le clic droit (ordinateur) pour entrer/naviguer dans le
+        // mode sélection, sans jamais interférer avec l'ouverture des images/fichiers ni la lecture
+        // audio/vidéo lorsqu'on n'est PAS en mode sélection.
+        (function initSelectionGestures() {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            function clearLongPressTimer() {
+                if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+            }
+
+            chatBox.addEventListener('pointerdown', (e) => {
+                const wrapper = e.target.closest('.bubble-wrapper');
+                if (!wrapper) return;
+                longPressStartX = e.clientX; longPressStartY = e.clientY;
+                clearLongPressTimer();
+                longPressTimer = setTimeout(() => {
+                    longPressTimer = null;
+                    longPressTriggered = true;
+                    const msgId = wrapper.dataset.msgId;
+                    if (!selectionMode) enterSelectionMode(msgId);
+                    else toggleMessageSelection(msgId);
+                    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e2) {} }
+                }, 480);
+            }, { passive: true });
+
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(evtName => {
+                chatBox.addEventListener(evtName, clearLongPressTimer, { passive: true });
+            });
+
+            chatBox.addEventListener('pointermove', (e) => {
+                if (!longPressTimer) return;
+                if (Math.abs(e.clientX - longPressStartX) > 10 || Math.abs(e.clientY - longPressStartY) > 10) {
+                    clearLongPressTimer();
+                }
+            }, { passive: true });
+
+            // Clic droit ordinateur : équivalent de l'appui long.
+            chatBox.addEventListener('contextmenu', (e) => {
+                const wrapper = e.target.closest('.bubble-wrapper');
+                if (!wrapper) return;
+                e.preventDefault();
+                const msgId = wrapper.dataset.msgId;
+                if (!selectionMode) enterSelectionMode(msgId);
+                else toggleMessageSelection(msgId);
+            });
+
+            // Phase de capture : intercepte le clic AVANT les gestionnaires onclick internes
+            // (ouverture d'image, de fichier, lecteurs audio/vidéo) lorsque le mode sélection est
+            // actif, afin qu'un simple tap sélectionne/désélectionne au lieu d'ouvrir le contenu.
+            chatBox.addEventListener('click', (e) => {
+                const wrapper = e.target.closest('.bubble-wrapper');
+                if (longPressTriggered) {
+                    longPressTriggered = false;
+                    if (wrapper) { e.preventDefault(); e.stopPropagation(); }
+                    return;
+                }
+                if (!selectionMode || !wrapper) return;
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMessageSelection(wrapper.dataset.msgId);
+            }, true);
+        })();
 
         // 11. Fonction principale d'envoi de message (avec statuts sent/delivered/seen)
         async function sendMessageToDb(textVal, fileUrl = null, msgType = 'text', replyData = null, fileMeta = null) {
@@ -2027,9 +2667,11 @@
                     messageData.chatId = activeChatId;
                     await addDoc(collection(db, "messages_prives"), messageData);
                 }
+                return true;
             } catch (error) {
                 console.error("Erreur lors de l'envoi :", error);
-                alert("Erreur lors de l'envoi du message. Vérifiez votre connexion.");
+                alert("Erreur lors de l'envoi du message. Vérifiez votre connexion. Vous pouvez réessayer, votre texte n'a pas été perdu.");
+                return false;
             }
         }
 
@@ -2046,17 +2688,32 @@
         };
 
         // 12. Gestion du bouton Action (Microphone vs Envoi Texte)
-        window.handleSendAction = () => {
+        // Protégé contre le double-envoi (double clic/tap accidentel) : le bouton est désactivé
+        // pendant l'envoi. Si l'envoi échoue, le texte saisi n'est PAS effacé (l'utilisateur peut
+        // simplement réessayer sans avoir à tout retaper).
+        let isSendingTextMessage = false;
+        window.handleSendAction = async () => {
             const inputField = document.getElementById('msgInput');
             const texte = inputField.value.trim();
 
             if (texte !== "") {
+                if (isSendingTextMessage) return;
+                isSendingTextMessage = true;
+                const sendBtn = document.getElementById('sendBtn');
+                if (sendBtn) sendBtn.disabled = true;
+
                 const replyPayload = replyingTo ? { id: replyingTo.id, text: replyingTo.text, sender: replyingTo.sender } : null;
-                sendMessageToDb(texte, null, 'text', replyPayload);
-                inputField.value = "";
-                autoResizeInput(inputField);
-                cancelReply();
-                toggleInputIcons();
+                const success = await sendMessageToDb(texte, null, 'text', replyPayload);
+
+                if (success) {
+                    inputField.value = "";
+                    autoResizeInput(inputField);
+                    cancelReply();
+                    toggleInputIcons();
+                }
+
+                isSendingTextMessage = false;
+                if (sendBtn) sendBtn.disabled = false;
             } else {
                 handleAudioRecord();
             }
@@ -2274,8 +2931,9 @@
             const popup = document.getElementById('filePopup');
             const content = document.getElementById('filePopupContent');
             const downloadBtn = document.getElementById('filePopupDownload');
-            
+
             downloadBtn.href = url;
+            downloadBtn.onclick = (evt) => downloadFile(url, extractFileNameFromUrl(url, type === 'image' ? 'photo.jpg' : 'document'), evt);
             
             if (type === 'image') {
                 content.innerHTML = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
@@ -2359,6 +3017,25 @@
                     menu.classList.add('hidden');
                 }
             }
+        });
+
+        // Fermeture des modales/popups avec la touche Échap (confort ordinateur).
+        // N'interfère jamais avec la saisie de texte : Échap ne fait que fermer les fenêtres ouvertes.
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const profileViewer = document.getElementById('profilePhotoViewer');
+            const filePopup = document.getElementById('filePopup');
+            const editModal = document.getElementById('editModal');
+            const forwardModal = document.getElementById('forwardModal');
+            const deleteSelectionModal = document.getElementById('deleteSelectionModal');
+            const attachMenu = document.getElementById('attachMenu');
+            if (profileViewer && !profileViewer.classList.contains('hidden')) { closeProfilePhotoView(); return; }
+            if (filePopup && !filePopup.classList.contains('hidden')) { closeFilePopup(); return; }
+            if (editModal && !editModal.classList.contains('hidden')) { closeEditModal(); return; }
+            if (deleteSelectionModal && !deleteSelectionModal.classList.contains('hidden')) { closeDeleteSelectionModal(); return; }
+            if (forwardModal && !forwardModal.classList.contains('hidden')) { closeForwardModal(); return; }
+            if (attachMenu && !attachMenu.classList.contains('hidden')) { attachMenu.classList.add('hidden'); return; }
+            if (selectionMode) { exitSelectionMode(); return; }
         });
 
         // 19. Sélection d'un message pour y répondre (comme WhatsApp)
