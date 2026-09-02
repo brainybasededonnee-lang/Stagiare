@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concours de Maîtrise du Clavier — Brainy Agency</title>
+<style>
+/* ==========================================================================
+   1. TOKENS — Palette, typographie, rythme
+   ========================================================================== */
+:root{
+  --ink:#10131C;
+  --bg:#F4F5F2;
+  --surface:#FFFFFF;
+  --surface-2:#ECEEE9;
+  --border:#D8DAD3;
+  --text:#181B22;
+  --text-dim:#5B5F6B;
+  --accent:#1D3FD6;       /* bleu signal — précision, technologie */
+  --accent-ink:#0E2494;
+  --accent-soft:#E6EBFC;
+  --gold:#C8922E;         /* or discret — réservé notes/certificats */
+  --gold-soft:#F7EEDA;
+  --success:#1F8F5F;
+  --success-soft:#E3F5EC;
+  --danger:#C63C2E;
+  --danger-soft:#FBE7E4;
+  --radius-s:6px;
+  --radius:10px;
+  --radius-l:16px;
+  --shadow:0 1px 2px rgba(16,19,28,.06), 0 8px 24px -12px rgba(16,19,28,.18);
+  --font-sans:-apple-system,"Segoe UI","Inter","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","SF Mono","Cascadia Code",Consolas,"Roboto Mono",monospace;
+  --header-h:64px;
+}
+[data-theme="dark"]{
+  --ink:#EDEEF2;
+  --bg:#0D0F16;
+  --surface:#161923;
+  --surface-2:#1E2230;
+  --border:#2B3040;
+  --text:#EBECF1;
+  --text-dim:#9498A8;
+  --accent:#5C7CFF;
+  --accent-ink:#B9C5FF;
+  --accent-soft:#1B2340;
+  --gold:#E0AC4E;
+  --gold-soft:#2E2716;
+  --success:#3FCE93;
+  --success-soft:#123527;
+  --danger:#FF6B58;
+  --danger-soft:#3A1B18;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+/* ==========================================================================
+   2. RESET & BASE
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-sans);
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+h1,h2,h3,h4,p{margin:0;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.hidden{display:none !important;}
+::selection{background:var(--accent-soft);}
+
+/* ==========================================================================
+   3. LAYOUT — En-tête / conteneur applicatif
+   ========================================================================== */
+#app-header{
+  position:sticky;top:0;z-index:50;
+  height:var(--header-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-ink));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:15px;letter-spacing:-.5px;
+  flex-shrink:0;
+}
+.brand-text{line-height:1.15;}
+.brand-text strong{display:block;font-size:14.5px;letter-spacing:.2px;}
+.brand-text span{display:block;font-size:11px;color:var(--text-dim);letter-spacing:.4px;}
+.header-mid{
+  display:flex;align-items:center;gap:18px;
+  font-size:13px;color:var(--text-dim);
+}
+.header-mid b{color:var(--text);font-weight:600;}
+#header-timer{
+  font-family:var(--font-mono);font-weight:700;font-size:18px;color:var(--accent);
+  min-width:64px;text-align:center;
+}
+#header-status-badge{
+  padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;
+  background:var(--surface-2);color:var(--text-dim);letter-spacing:.3px;
+}
+#header-status-badge.live{background:var(--success-soft);color:var(--success);}
+#header-status-badge.paused{background:var(--gold-soft);color:var(--gold);}
+#header-status-badge.done{background:var(--accent-soft);color:var(--accent);}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:background .15s,border-color .15s;
+}
+.icon-btn:hover{background:var(--surface-2);}
+.nav-link{
+  border:none;background:none;color:var(--text-dim);font-size:13px;font-weight:600;
+  padding:8px 10px;border-radius:8px;
+}
+.nav-link:hover{background:var(--surface-2);color:var(--text);}
+
+#main{max-width:1040px;margin:0 auto;padding:32px 22px 80px;}
+.screen{display:none;animation:fadeIn .28s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ==========================================================================
+   4. COMPOSANTS GÉNÉRIQUES
+   ========================================================================== */
+.page-title{font-size:23px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px;}
+.page-sub{color:var(--text-dim);font-size:14px;margin-bottom:26px;}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;
+}
+.card + .card{margin-top:16px;}
+.section-label{
+  font-size:12.5px;font-weight:700;color:var(--text-dim);
+  margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.grid{display:grid;gap:14px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:1fr 1fr 1fr;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:720px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;}
+.field input[type=text],.field input[type=number],.field select{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-s);
+  background:var(--surface);color:var(--text);
+}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.check-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--border);}
+.check-row:last-child{border-bottom:none;}
+.check-row .lbl{font-size:13.5px;font-weight:600;}
+.check-row .desc{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.switch{position:relative;width:42px;height:24px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.switch .track{position:absolute;inset:0;background:var(--border);border-radius:999px;transition:.18s;}
+.switch .track::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;
+  background:#fff;border-radius:50%;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.switch input:checked + .track{background:var(--accent);}
+.switch input:checked + .track::before{transform:translateX(18px);}
+
+.choice-group{display:flex;flex-wrap:wrap;gap:8px;}
+.choice-pill{
+  padding:8px 14px;border-radius:999px;border:1px solid var(--border);
+  background:var(--surface);font-size:13px;font-weight:600;color:var(--text-dim);
+}
+.choice-pill.selected{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 22px;border-radius:var(--radius-s);border:1px solid transparent;
+  font-weight:700;font-size:14px;transition:transform .1s,filter .15s,background .15s;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-secondary{background:var(--surface);border-color:var(--border);color:var(--text);}
+.btn-secondary:hover{background:var(--surface-2);}
+.btn-ghost{background:transparent;color:var(--text-dim);border-color:transparent;padding:10px 14px;}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{filter:brightness(1.08);}
+.btn-block{width:100%;}
+.btn-lg{padding:16px 28px;font-size:15.5px;border-radius:var(--radius);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+
+.error-msg{
+  background:var(--danger-soft);color:var(--danger);border:1px solid transparent;
+  padding:10px 14px;border-radius:var(--radius-s);font-size:13px;font-weight:600;
+  margin-bottom:16px;
+}
+.hint-banner{
+  background:var(--gold-soft);color:var(--gold);padding:10px 14px;border-radius:var(--radius-s);
+  font-size:12.5px;font-weight:600;margin-bottom:16px;display:flex;gap:8px;align-items:center;
+}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(10,12,18,.55);
+  display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;
+}
+.modal-box{
+  background:var(--surface);border-radius:var(--radius-l);padding:26px;
+  max-width:460px;width:100%;box-shadow:var(--shadow);
+  max-height:88vh;overflow-y:auto;
+}
+.modal-box.wide{max-width:720px;}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:6px;}
+.modal-text{color:var(--text-dim);font-size:13.5px;margin-bottom:20px;}
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  background:var(--ink);color:#fff;padding:11px 16px;border-radius:var(--radius-s);
+  font-size:13px;box-shadow:var(--shadow);animation:toastIn .2s ease;max-width:320px;
+}
+[data-theme="dark"] .toast{background:var(--surface-2);border:1px solid var(--border);}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ==========================================================================
+   5. ÉCRAN CONFIGURATION
+   ========================================================================== */
+.duration-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+@media(max-width:640px){.duration-grid{grid-template-columns:repeat(3,1fr);}}
+.duration-opt{
+  padding:11px 6px;text-align:center;border-radius:var(--radius-s);border:1px solid var(--border);
+  font-weight:700;font-size:13.5px;background:var(--surface);color:var(--text);
+}
+.duration-opt.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+
+/* ==========================================================================
+   6. COMPTE À REBOURS
+   ========================================================================== */
+#screen-countdown{display:none;text-align:center;padding:120px 0;}
+#screen-countdown.active{display:block;}
+.countdown-num{
+  font-family:var(--font-mono);font-weight:800;font-size:140px;color:var(--accent);
+  line-height:1;animation:pop .5s ease;
+}
+@keyframes pop{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.countdown-label{margin-top:14px;color:var(--text-dim);font-size:14px;font-weight:600;letter-spacing:.4px;}
+
+/* ==========================================================================
+   7. ÉCRAN EXAMEN
+   ========================================================================== */
+.exam-topbar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:18px;}
+.exam-timer-box{text-align:center;}
+.exam-timer-box .lbl{font-size:11px;letter-spacing:.6px;color:var(--text-dim);font-weight:700;margin-bottom:2px;}
+.exam-timer-box .val{font-family:var(--font-mono);font-size:42px;font-weight:800;color:var(--accent);line-height:1;}
+.exam-timer-box .val.low{color:var(--danger);}
+.exam-badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{
+  padding:6px 11px;border-radius:999px;font-size:11.5px;font-weight:700;
+  background:var(--surface-2);color:var(--text-dim);
+}
+.badge.warn{background:var(--danger-soft);color:var(--danger);}
+
+.progress-track{height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-bottom:22px;}
+.progress-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .15s linear;width:0%;}
+
+.stat-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:22px;}
+@media(max-width:820px){.stat-strip{grid-template-columns:repeat(3,1fr);}}
+.stat-cell{background:var(--surface);padding:13px 10px;text-align:center;}
+.stat-cell .n{font-family:var(--font-mono);font-size:19px;font-weight:800;}
+.stat-cell .l{font-size:10.5px;color:var(--text-dim);font-weight:700;letter-spacing:.3px;margin-top:2px;}
+.stat-cell.err .n{color:var(--danger);}
+.stat-cell.acc .n{color:var(--success);}
+
+.text-display{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px 28px;font-family:var(--font-mono);font-size:20px;line-height:1.85;
+  letter-spacing:.2px;user-select:none;margin-bottom:16px;max-height:230px;overflow-y:auto;
+}
+.text-display span{border-radius:2px;}
+.ch-pending{color:var(--text-dim);}
+.ch-correct{color:var(--success);}
+.ch-incorrect{color:var(--danger);background:var(--danger-soft);text-decoration:underline;}
+.ch-current{background:var(--accent);color:#fff;border-radius:2px;}
+
+#exam-input{
+  width:100%;min-height:120px;padding:18px;border-radius:var(--radius);
+  border:2px solid var(--border);background:var(--surface);color:var(--text);
+  font-family:var(--font-mono);font-size:18px;line-height:1.7;resize:none;
+}
+#exam-input:focus{border-color:var(--accent);}
+#exam-input:disabled{opacity:.6;}
+.exam-actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px;}
+.exam-mode-note{font-size:11.5px;color:var(--text-dim);}
+
+/* Pause overlay */
+.pause-overlay{
+  position:fixed;inset:0;background:var(--bg);z-index:150;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+}
+
+/* ==========================================================================
+   8. RÉSULTAT
+   ========================================================================== */
+.result-hero{text-align:center;padding:20px 0 8px;}
+.result-hero .k1{font-size:12.5px;font-weight:700;color:var(--text-dim);letter-spacing:1px;}
+.result-hero .k2{font-size:26px;font-weight:800;margin:6px 0 20px;}
+.grade-circle{
+  width:168px;height:168px;border-radius:50%;margin:0 auto 18px;
+  background:conic-gradient(var(--gold) calc(var(--pct,50)*1%),var(--surface-2) 0);
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.grade-circle::before{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--surface);}
+.grade-circle .txt{position:relative;text-align:center;}
+.grade-circle .num{font-family:var(--font-mono);font-size:36px;font-weight:800;}
+.grade-circle .den{font-size:12px;color:var(--text-dim);}
+.appreciation-tag{
+  display:inline-block;padding:6px 16px;border-radius:999px;background:var(--gold-soft);
+  color:var(--gold);font-weight:800;font-size:13px;letter-spacing:.4px;margin-bottom:26px;
+}
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+@media(max-width:720px){.result-grid{grid-template-columns:repeat(2,1fr);}}
+.result-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;text-align:center;}
+.result-tile .n{font-family:var(--font-mono);font-size:22px;font-weight:800;}
+.result-tile .l{font-size:11px;color:var(--text-dim);font-weight:600;margin-top:4px;}
+
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:120px;padding:10px 4px;}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+.chart-bar{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:3px;}
+.chart-bar-label{font-size:10.5px;color:var(--text-dim);}
+
+/* ==========================================================================
+   9. TABLEAUX (classement / historique)
+   ========================================================================== */
+table.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{
+  text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.3px;color:var(--text-dim);
+  border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;
+}
+.data-table th:hover{color:var(--text);}
+.data-table td{padding:11px 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.data-table tr:last-child td{border-bottom:none;}
+.rank-pill{
+  width:26px;height:26px;border-radius:50%;background:var(--surface-2);color:var(--text-dim);
+  display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;
+}
+.rank-pill.top1{background:var(--gold);color:#fff;}
+.rank-pill.top2{background:#B9BCC6;color:#fff;}
+.rank-pill.top3{background:#B08356;color:#fff;}
+.table-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;justify-content:space-between;}
+.search-box{flex:1;min-width:180px;}
+.search-box input{width:100%;padding:9px 12px;border-radius:var(--radius-s);border:1px solid var(--border);background:var(--surface);color:var(--text);}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-dim);}
+.empty-state .em-ic{font-size:34px;margin-bottom:10px;}
+.table-scroll{overflow-x:auto;}
+.link-danger{color:var(--danger);font-weight:700;font-size:12.5px;background:none;border:none;}
+.link-plain{color:var(--accent);font-weight:700;font-size:12.5px;background:none;border:none;}
+
+/* ==========================================================================
+   10. CLAVIER VIRTUEL
+   ========================================================================== */
+.kb{max-width:760px;margin:0 auto;user-select:none;}
+.kb-row{display:flex;gap:6px;margin-bottom:6px;justify-content:center;}
+.kb-key{
+  min-width:42px;height:46px;border-radius:7px;border:1px solid var(--border);
+  background:var(--surface);display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--text);flex:1;transition:background .1s,transform .1s;
+}
+.kb-key.wide{flex:1.6;}
+.kb-key.xwide{flex:5;}
+.kb-key.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(.94);}
+.kb-key.hit{background:var(--success-soft);border-color:var(--success);}
+.kb-readout{text-align:center;margin-top:24px;}
+.kb-readout .big{font-family:var(--font-mono);font-size:44px;font-weight:800;color:var(--accent);min-height:56px;}
+.kb-readout .small{color:var(--text-dim);font-size:13px;margin-top:6px;}
+
+/* ==========================================================================
+   11. IMPRESSION
+   ========================================================================== */
+.printable{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #print-area,#print-area *{visibility:visible;}
+  #print-area{position:absolute;left:0;top:0;width:100%;padding:20px;display:block !important;}
+  .no-print{display:none !important;}
+}
+.print-sheet{border:2px solid #222;padding:34px;font-family:var(--font-sans);color:#111;}
+.print-sheet h1{font-size:20px;margin-bottom:2px;}
+.print-sheet h2{font-size:13px;font-weight:600;color:#555;margin-bottom:20px;}
+.print-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #ccc;font-size:13.5px;}
+.print-grade{text-align:center;font-size:38px;font-weight:800;margin:20px 0 4px;}
+.print-sig{margin-top:50px;display:flex;justify-content:space-between;font-size:12.5px;color:#555;}
+
+/* Mobile banner */
+#mobile-banner{
+  background:var(--gold-soft);color:var(--gold);padding:10px 16px;font-size:12.5px;font-weight:600;
+  text-align:center;
+}
+
+footer.app-footer{max-width:1040px;margin:40px auto 10px;padding:0 22px;color:var(--text-dim);font-size:11.5px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="mobile-banner" class="hidden no-print">Pour une meilleure expérience, veuillez utiliser un ordinateur avec un clavier AZERTY.</div>
+
+<!-- ======================= EN-TÊTE ======================= -->
+<header id="app-header" class="no-print">
+  <div class="brand">
+    <div class="brand-mark">BA</div>
+    <div class="brand-text">
+      <strong>BRAINY AGENCY</strong>
+      <span>Concours de maîtrise du clavier</span>
+    </div>
+  </div>
+  <div class="header-mid" id="header-mid">
+    <span id="header-candidate">—</span>
+    <span id="header-status-badge">Configuration</span>
+    <span id="header-timer">--:--</span>
+  </div>
+  <div class="header-actions">
+    <button class="nav-link" data-nav="config">Accueil</button>
+    <button class="nav-link" data-nav="leaderboard">Classement</button>
+    <button class="nav-link" data-nav="history">Historique</button>
+    <button class="icon-btn" id="btn-settings" title="Paramètres">⚙️</button>
+    <button class="icon-btn" id="btn-theme" title="Mode sombre / clair">🌙</button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ======================= ÉCRAN CONFIGURATION ======================= -->
+  <section class="screen" id="screen-config">
+    <h1 class="page-title">Nouveau concours</h1>
+    <p class="page-sub">Renseignez les informations du candidat et les paramètres de l'épreuve.</p>
+    <div id="config-error" class="error-msg hidden"></div>
+
+    <div class="card">
+      <div class="section-label">INFORMATIONS DU CANDIDAT</div>
+      <div class="grid grid-2">
+        <div class="field"><label>Nom *</label><input type="text" id="cfg-nom" placeholder="Ex. KOMI"></div>
+        <div class="field"><label>Prénom *</label><input type="text" id="cfg-prenom" placeholder="Ex. Ama"></div>
+        <div class="field"><label>Numéro / matricule</label><input type="text" id="cfg-matricule" placeholder="Ex. BA-2026-014"></div>
+        <div class="field"><label>Groupe / classe</label><input type="text" id="cfg-groupe" placeholder="Ex. Groupe B"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">DURÉE DU CONCOURS *</div>
+      <div class="duration-grid" id="duration-grid"></div>
+      <div class="grid grid-2" style="margin-top:12px;">
+        <div class="field" id="custom-duration-field" style="display:none;">
+          <label>Durée personnalisée (minutes)</label>
+          <input type="number" id="cfg-duree-custom" min="1" max="120" value="7">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">NIVEAU</div>
+      <div class="choice-group" id="level-group"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">TYPE DE CONTENU</div>
+      <div class="choice-group" id="content-group"></div>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="field">
+          <label>Nombre de textes / mots à afficher</label>
+          <input type="number" id="cfg-nombre" min="5" max="400" value="40">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">OPTIONS</div>
+      <div class="check-row">
+        <div><div class="lbl">Autoriser le retour arrière</div><div class="desc">Permet d'utiliser la touche Backspace pendant la saisie.</div></div>
+        <label class="switch"><input type="checkbox" id="opt-backspace" checked><span class="track"></span></label>
+      </div>
+      <div class="check-row">
+        <div><div class="lbl">Autoriser la correction des erreurs</div><div class="desc">Une erreur corrigée n'est plus comptée dans la note finale.</div></div>
+        <label class="switch"><input type="checkbox" id="opt-correction" checked><span class="track"></span></label>
+      </div>
+      <div class="check-row">
+        <div><div class="lbl">Autoriser la pause</div><div class="desc">Le candidat peut suspendre le chronomètre pendant l'épreuve.</div></div>
+        <label class="switch"><input type="checkbox" id="opt-pause"><span class="track"></span></label>
+      </div>
+      <div class="check-row">
+        <div><div class="lbl">Autoriser le copier / coller</div><div class="desc">Déconseillé : désactive une partie du mode examen.</div></div>
+        <label class="switch"><input type="checkbox" id="opt-copypaste"><span class="track"></span></label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary btn-lg" id="btn-start-exam">Commencer le concours</button>
+      <button class="btn btn-secondary" id="btn-quick-test">Test rapide du clavier (30s)</button>
+      <button class="btn btn-secondary" id="btn-keyboard-test">Tester mon clavier</button>
+    </div>
+  </section>
+
+  <!-- ======================= TEST DU CLAVIER ======================= -->
+  <section class="screen" id="screen-keyboard-test">
+    <h1 class="page-title">Tester mon clavier</h1>
+    <p class="page-sub">Appuyez sur les touches de votre clavier physique pour vérifier qu'elles sont détectées correctement.</p>
+    <div class="card">
+      <div class="kb" id="kb-container"></div>
+      <div class="kb-readout">
+        <div class="big" id="kb-detected">—</div>
+        <div class="small" id="kb-detected-code">En attente d'une frappe…</div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" data-nav="config">← Retour</button></div>
+  </section>
+
+  <!-- ======================= TEST RAPIDE (30s, non noté) ======================= -->
+  <section class="screen" id="screen-quick-test">
+    <h1 class="page-title">Test rapide du clavier</h1>
+    <p class="page-sub">30 secondes, non comptabilisées dans la note finale.</p>
+    <div class="card">
+      <div class="text-display" id="quick-text-display" style="font-size:18px;"></div>
+      <textarea id="quick-input" placeholder="Tapez ici pour commencer…" style="width:100%;min-height:90px;padding:14px;border-radius:10px;border:2px solid var(--border);font-family:var(--font-mono);font-size:16px;"></textarea>
+      <div class="btn-row">
+        <span class="badge" id="quick-timer">00:30</span>
+        <button class="btn btn-secondary" id="btn-quick-cancel">Annuler</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= COMPTE À REBOURS ======================= -->
+  <section class="screen" id="screen-countdown">
+    <div class="countdown-num" id="countdown-num">3</div>
+    <div class="countdown-label">PRÉPAREZ-VOUS À COMMENCER</div>
+  </section>
+
+  <!-- ======================= EXAMEN ======================= -->
+  <section class="screen" id="screen-exam">
+    <div class="exam-topbar">
+      <div>
+        <div class="exam-badges" id="exam-badges"></div>
+      </div>
+      <div class="exam-timer-box">
+        <div class="lbl">TEMPS RESTANT</div>
+        <div class="val" id="exam-timer">10:00</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="btn-fullscreen">⛶ Plein écran</button>
+        <button class="btn btn-secondary" id="btn-pause" style="display:none;">⏸ Pause</button>
+      </div>
+    </div>
+
+    <div class="progress-track"><div class="progress-fill" id="exam-progress"></div></div>
+
+    <div class="stat-strip" id="exam-stats-strip">
+      <div class="stat-cell"><div class="n" id="stat-mpm">0</div><div class="l">MPM</div></div>
+      <div class="stat-cell acc"><div class="n" id="stat-acc">100%</div><div class="l">PRÉCISION</div></div>
+      <div class="stat-cell err"><div class="n" id="stat-err">0</div><div class="l">FAUTES</div></div>
+      <div class="stat-cell"><div class="n" id="stat-correct">0</div><div class="l">CAR. CORRECTS</div></div>
+      <div class="stat-cell"><div class="n" id="stat-incorrect">0</div><div class="l">CAR. INCORRECTS</div></div>
+      <div class="stat-cell"><div class="n" id="stat-progress">0%</div><div class="l">PROGRESSION</div></div>
+    </div>
+
+    <div class="text-display" id="exam-text-display"></div>
+    <textarea id="exam-input" placeholder="Le champ de saisie s'activera au signal « GO ! »" disabled></textarea>
+
+    <div class="exam-actions">
+      <span class="exam-mode-note">🔒 Mode examen actif — copier/coller désactivé</span>
+      <button class="btn btn-danger" id="btn-end-exam">Terminer le concours</button>
+    </div>
+  </section>
+
+  <!-- ======================= RÉSULTAT ======================= -->
+  <section class="screen" id="screen-result">
+    <div class="result-hero">
+      <div class="k1">CONCOURS TERMINÉ</div>
+      <div class="k2" id="result-congrats">Félicitations !</div>
+      <div class="grade-circle" id="grade-circle" style="--pct:50;">
+        <div class="txt"><div class="num" id="result-note">0,0</div><div class="den">/ 20</div></div>
+      </div>
+      <div class="appreciation-tag" id="result-appreciation">—</div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-tile"><div class="n" id="r-brute">0</div><div class="l">VITESSE BRUTE (MPM)</div></div>
+      <div class="result-tile"><div class="n" id="r-nette">0</div><div class="l">VITESSE NETTE (MPM)</div></div>
+      <div class="result-tile"><div class="n" id="r-precision">0%</div><div class="l">PRÉCISION</div></div>
+      <div class="result-tile"><div class="n" id="r-erreurs">0</div><div class="l">ERREURS</div></div>
+      <div class="result-tile"><div class="n" id="r-total">0</div><div class="l">CARACTÈRES SAISIS</div></div>
+      <div class="result-tile"><div class="n" id="r-corrects">0</div><div class="l">CARACTÈRES CORRECTS</div></div>
+      <div class="result-tile"><div class="n" id="r-mots-ok">0</div><div class="l">MOTS CORRECTS</div></div>
+      <div class="result-tile"><div class="n" id="r-mots-ko">0</div><div class="l">MOTS INCORRECTS</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">PERFORMANCE PAR MINUTE</div>
+      <div class="chart-bars" id="result-chart"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-new-exam">🔄 Nouveau concours</button>
+      <button class="btn btn-secondary" data-nav="leaderboard">🏆 Classement</button>
+      <button class="btn btn-secondary" id="btn-print-result">🖨️ Imprimer</button>
+      <button class="btn btn-secondary" id="btn-certificate">📜 Attestation</button>
+      <button class="btn btn-secondary" id="btn-export-csv-single">⬇️ Exporter CSV</button>
+    </div>
+  </section>
+
+  <!-- ======================= CLASSEMENT ======================= -->
+  <section class="screen" id="screen-leaderboard">
+    <h1 class="page-title">Classement</h1>
+    <p class="page-sub">Classement local des candidats de Brainy Agency.</p>
+    <div class="table-toolbar">
+      <div class="choice-group">
+        <button class="choice-pill selected" data-sort="note">Trier par note</button>
+        <button class="choice-pill" data-sort="wpm">Trier par vitesse</button>
+        <button class="choice-pill" data-sort="acc">Trier par précision</button>
+      </div>
+      <button class="btn btn-secondary" id="btn-export-leaderboard">⬇️ Exporter en CSV</button>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="table-scroll"><table class="data-table" id="leaderboard-table"><thead>
+        <tr><th>Rang</th><th>Candidat</th><th>MPM</th><th>Précision</th><th>Erreurs</th><th>Note</th></tr>
+      </thead><tbody></tbody></table></div>
+      <div class="empty-state hidden" id="leaderboard-empty"><div class="em-ic">🏆</div>Aucun résultat pour le moment.</div>
+    </div>
+  </section>
+
+  <!-- ======================= HISTORIQUE ======================= -->
+  <section class="screen" id="screen-history">
+    <h1 class="page-title">Historique</h1>
+    <p class="page-sub">Tous les concours réalisés sur cet ordinateur.</p>
+    <div class="table-toolbar">
+      <div class="search-box"><input type="text" id="history-search" placeholder="Rechercher un candidat…"></div>
+      <select id="history-filter-niveau" style="padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
+        <option value="">Tous les niveaux</option>
+        <option value="Facile">Facile</option><option value="Moyen">Moyen</option>
+        <option value="Difficile">Difficile</option><option value="Expert">Expert</option>
+      </select>
+      <button class="btn btn-secondary" id="btn-export-history">⬇️ Exporter CSV</button>
+      <button class="btn btn-danger" id="btn-clear-history">🗑️ Tout supprimer</button>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="table-scroll"><table class="data-table" id="history-table"><thead>
+        <tr><th data-key="nom">Candidat</th><th data-key="date">Date</th><th data-key="duree">Durée</th>
+        <th data-key="netWPM">Vitesse</th><th data-key="accuracy">Précision</th><th data-key="errors">Erreurs</th>
+        <th data-key="note">Note</th><th data-key="appreciation">Appréciation</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div class="empty-state hidden" id="history-empty"><div class="em-ic">📋</div>Aucun concours enregistré.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer no-print">Brainy Agency — Logiciel interne d'évaluation de la maîtrise du clavier. Fonctionne hors connexion.</footer>
+
+<!-- ======================= PAUSE OVERLAY ======================= -->
+<div class="pause-overlay hidden no-print" id="pause-overlay">
+  <h2 class="page-title">CONCOURS EN PAUSE</h2>
+  <p class="page-sub" style="margin-bottom:0;">Le chronomètre est arrêté. Cliquez pour reprendre.</p>
+  <button class="btn btn-primary btn-lg" id="btn-resume">▶ Reprendre</button>
+</div>
+
+<!-- ======================= MODALS ======================= -->
+<div class="modal-overlay hidden no-print" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title" id="confirm-title">Confirmer</div>
+    <div class="modal-text" id="confirm-text"></div>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn btn-secondary" id="confirm-cancel">Annuler</button>
+      <button class="btn btn-danger" id="confirm-ok">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden no-print" id="modal-settings">
+  <div class="modal-box wide">
+    <div class="modal-title">Paramètres</div>
+    <div class="modal-text">Ces réglages sont sauvegardés et utilisés par défaut pour les prochains concours.</div>
+    <div class="grid grid-2">
+      <div class="field"><label>Taille du texte affiché</label>
+        <select id="set-font-size"><option value="16">Petite</option><option value="20" selected>Normale</option><option value="24">Grande</option></select>
+      </div>
+      <div class="field"><label>Hauteur de la zone de saisie</label>
+        <select id="set-input-size"><option value="100">Compacte</option><option value="140" selected>Normale</option><option value="200">Grande</option></select>
+      </div>
+    </div>
+    <div class="check-row">
+      <div><div class="lbl">Sons</div><div class="desc">Alertes sonores (début, temps restant, fin).</div></div>
+      <label class="switch"><input type="checkbox" id="set-sound" checked><span class="track"></span></label>
+    </div>
+    <div class="check-row">
+      <div><div class="lbl">Statistiques en temps réel</div><div class="desc">Afficher la vitesse et la précision pendant la saisie.</div></div>
+      <label class="switch"><input type="checkbox" id="set-live-stats" checked><span class="track"></span></label>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-save-settings">Enregistrer</button>
+      <button class="btn btn-secondary" id="btn-close-settings">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden no-print" id="modal-session">
+  <div class="modal-box">
+    <div class="modal-title">Session en cours détectée</div>
+    <div class="modal-text">Une session de concours précédente a été détectée. Souhaitez-vous la reprendre ?</div>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn btn-secondary" id="btn-session-discard">Abandonner</button>
+      <button class="btn btn-primary" id="btn-session-resume">Reprendre</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden no-print" id="modal-certificate">
+  <div class="modal-box wide">
+    <div class="modal-title">Attestation de performance</div>
+    <div id="certificate-preview" style="background:#fff;color:#111;border:2px solid #222;border-radius:10px;padding:36px;text-align:center;font-family:var(--font-sans);"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-print-certificate">🖨️ Imprimer l'attestation</button>
+      <button class="btn btn-secondary" id="btn-close-certificate">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap no-print" id="toast-wrap"></div>
+
+<!-- ======================= ZONE D'IMPRESSION ======================= -->
+<div class="printable" id="print-area"></div>
+
+<script>
+/* ============================================================================
+   CONCOURS DE MAÎTRISE DU CLAVIER — Brainy Agency
+   Application 100% autonome (HTML/CSS/JS), fonctionne hors connexion.
+   ============================================================================ */
+(function(){
+"use strict";
+
+/* --------------------------------------------------------------------------
+   0. STOCKAGE LOCAL — clés & accès sécurisé
+   -------------------------------------------------------------------------- */
+const LS_SETTINGS = "bk_settings_v1";
+const LS_HISTORY  = "bk_history_v1";
+const LS_SESSION  = "bk_session_v1";
+
+function lsGet(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(raw === null) return fallback;
+    return JSON.parse(raw);
+  }catch(e){ console.warn("Lecture localStorage impossible pour", key, e); return fallback; }
+}
+function lsSet(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch(e){ console.warn("Écriture localStorage impossible pour", key, e); toast("Impossible d'enregistrer les données localement."); return false; }
+}
+function lsRemove(key){ try{ localStorage.removeItem(key); }catch(e){} }
+
+/* --------------------------------------------------------------------------
+   1. ÉTAT GLOBAL
+   -------------------------------------------------------------------------- */
+const DEFAULT_SETTINGS = {
+  fontSize: 20, inputSize: 140, sound: true, liveStats: true, theme: "light"
+};
+let SETTINGS = Object.assign({}, DEFAULT_SETTINGS, lsGet(LS_SETTINGS, {}));
+
+const DURATIONS = [1,3,5,10,15,20,30];
+const LEVELS = ["Facile","Moyen","Difficile","Expert"];
+const CONTENT_TYPES = [
+  {k:"phrases", l:"Phrases"}, {k:"mots", l:"Mots"}, {k:"paragraphes", l:"Paragraphes"},
+  {k:"melange", l:"Mélange"}, {k:"lettres", l:"Lettres et caractères"},
+  {k:"chiffres", l:"Chiffres"}, {k:"ponctuation", l:"Ponctuation"}, {k:"professionnel", l:"Texte professionnel"}
+];
+
+let CFG = { duree:5, niveau:"Moyen", type:"phrases", nombre:40,
+  backspace:true, correction:true, pause:false, copypaste:false };
+
+let CANDIDATE = { nom:"", prenom:"", matricule:"", groupe:"" };
+
+// Session d'examen active
+let EXAM = null;
+
+/* --------------------------------------------------------------------------
+   2. UTILITAIRES
+   -------------------------------------------------------------------------- */
+function $(sel, ctx){ return (ctx||document).querySelector(sel); }
+function $all(sel, ctx){ return Array.from((ctx||document).querySelectorAll(sel)); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function fmtTime(totalSeconds){
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(totalSeconds/60), s = totalSeconds%60;
+  return pad2(m)+":"+pad2(s);
+}
+function fmtFR(num, decimals){
+  return Number(num).toLocaleString("fr-FR", {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function todayStr(){
+  const d = new Date();
+  return d.toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"});
+}
+function nowTimeStr(){
+  const d = new Date();
+  return pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+function uid(){ return "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function toast(msg){
+  const wrap = $("#toast-wrap");
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 3600);
+}
+
+/* --------------------------------------------------------------------------
+   3. NAVIGATION ENTRE ÉCRANS
+   -------------------------------------------------------------------------- */
+const SCREENS = ["config","keyboard-test","quick-test","countdown","exam","result","leaderboard","history"];
+function showScreen(name, opts){
+  opts = opts || {};
+  if(EXAM && EXAM.running && !opts.force){
+    toast("Terminez ou mettez en pause le concours en cours avant de naviguer.");
+    return;
+  }
+  SCREENS.forEach(s=>{
+    const el = document.getElementById("screen-"+s);
+    if(el) el.classList.toggle("active", s===name);
+  });
+  if(name==="leaderboard") renderLeaderboard();
+  if(name==="history") renderHistory();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+$all("[data-nav]").forEach(btn=>{
+  btn.addEventListener("click", ()=> showScreen(btn.getAttribute("data-nav")));
+});
+
+/* --------------------------------------------------------------------------
+   4. SON — bips synthétisés (aucun fichier externe requis)
+   -------------------------------------------------------------------------- */
+let audioCtx = null;
+function beep(freq, dur, type){
+  if(!SETTINGS.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, audioCtx.currentTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime+dur+0.02);
+  }catch(e){ /* audio indisponible — silencieux */ }
+}
+function soundStart(){ beep(660,0.18); setTimeout(()=>beep(880,0.22),150); }
+function soundTick(){ beep(520,0.12); }
+function soundWarn(){ beep(300,0.22,"square"); }
+function soundEnd(){ beep(440,0.15); setTimeout(()=>beep(330,0.28),160); }
+
+/* --------------------------------------------------------------------------
+   5. BIBLIOTHÈQUE DE TEXTES (AZERTY français)
+   -------------------------------------------------------------------------- */
+const BANK = {
+  mots: {
+    Facile: ["chat","table","lampe","porte","fleur","stylo","route","pomme","balle","tasse","jardin","montre","cahier","bureau","rideau","poulet","mardi","salut","douze","carte"],
+    Moyen: ["ordinateur","clavier","fenêtre","voiture","équipe","musique","cuisine","montagne","aéroport","brouillon","dictionnaire","printemps","chocolat","bibliothèque","kilomètre","numéro","gouvernement","température","récompense","paragraphe"],
+    Difficile: ["développement","caractéristique","établissement","hétérogène","phénomène","incontournable","préoccupation","enthousiasme","gouvernemental","extraordinaire","synchronisation","interconnexion","photographique","approximativement","géographique"],
+    Expert: ["anticonstitutionnellement","hétérogénéité","interdisciplinarité","reconceptualisation","désindustrialisation","surdimensionnement","électroencéphalogramme","incompréhensibilité","microprocesseur@2026","identifiant#4821"]
+  },
+  phrases: {
+    Facile: [
+      "Le chat dort sur le tapis.", "Il fait beau ce matin.", "Elle aime lire des livres.",
+      "Nous allons au marché.", "Le café est très chaud.", "Mon frère joue au ballon.",
+      "La porte est ouverte.", "Le train arrive à midi.", "J'aime le pain frais.",
+      "Le soleil brille aujourd'hui.", "Les enfants jouent dehors.", "Ce repas est délicieux."
+    ],
+    Moyen: [
+      "La maîtrise du clavier permet de travailler rapidement et efficacement.",
+      "Chaque candidat doit taper le texte affiché le plus vite possible.",
+      "La précision et la vitesse sont deux éléments essentiels pour réussir.",
+      "Brainy Agency forme ses stagiaires aux outils bureautiques modernes.",
+      "Un bon dactylographe évite de regarder son clavier en tapant.",
+      "La régularité de la frappe compte autant que la rapidité.",
+      "Il est important de garder une posture correcte devant l'écran.",
+      "Ce logiciel mesure la vitesse, la précision et le nombre d'erreurs."
+    ],
+    Difficile: [
+      "L'évaluation objective des compétences bureautiques repose sur trois critères : la vitesse, la précision et la régularité de la frappe au clavier.",
+      "Le formateur a rappelé que la maîtrise du clavier français AZERTY exige un entraînement quotidien et une attention particulière aux accents.",
+      "Après plusieurs semaines d'entraînement intensif, les stagiaires ont considérablement amélioré leur vitesse de frappe ainsi que leur précision générale.",
+      "Le rapport de performance présente, pour chaque candidat, la vitesse brute, la vitesse nette, le taux de précision et le nombre total d'erreurs commises."
+    ],
+    Expert: [
+      "Le référentiel n° 4 précise : « la vitesse nette doit être calculée en soustrayant les erreurs non corrigées, exprimées en pourcentage (%), de la vitesse brute mesurée en mots par minute (MPM) ! »",
+      "Coordonnées : jean.dupont@brainy-agency.com — tél. +228 90-12-34-56 — bureau n°7, 3ème étage ; se présenter avant 08h30.",
+      "Facture n°2026-0451 : 3 × 12,50€ = 37,50€ (TVA 18% incluse) — merci de régler avant le 15/09/2026.",
+      "« Rien ne sert de courir ; il faut partir à point », disait La Fontaine — une leçon utile pour qui apprend la dactylographie !"
+    ]
+  },
+  paragraphes: {
+    Facile: [
+      "Le matin, Ama se lève tôt. Elle prépare son café et ouvre son ordinateur. Elle aime commencer la journée calmement avant de rejoindre ses collègues au bureau."
+    ],
+    Moyen: [
+      "Brainy Agency propose des formations professionnelles destinées aux jeunes stagiaires souhaitant maîtriser les outils informatiques. Parmi ces compétences, la frappe au clavier occupe une place essentielle, car elle conditionne la productivité de tout employé de bureau moderne."
+    ],
+    Difficile: [
+      "La transformation numérique des entreprises impose aux collaborateurs une maîtrise croissante des outils bureautiques. Savoir taper rapidement et sans erreur n'est plus un simple atout : c'est devenu une compétence fondamentale, au même titre que la lecture ou le calcul, indispensable pour évoluer sereinement dans un environnement professionnel exigeant."
+    ],
+    Expert: [
+      "D'après une étude publiée en 2025, un employé de bureau consacre en moyenne 63% de son temps à la saisie de texte (courriels, rapports, tableaux). Une vitesse de frappe de 45 MPM avec 97,5% de précision permettrait, selon les analystes, de gagner près de 2h30 par semaine — soit l'équivalent de 15 journées complètes par an !"
+    ]
+  },
+  lettres: {
+    Facile: ["aze rty uio pqs dfg hjk lmw xcv bn", "azert yuiop qsdfg hjklm wxcvbn azert"],
+    Moyen: ["à â é è ê ë î ï ô ù û ç — voyelles accentuées du français à maîtriser parfaitement", "Été, Écoute, Élève, Île, Âge, Où, Çà, Noël, Forêt, Naïve, Théâtre, Août"],
+    Difficile: ["Œuvre, cœur, sœur, nœud, vœu, mœurs, œil — quelques mots contenant la ligature française", "L'élève étudie à l'école dès l'aube ; ça n'a jamais été aussi évident qu'aujourd'hui."],
+    Expert: ["Ça, çà, deçà, garçon, façade, leçon, glaçon, reçu, aperçu, perçu, gerçure, rançon, hameçon"]
+  },
+  chiffres: {
+    Facile: ["12 45 78 90 34 56 01 23 67 89", "2026 2025 2024 100 200 300 400 500"],
+    Moyen: ["Le rendez-vous est fixé au 15/09/2026 à 14h30, salle 204, bâtiment B2.", "Total : 1 250,75 € pour 34 articles livrés le 08/03/2026."],
+    Difficile: ["Le chiffre d'affaires 2025 s'élève à 4 587 320,50 € soit une hausse de 12,3% par rapport à 2024.", "Code postal 75008, tél. 01-42-56-78-90, réf. dossier n° 2026-04521-B."],
+    Expert: ["N° de compte : FR76 3000 4028 2100 0123 4567 890 — montant : 12 458,90 € — échéance 31/12/2026 à 23h59.", "Coordonnées GPS : 48.8566° N, 2.3522° E — altitude 35m — relevé du 01/08/2026 09h14min22s."]
+  },
+  ponctuation: {
+    Facile: ["Bonjour ! Comment allez-vous ? Très bien, merci.", "Il a dit : « Oui, bien sûr ! »"],
+    Moyen: ["Attention : la réunion commence à 9h00 (pas 9h30) ; merci d'être ponctuel !", "Voici la liste : pain, lait, œufs, beurre — rien d'autre pour l'instant."],
+    Difficile: ["« Êtes-vous certain(e) de vouloir continuer ? » a-t-il demandé — sans obtenir de réponse claire...", "Résultat : 18,5/20 (mention « très bien ») ; félicitations à toute l'équipe !"],
+    Expert: ["Remarque(s) : « attention aux erreurs ! » ; cf. point n°3, §2 — voir aussi p.45-47 [annexe C].", "Ordre du jour : 1) accueil ; 2) bilan (Q1-Q3) ; 3) questions/réponses — durée : 45min."]
+  },
+  professionnel: {
+    Facile: ["Merci de confirmer votre présence à la réunion de ce jeudi.", "Veuillez trouver ci-joint le rapport demandé."],
+    Moyen: ["Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.", "Le comité de direction se réunira mardi prochain afin d'examiner le budget prévisionnel."],
+    Difficile: ["Conformément à notre entretien téléphonique, veuillez trouver ci-joint le devis détaillé ainsi que les conditions générales de vente applicables à votre commande.", "La direction des ressources humaines informe l'ensemble du personnel que la formation obligatoire se tiendra du 12 au 14 octobre 2026."],
+    Expert: ["Objet : Accusé de réception de votre candidature — Madame, Monsieur, nous accusons réception de votre dossier de candidature au poste d'assistant(e) administratif(ve), réf. AA-2026-113, et vous en remercions.", "Suite à l'audit interne réalisé en Q2 2026, il est recommandé de renforcer les procédures de contrôle qualité (ISO 9001) d'ici le 31/12/2026, sous peine de non-conformité."]
+  }
+};
+let lastPicked = {}; // évite la répétition immédiate par catégorie/niveau
+
+function pickFrom(arr, key){
+  if(!arr || !arr.length) return "";
+  if(arr.length===1) return arr[0];
+  let idx = Math.floor(Math.random()*arr.length);
+  if(lastPicked[key]===idx){ idx = (idx+1)%arr.length; }
+  lastPicked[key] = idx;
+  return arr[idx];
+}
+
+function generateText(type, level, count){
+  count = clamp(count||30, 5, 500);
+  const parts = [];
+  if(type==="melange"){
+    const pool = ["phrases","mots","chiffres","ponctuation"];
+    let n = 0;
+    while(n < count){
+      const t = pool[Math.floor(Math.random()*pool.length)];
+      parts.push(generateText(t, level, Math.max(3, Math.round(count/6))));
+      n += 6;
+    }
+    return parts.join(" ").trim();
+  }
+  const bank = BANK[type] && BANK[type][level] ? BANK[type][level] : BANK.phrases[level];
+  if(type==="mots"){
+    for(let i=0;i<count;i++) parts.push(pickFrom(bank, type+level));
+    return parts.join(" ")+".";
+  }
+  // phrases / paragraphes / lettres / chiffres / ponctuation / professionnel :
+  // on assemble jusqu'à obtenir approximativement "count" mots de contenu
+  let wordsSoFar = 0; let guard = 0;
+  while(wordsSoFar < count && guard < 200){
+    const t = pickFrom(bank, type+level);
+    parts.push(t);
+    wordsSoFar += t.split(/\s+/).length;
+    guard++;
+  }
+  return parts.join(" ");
+}
+
+/* --------------------------------------------------------------------------
+   6. ÉCRAN CONFIGURATION — construction dynamique
+   -------------------------------------------------------------------------- */
+function buildConfigScreen(){
+  const dg = $("#duration-grid"); dg.innerHTML = "";
+  DURATIONS.forEach(d=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="duration-opt"; b.textContent = d+" min";
+    b.dataset.val = d;
+    if(d===CFG.duree) b.classList.add("selected");
+    b.addEventListener("click", ()=>{
+      CFG.duree = d; CFG.dureeCustom=false;
+      $("#custom-duration-field").style.display="none";
+      $all(".duration-opt").forEach(o=>o.classList.remove("selected"));
+      b.classList.add("selected");
+    });
+    dg.appendChild(b);
+  });
+  const bc = document.createElement("button");
+  bc.type="button"; bc.className="duration-opt"; bc.textContent="Personnalisé";
+  bc.addEventListener("click", ()=>{
+    CFG.dureeCustom = true;
+    $("#custom-duration-field").style.display="block";
+    $all(".duration-opt").forEach(o=>o.classList.remove("selected"));
+    bc.classList.add("selected");
+    CFG.duree = Number($("#cfg-duree-custom").value)||7;
+  });
+  dg.appendChild(bc);
+
+  const lg = $("#level-group"); lg.innerHTML = "";
+  LEVELS.forEach(lv=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="choice-pill"; b.textContent=lv;
+    if(lv===CFG.niveau) b.classList.add("selected");
+    b.addEventListener("click", ()=>{
+      CFG.niveau = lv;
+      $all("#level-group .choice-pill").forEach(o=>o.classList.remove("selected"));
+      b.classList.add("selected");
+    });
+    lg.appendChild(b);
+  });
+
+  const cg = $("#content-group"); cg.innerHTML = "";
+  CONTENT_TYPES.forEach(ct=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="choice-pill"; b.textContent=ct.l;
+    if(ct.k===CFG.type) b.classList.add("selected");
+    b.addEventListener("click", ()=>{
+      CFG.type = ct.k;
+      $all("#content-group .choice-pill").forEach(o=>o.classList.remove("selected"));
+      b.classList.add("selected");
+    });
+    cg.appendChild(b);
+  });
+
+  $("#opt-backspace").checked = CFG.backspace;
+  $("#opt-correction").checked = CFG.correction;
+  $("#opt-pause").checked = CFG.pause;
+  $("#opt-copypaste").checked = CFG.copypaste;
+}
+
+function readConfigForm(){
+  CANDIDATE.nom = $("#cfg-nom").value.trim();
+  CANDIDATE.prenom = $("#cfg-prenom").value.trim();
+  CANDIDATE.matricule = $("#cfg-matricule").value.trim();
+  CANDIDATE.groupe = $("#cfg-groupe").value.trim();
+  if(CFG.dureeCustom) CFG.duree = Number($("#cfg-duree-custom").value)||7;
+  CFG.nombre = Number($("#cfg-nombre").value)||40;
+  CFG.backspace = $("#opt-backspace").checked;
+  CFG.correction = $("#opt-correction").checked;
+  CFG.pause = $("#opt-pause").checked;
+  CFG.copypaste = $("#opt-copypaste").checked;
+}
+
+function validateConfig(){
+  const errBox = $("#config-error");
+  if(!CANDIDATE.nom){ errBox.textContent="Veuillez renseigner le nom du candidat."; errBox.classList.remove("hidden"); return false; }
+  if(!CANDIDATE.prenom){ errBox.textContent="Veuillez renseigner le prénom du candidat."; errBox.classList.remove("hidden"); return false; }
+  if(!CFG.duree || CFG.duree<=0){ errBox.textContent="Veuillez sélectionner une durée."; errBox.classList.remove("hidden"); return false; }
+  errBox.classList.add("hidden");
+  return true;
+}
+
+$("#btn-start-exam").addEventListener("click", ()=>{
+  readConfigForm();
+  if(!validateConfig()) return;
+  beginCountdown(false);
+});
+
+/* --------------------------------------------------------------------------
+   7. CLAVIER VIRTUEL AZERTY — construction & test
+   -------------------------------------------------------------------------- */
+const KB_LAYOUT = [
+  ["²","&","é","\"","'","(","-","è","_","ç","à",")","="],
+  ["A","Z","E","R","T","Y","U","I","O","P","^","$"],
+  ["Q","S","D","F","G","H","J","K","L","M","ù","*"],
+  ["W","X","C","V","B","N",",",";",":","!"]
+];
+function buildVirtualKeyboard(container){
+  container.innerHTML = "";
+  KB_LAYOUT.forEach(row=>{
+    const rowEl = document.createElement("div"); rowEl.className="kb-row";
+    row.forEach(k=>{
+      const key = document.createElement("div");
+      key.className="kb-key"; key.textContent=k; key.dataset.label=k;
+      rowEl.appendChild(key);
+    });
+    container.appendChild(rowEl);
+  });
+  const spaceRow = document.createElement("div"); spaceRow.className="kb-row";
+  const space = document.createElement("div");
+  space.className="kb-key xwide"; space.textContent="ESPACE"; space.dataset.label=" ";
+  spaceRow.appendChild(space); container.appendChild(spaceRow);
+}
+let kbTestActive = false;
+function activateKeyboardTestListener(){
+  kbTestActive = true;
+}
+function deactivateKeyboardTestListener(){ kbTestActive = false; }
+
+document.addEventListener("keydown", (e)=>{
+  if(!kbTestActive) return;
+  const label = e.key === " " ? " " : e.key.toUpperCase();
+  $("#kb-detected").textContent = e.key===" " ? "ESPACE" : e.key;
+  $("#kb-detected-code").textContent = "Touche physique détectée : "+e.code;
+  $all("#kb-container .kb-key").forEach(k=>{
+    const match = k.dataset.label === label;
+    k.classList.toggle("active", match);
+    if(match) setTimeout(()=>k.classList.add("hit"), 120);
+  });
+});
+
+$("#btn-keyboard-test").addEventListener("click", ()=>{
+  buildVirtualKeyboard($("#kb-container"));
+  activateKeyboardTestListener();
+  showScreen("keyboard-test");
+});
+$all('[data-nav="config"]').forEach(b=>b.addEventListener("click", deactivateKeyboardTestListener));
+
+/* --------------------------------------------------------------------------
+   8. TEST RAPIDE (30 s, non noté)
+   -------------------------------------------------------------------------- */
+let quickTimer = null, quickRemaining = 30, quickStarted=false;
+$("#btn-quick-test").addEventListener("click", ()=>{
+  const txt = generateText("phrases","Moyen",18);
+  $("#quick-text-display").textContent = txt;
+  $("#quick-input").value=""; quickRemaining=30; quickStarted=false;
+  $("#quick-timer").textContent="00:30";
+  showScreen("quick-test");
+  $("#quick-input").focus();
+});
+$("#quick-input").addEventListener("input", ()=>{
+  if(!quickStarted){
+    quickStarted = true;
+    quickTimer = setInterval(()=>{
+      quickRemaining--;
+      $("#quick-timer").textContent = fmtTime(quickRemaining);
+      if(quickRemaining<=0){
+        clearInterval(quickTimer);
+        toast("Votre clavier fonctionne correctement. Vous pouvez commencer le concours.");
+        showScreen("config");
+      }
+    },1000);
+  }
+});
+$("#btn-quick-cancel").addEventListener("click", ()=>{
+  clearInterval(quickTimer); quickStarted=false;
+  showScreen("config");
+});
+
+/* --------------------------------------------------------------------------
+   9. COMPTE À REBOURS → LANCEMENT DE L'EXAMEN
+   -------------------------------------------------------------------------- */
+function beginCountdown(isRecovered){
+  showScreen("countdown", {force:true});
+  const seq = ["3","2","1","GO !"];
+  let i=0;
+  const numEl = $("#countdown-num");
+  numEl.textContent = seq[0];
+  const iv = setInterval(()=>{
+    i++;
+    if(i<seq.length){
+      numEl.textContent = seq[i];
+      numEl.style.animation="none"; void numEl.offsetWidth; numEl.style.animation="pop .5s ease";
+    } else {
+      clearInterval(iv);
+      isRecovered ? resumeExamSession() : startExam();
+    }
+  }, 800);
+}
+
+function startExam(){
+  const text = generateText(CFG.type, CFG.niveau, CFG.nombre);
+  EXAM = {
+    id: uid(),
+    text: text,
+    typed: [], // {ch, correct, wasError}
+    totalDurationSec: CFG.duree*60,
+    remainingSec: CFG.duree*60,
+    startedAt: Date.now(),
+    lastTickAt: Date.now(),
+    running: true,
+    paused: false,
+    finished: false,
+    warnings: 0,
+    corrections: 0,
+    totalErrorsEver: 0,
+    perMinute: [], // wpm snapshots
+    lastMinuteMark: 0,
+    candidate: Object.assign({}, CANDIDATE),
+    cfg: Object.assign({}, CFG),
+    quick:false
+  };
+  persistSession();
+  renderExamScreen();
+  showScreen("exam", {force:true});
+  soundStart();
+  setupExamModeGuards();
+  examTickerStart();
+  $("#exam-input").disabled = false;
+  $("#exam-input").value = "";
+  $("#exam-input").focus();
+  updateHeaderStatus("live");
+}
+
+function resumeExamSession(){
+  if(!EXAM) return;
+  EXAM.running = true; EXAM.paused=false; EXAM.lastTickAt = Date.now();
+  renderExamScreen();
+  showScreen("exam", {force:true});
+  setupExamModeGuards();
+  examTickerStart();
+  $("#exam-input").disabled=false;
+  $("#exam-input").focus();
+  updateHeaderStatus("live");
+}
+
+/* --------------------------------------------------------------------------
+   10. RENDU DE L'ÉCRAN EXAMEN (texte, badges)
+   -------------------------------------------------------------------------- */
+function renderExamScreen(){
+  $("#exam-text-display").style.fontSize = SETTINGS.fontSize+"px";
+  $("#exam-input").style.minHeight = SETTINGS.inputSize+"px";
+  $("#exam-stats-strip").classList.toggle("hidden", !SETTINGS.liveStats);
+  $("#btn-pause").style.display = EXAM.cfg.pause ? "inline-flex" : "none";
+  renderBadges();
+  renderTextDisplay();
+  updateHeaderCandidate();
+  updateExamStats();
+}
+function renderBadges(){
+  const wrap = $("#exam-badges"); wrap.innerHTML="";
+  const mk = (t,cls)=>{ const s=document.createElement("span"); s.className="badge"+(cls?" "+cls:""); s.textContent=t; return s; };
+  wrap.appendChild(mk(EXAM.cfg.niveau));
+  wrap.appendChild(mk(CONTENT_TYPES.find(c=>c.k===EXAM.cfg.type)?.l || EXAM.cfg.type));
+  const warnBadge = mk("Avertissements : "+EXAM.warnings, EXAM.warnings>0?"warn":"");
+  warnBadge.id="badge-warnings";
+  wrap.appendChild(warnBadge);
+}
+function updateHeaderCandidate(){
+  $("#header-candidate").textContent = (CANDIDATE.nom||"—")+" "+(CANDIDATE.prenom||"");
+}
+function updateHeaderStatus(state){
+  const el = $("#header-status-badge");
+  el.className=""; el.id="header-status-badge";
+  if(state==="live"){ el.classList.add("live"); el.textContent="En cours"; }
+  else if(state==="paused"){ el.classList.add("paused"); el.textContent="En pause"; }
+  else if(state==="done"){ el.classList.add("done"); el.textContent="Terminé"; }
+  else { el.textContent="Configuration"; }
+}
+
+function renderTextDisplay(){
+  const disp = $("#exam-text-display");
+  const frag = document.createDocumentFragment();
+  const text = EXAM.text;
+  for(let i=0;i<text.length;i++){
+    const span = document.createElement("span");
+    span.textContent = text[i];
+    const typedEntry = EXAM.typed[i];
+    if(typedEntry){
+      span.className = typedEntry.correct ? "ch-correct" : "ch-incorrect";
+    } else if(i === EXAM.typed.length){
+      span.className = "ch-current";
+    } else {
+      span.className = "ch-pending";
+    }
+    frag.appendChild(span);
+  }
+  disp.innerHTML=""; disp.appendChild(frag);
+  // Centrer visuellement le curseur (défilement automatique)
+  const current = disp.querySelector(".ch-current");
+  if(current) current.scrollIntoView({block:"center", inline:"nearest"});
+}
+
+/* --------------------------------------------------------------------------
+   11. SAISIE — capture caractère par caractère, calcul temps réel
+   -------------------------------------------------------------------------- */
+const examInput = $("#exam-input");
+
+examInput.addEventListener("keydown", (e)=>{
+  if(!EXAM || !EXAM.running || EXAM.paused || EXAM.finished) { e.preventDefault(); return; }
+
+  if(e.key === "Backspace"){
+    if(!EXAM.cfg.backspace){ e.preventDefault(); return; }
+    e.preventDefault();
+    if(EXAM.typed.length>0){
+      const removed = EXAM.typed.pop();
+      if(!removed.correct){
+        EXAM.corrections++;
+        if(EXAM.cfg.correction){
+          // erreur pardonnée : ne compte plus contre le candidat
+        }
+      }
+      afterTypingUpdate();
+    }
+    return;
+  }
+
+  // Ignorer les touches de contrôle qui ne produisent pas de caractère
+  if(e.ctrlKey || e.metaKey || e.altKey) {
+    // Blocage Ctrl+C / Ctrl+V / Ctrl+X explicite (mode examen)
+    if(["c","v","x"].includes(e.key.toLowerCase())){
+      e.preventDefault(); registerWarning("Tentative de copier/coller bloquée."); 
+    }
+    return;
+  }
+  if(e.key.length !== 1) return; // touches spéciales (Tab, flèches, etc.)
+
+  e.preventDefault();
+  const idx = EXAM.typed.length;
+  if(idx >= EXAM.text.length) return; // texte terminé
+  const expected = EXAM.text[idx];
+  const correct = e.key === expected;
+  EXAM.typed.push({ch:e.key, correct:correct});
+  if(!correct) EXAM.totalErrorsEver++;
+  afterTypingUpdate();
+
+  if(EXAM.typed.length >= EXAM.text.length){
+    finishExam("completed");
+  }
+});
+
+// Bloque toute insertion hors clavier (coller programmatique, glisser-déposer)
+["paste","drop"].forEach(evt=>{
+  examInput.addEventListener(evt, (e)=>{
+    if(!EXAM || !EXAM.cfg.copypaste){ e.preventDefault(); registerWarning("Collage / dépôt de texte bloqué."); }
+  });
+});
+examInput.addEventListener("copy", (e)=>{ if(!EXAM || !EXAM.cfg.copypaste) e.preventDefault(); });
+examInput.addEventListener("cut", (e)=>{ if(!EXAM || !EXAM.cfg.copypaste) e.preventDefault(); });
+examInput.addEventListener("contextmenu", (e)=> e.preventDefault());
+// Empêche toute modification hors du flux clavier contrôlé (ex: saisie vocale, IME direct)
+examInput.addEventListener("beforeinput", (e)=>{
+  if(!EXAM || !EXAM.running || EXAM.paused) { e.preventDefault(); return; }
+  if(e.inputType && e.inputType.startsWith("insertFromPaste")) e.preventDefault();
+});
+
+function afterTypingUpdate(){
+  examInput.value = EXAM.typed.map(t=>t.ch).join("");
+  renderTextDisplay();
+  updateExamStats();
+  persistSession();
+}
+
+function registerWarning(msg){
+  if(!EXAM) return;
+  EXAM.warnings++;
+  const b = $("#badge-warnings");
+  if(b){ b.textContent = "Avertissements : "+EXAM.warnings; b.classList.add("warn"); }
+  toast(msg || "Action non autorisée en mode examen.");
+}
+
+/* --------------------------------------------------------------------------
+   12. CALCUL DES STATISTIQUES EN TEMPS RÉEL
+   -------------------------------------------------------------------------- */
+function computeStats(){
+  const typed = EXAM.typed;
+  const totalTyped = typed.length;
+  const correctChars = typed.filter(t=>t.correct).length;
+  const incorrectChars = totalTyped - correctChars;
+  const elapsedMin = Math.max((Date.now()-EXAM.startedAt)/60000, 1/60);
+  const grossWPM = Math.round((totalTyped/5)/elapsedMin);
+  const effectiveErrors = EXAM.cfg.correction ? incorrectChars : EXAM.totalErrorsEver;
+  const netWPM = Math.max(0, Math.round(grossWPM - (effectiveErrors/Math.max(elapsedMin,1/60))));
+  const accuracy = totalTyped>0 ? (correctChars/totalTyped*100) : 100;
+  const progress = EXAM.text.length>0 ? (totalTyped/EXAM.text.length*100) : 0;
+  const wordsTypedArr = examInput.value.split(/\s+/).filter(Boolean);
+  return {totalTyped, correctChars, incorrectChars, grossWPM, netWPM, accuracy, progress, elapsedMin, effectiveErrors};
+}
+
+function updateExamStats(){
+  const s = computeStats();
+  $("#stat-mpm").textContent = s.grossWPM;
+  $("#stat-acc").textContent = fmtFR(s.accuracy,1)+"%";
+  $("#stat-err").textContent = s.effectiveErrors;
+  $("#stat-correct").textContent = s.correctChars;
+  $("#stat-incorrect").textContent = s.incorrectChars;
+  $("#stat-progress").textContent = Math.round(s.progress)+"%";
+  $("#exam-progress").style.width = clamp(s.progress,0,100)+"%";
+
+  // Snapshot par minute (pour graphique de performance)
+  const minuteMark = Math.floor(s.elapsedMin);
+  if(minuteMark > EXAM.lastMinuteMark){
+    EXAM.lastMinuteMark = minuteMark;
+    EXAM.perMinute.push({minute:minuteMark, wpm:s.grossWPM});
+  }
+}
+
+/* --------------------------------------------------------------------------
+   13. CHRONOMÈTRE — précis, basé sur horodatage
+   -------------------------------------------------------------------------- */
+let examTickerHandle = null;
+function examTickerStart(){
+  clearInterval(examTickerHandle);
+  examTickerHandle = setInterval(examTick, 250);
+}
+function examTickerStop(){ clearInterval(examTickerHandle); }
+
+function examTick(){
+  if(!EXAM || !EXAM.running || EXAM.paused || EXAM.finished) return;
+  const now = Date.now();
+  const delta = (now - EXAM.lastTickAt)/1000;
+  EXAM.lastTickAt = now;
+  EXAM.remainingSec = Math.max(0, EXAM.remainingSec - delta);
+
+  const timerEl = $("#exam-timer");
+  timerEl.textContent = fmtTime(EXAM.remainingSec);
+  timerEl.classList.toggle("low", EXAM.remainingSec<=60);
+  $("#header-timer").textContent = fmtTime(EXAM.remainingSec);
+
+  const r = Math.round(EXAM.remainingSec);
+  if(r===300 && !EXAM._alerted5) { EXAM._alerted5=true; soundTick(); toast("Il reste 5 minutes."); }
+  if(r===60 && !EXAM._alerted1) { EXAM._alerted1=true; soundWarn(); toast("Il reste 1 minute."); }
+  if(r===10 && !EXAM._alerted10){ EXAM._alerted10=true; soundWarn(); toast("Il reste 10 secondes !"); }
+
+  if(EXAM.remainingSec<=0){
+    finishExam("timeout");
+  }
+}
+
+/* --------------------------------------------------------------------------
+   14. PAUSE / REPRISE
+   -------------------------------------------------------------------------- */
+$("#btn-pause").addEventListener("click", ()=>{
+  if(!EXAM || !EXAM.cfg.pause) return;
+  EXAM.paused = true;
+  examTickerStop();
+  $("#pause-overlay").classList.remove("hidden");
+  updateHeaderStatus("paused");
+  persistSession();
+});
+$("#btn-resume").addEventListener("click", ()=>{
+  if(!EXAM) return;
+  EXAM.paused = false;
+  EXAM.lastTickAt = Date.now();
+  $("#pause-overlay").classList.add("hidden");
+  examTickerStart();
+  updateHeaderStatus("live");
+  examInput.focus();
+  persistSession();
+});
+
+/* --------------------------------------------------------------------------
+   15. MODE EXAMEN — garde-fous anti-triche
+   -------------------------------------------------------------------------- */
+function setupExamModeGuards(){
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  window.addEventListener("blur", onWindowBlur);
+}
+function teardownExamModeGuards(){
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+  window.removeEventListener("blur", onWindowBlur);
+}
+function onVisibilityChange(){
+  if(document.hidden && EXAM && EXAM.running && !EXAM.finished){
+    registerWarning("Changement de fenêtre / onglet détecté.");
+  }
+}
+function onWindowBlur(){
+  if(EXAM && EXAM.running && !EXAM.finished && !EXAM.paused){
+    registerWarning("Perte de focus de la fenêtre détectée.");
+  }
+}
+
+$("#btn-fullscreen").addEventListener("click", ()=>{
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>toast("Le plein écran n'est pas disponible sur ce navigateur."));
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+/* --------------------------------------------------------------------------
+   16. FIN DU CONCOURS
+   -------------------------------------------------------------------------- */
+$("#btn-end-exam").addEventListener("click", ()=>{
+  confirmDialog("Terminer le concours ?", "Voulez-vous vraiment terminer le concours ?", ()=>{
+    finishExam("manual");
+  });
+});
+
+function finishExam(reason){
+  if(!EXAM || EXAM.finished) return;
+  EXAM.finished = true; EXAM.running = false;
+  examTickerStop();
+  teardownExamModeGuards();
+  examInput.disabled = true;
+  soundEnd();
+  updateHeaderStatus("done");
+  const result = buildResultRecord(reason);
+  saveResultToHistory(result);
+  lsRemove(LS_SESSION);
+  renderResultScreen(result);
+  showScreen("result", {force:true});
+}
+
+/* --------------------------------------------------------------------------
+   17. CALCUL FINAL — vitesse, précision, note /20
+   -------------------------------------------------------------------------- */
+const SPEED_TARGETS = {Facile:20, Moyen:35, Difficile:50, Expert:65};
+const APPRECIATIONS = [
+  {min:18, label:"EXCELLENT"}, {min:16, label:"TRÈS BIEN"}, {min:14, label:"BIEN"},
+  {min:12, label:"ASSEZ BIEN"}, {min:10, label:"PASSABLE"}, {min:0, label:"INSUFFISANT"}
+];
+function appreciationFor(note){
+  for(const a of APPRECIATIONS) if(note>=a.min) return a.label;
+  return "INSUFFISANT";
+}
+
+function buildResultRecord(reason){
+  const typed = EXAM.typed;
+  const totalTyped = typed.length;
+  const correctChars = typed.filter(t=>t.correct).length;
+  const incorrectChars = totalTyped - correctChars;
+  const durationMin = EXAM.cfg.duree;
+  const elapsedMin = Math.max((Date.now()-EXAM.startedAt)/60000, 1/60);
+  const usedMin = reason==="timeout" ? durationMin : Math.min(elapsedMin, durationMin);
+
+  const grossWPM = Math.max(0, Math.round((totalTyped/5)/usedMin));
+  const effectiveErrors = EXAM.cfg.correction ? incorrectChars : EXAM.totalErrorsEver;
+  const netWPM = Math.max(0, Math.round(grossWPM - (effectiveErrors/usedMin)));
+  const accuracy = totalTyped>0 ? (correctChars/totalTyped*100) : 100;
+
+  const wordsArr = examInput.value.trim().length ? examInput.value.trim().split(/\s+/) : [];
+  const targetWordsArr = EXAM.text.trim().split(/\s+/);
+  let correctWords=0, incorrectWords=0;
+  wordsArr.forEach((w,i)=>{ if(w===targetWordsArr[i]) correctWords++; else incorrectWords++; });
+
+  // Notation /20 — vitesse 40%, précision 40%, régularité/erreurs 20%
+  const target = SPEED_TARGETS[EXAM.cfg.niveau] || 35;
+  const speedScore = clamp((netWPM/target)*20, 0, 20);
+  const precisionScore = clamp((accuracy/100)*20, 0, 20);
+  const errorRatePer100 = totalTyped>0 ? (effectiveErrors/totalTyped*100) : 0;
+  const regularityScore = clamp(20 - errorRatePer100*1.3, 0, 20);
+  const note = clamp(speedScore*0.4 + precisionScore*0.4 + regularityScore*0.2, 0, 20);
+
+  return {
+    id: EXAM.id, nom: EXAM.candidate.nom, prenom: EXAM.candidate.prenom,
+    matricule: EXAM.candidate.matricule, groupe: EXAM.candidate.groupe,
+    date: todayStr(), heure: nowTimeStr(), dateISO: new Date().toISOString(),
+    duree: durationMin, niveau: EXAM.cfg.niveau,
+    type: CONTENT_TYPES.find(c=>c.k===EXAM.cfg.type)?.l || EXAM.cfg.type,
+    grossWPM, netWPM, accuracy, totalTyped, correctChars, incorrectChars,
+    errors: effectiveErrors, corrections: EXAM.corrections,
+    correctWords, incorrectWords, note: Math.round(note*10)/10,
+    appreciation: appreciationFor(note), warnings: EXAM.warnings,
+    perMinute: EXAM.perMinute.slice(), reason: reason
+  };
+}
+
+let LAST_RESULT = null;
+
+function saveResultToHistory(result){
+  const history = lsGet(LS_HISTORY, []);
+  history.unshift(result);
+  lsSet(LS_HISTORY, history);
+  LAST_RESULT = result;
+}
+
+/* --------------------------------------------------------------------------
+   18. ÉCRAN RÉSULTAT
+   -------------------------------------------------------------------------- */
+function renderResultScreen(r){
+  $("#result-congrats").textContent = "Félicitations, "+ (r.prenom || r.nom).toUpperCase() + " !";
+  $("#result-note").textContent = fmtFR(r.note,1);
+  $("#grade-circle").style.setProperty("--pct", Math.round((r.note/20)*100));
+  $("#result-appreciation").textContent = r.appreciation;
+  $("#r-brute").textContent = r.grossWPM;
+  $("#r-nette").textContent = r.netWPM;
+  $("#r-precision").textContent = fmtFR(r.accuracy,2)+"%";
+  $("#r-erreurs").textContent = r.errors;
+  $("#r-total").textContent = r.totalTyped;
+  $("#r-corrects").textContent = r.correctChars;
+  $("#r-mots-ok").textContent = r.correctWords;
+  $("#r-mots-ko").textContent = r.incorrectWords;
+
+  const chart = $("#result-chart"); chart.innerHTML="";
+  const maxWpm = Math.max(1, ...r.perMinute.map(p=>p.wpm));
+  if(r.perMinute.length===0){
+    chart.innerHTML = '<div style="color:var(--text-dim);font-size:12.5px;">Durée trop courte pour un relevé par minute.</div>';
+  } else {
+    r.perMinute.forEach(p=>{
+      const col = document.createElement("div"); col.className="chart-bar-col";
+      const bar = document.createElement("div"); bar.className="chart-bar";
+      bar.style.height = Math.max(4,(p.wpm/maxWpm*100))+"%";
+      const lbl = document.createElement("div"); lbl.className="chart-bar-label"; lbl.textContent="Min "+p.minute;
+      col.appendChild(bar); col.appendChild(lbl); chart.appendChild(col);
+    });
+  }
+}
+
+$("#btn-new-exam").addEventListener("click", ()=>{
+  EXAM = null;
+  buildConfigScreen();
+  showScreen("config", {force:true});
+  updateHeaderStatus("idle");
+  $("#header-timer").textContent="--:--";
+});
+
+/* --------------------------------------------------------------------------
+   19. CLASSEMENT
+   -------------------------------------------------------------------------- */
+let leaderboardSort = "note";
+$all("[data-sort]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    leaderboardSort = btn.getAttribute("data-sort");
+    $all("[data-sort]").forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
+    renderLeaderboard();
+  });
+});
+function renderLeaderboard(){
+  const history = lsGet(LS_HISTORY, []);
+  const tbody = $("#leaderboard-table tbody"); tbody.innerHTML="";
+  $("#leaderboard-empty").classList.toggle("hidden", history.length>0);
+  if(history.length===0) return;
+  const sorted = history.slice().sort((a,b)=>{
+    if(leaderboardSort==="wpm") return b.netWPM - a.netWPM;
+    if(leaderboardSort==="acc") return b.accuracy - a.accuracy;
+    return b.note - a.note;
+  });
+  sorted.forEach((r,i)=>{
+    const tr = document.createElement("tr");
+    const rankCls = i===0?"top1":i===1?"top2":i===2?"top3":"";
+    tr.innerHTML = `<td><span class="rank-pill ${rankCls}">${i+1}</span></td>
+      <td><b>${escapeHTML(r.nom)} ${escapeHTML(r.prenom)}</b></td>
+      <td>${r.netWPM} MPM</td><td>${fmtFR(r.accuracy,1)}%</td><td>${r.errors}</td>
+      <td><b>${fmtFR(r.note,1)}</b> / 20</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function escapeHTML(s){ return String(s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* --------------------------------------------------------------------------
+   20. HISTORIQUE
+   -------------------------------------------------------------------------- */
+let historySortKey = null, historySortDir = 1;
+$("#history-search").addEventListener("input", renderHistory);
+$("#history-filter-niveau").addEventListener("change", renderHistory);
+$all("#history-table th[data-key]").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.getAttribute("data-key");
+    historySortDir = (historySortKey===k) ? -historySortDir : 1;
+    historySortKey = k;
+    renderHistory();
+  });
+});
+
+function renderHistory(){
+  let history = lsGet(LS_HISTORY, []);
+  const q = ($("#history-search").value||"").toLowerCase().trim();
+  const niveauFilter = $("#history-filter-niveau").value;
+  if(q){ history = history.filter(r => (r.nom+" "+r.prenom).toLowerCase().includes(q)); }
+  if(niveauFilter){ history = history.filter(r => r.niveau===niveauFilter); }
+  if(historySortKey){
+    history = history.slice().sort((a,b)=>{
+      const av=a[historySortKey], bv=b[historySortKey];
+      if(typeof av==="number") return (av-bv)*historySortDir;
+      return String(av).localeCompare(String(bv))*historySortDir;
+    });
+  }
+  const tbody = $("#history-table tbody"); tbody.innerHTML="";
+  $("#history-empty").classList.toggle("hidden", history.length>0);
+  history.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><b>${escapeHTML(r.nom)} ${escapeHTML(r.prenom)}</b></td>
+      <td>${r.date} — ${r.heure}</td><td>${r.duree} min</td>
+      <td>${r.netWPM} MPM</td><td>${fmtFR(r.accuracy,1)}%</td><td>${r.errors}</td>
+      <td><b>${fmtFR(r.note,1)}</b></td><td>${r.appreciation}</td>
+      <td><button class="link-danger" data-del="${r.id}">Supprimer</button></td>`;
+    tbody.appendChild(tr);
+  });
+  $all("[data-del]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id = b.getAttribute("data-del");
+      confirmDialog("Supprimer ce résultat ?","Cette action est définitive.", ()=>{
+        const h = lsGet(LS_HISTORY, []).filter(x=>x.id!==id);
+        lsSet(LS_HISTORY, h); renderHistory(); renderLeaderboard();
+        toast("Résultat supprimé.");
+      });
+    });
+  });
+}
+$("#btn-clear-history").addEventListener("click", ()=>{
+  confirmDialog("Supprimer tout l'historique ?","Tous les résultats enregistrés seront définitivement supprimés.", ()=>{
+    lsSet(LS_HISTORY, []); renderHistory(); renderLeaderboard();
+    toast("Historique vidé.");
+  });
+});
+
+/* --------------------------------------------------------------------------
+   21. EXPORT CSV
+   -------------------------------------------------------------------------- */
+function toCSV(rows){
+  const headers = ["Nom","Prénom","Matricule","Groupe","Date","Heure","Durée(min)","Niveau","Type",
+    "Vitesse brute(MPM)","Vitesse nette(MPM)","Précision(%)","Caractères saisis","Caractères corrects",
+    "Erreurs","Mots corrects","Mots incorrects","Note/20","Appréciation"];
+  const lines = [headers.join(";")];
+  rows.forEach(r=>{
+    lines.push([r.nom,r.prenom,r.matricule,r.groupe,r.date,r.heure,r.duree,r.niveau,r.type,
+      r.grossWPM,r.netWPM,fmtFR(r.accuracy,2),r.totalTyped,r.correctChars,r.errors,
+      r.correctWords,r.incorrectWords,fmtFR(r.note,1),r.appreciation]
+      .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";"));
+  });
+  return lines.join("\r\n");
+}
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type:mime||"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+$("#btn-export-history").addEventListener("click", ()=>{
+  const h = lsGet(LS_HISTORY, []);
+  if(!h.length){ toast("Aucun résultat à exporter."); return; }
+  downloadFile("historique-concours-clavier.csv","\uFEFF"+toCSV(h),"text/csv;charset=utf-8");
+});
+$("#btn-export-leaderboard").addEventListener("click", ()=>{
+  const h = lsGet(LS_HISTORY, []);
+  if(!h.length){ toast("Aucun résultat à exporter."); return; }
+  downloadFile("classement-concours-clavier.csv","\uFEFF"+toCSV(h),"text/csv;charset=utf-8");
+});
+$("#btn-export-csv-single").addEventListener("click", ()=>{
+  if(!LAST_RESULT) return;
+  downloadFile("resultat-"+LAST_RESULT.nom+".csv","\uFEFF"+toCSV([LAST_RESULT]),"text/csv;charset=utf-8");
+});
+
+/* --------------------------------------------------------------------------
+   22. IMPRESSION DU RÉSULTAT (fiche officielle)
+   -------------------------------------------------------------------------- */
+$("#btn-print-result").addEventListener("click", ()=>{
+  if(!LAST_RESULT) return;
+  const r = LAST_RESULT;
+  $("#print-area").innerHTML = `
+    <div class="print-sheet">
+      <h1>BRAINY AGENCY</h1>
+      <h2>CONCOURS DE MAÎTRISE DU CLAVIER — FICHE DE RÉSULTAT</h2>
+      <div class="print-row"><span>Candidat</span><b>${escapeHTML(r.nom)} ${escapeHTML(r.prenom)}</b></div>
+      <div class="print-row"><span>Matricule</span><b>${escapeHTML(r.matricule)||"—"}</b></div>
+      <div class="print-row"><span>Groupe</span><b>${escapeHTML(r.groupe)||"—"}</b></div>
+      <div class="print-row"><span>Durée</span><b>${r.duree} minutes</b></div>
+      <div class="print-row"><span>Niveau</span><b>${r.niveau}</b></div>
+      <div class="print-row"><span>Vitesse brute</span><b>${r.grossWPM} MPM</b></div>
+      <div class="print-row"><span>Vitesse nette</span><b>${r.netWPM} MPM</b></div>
+      <div class="print-row"><span>Précision</span><b>${fmtFR(r.accuracy,2)}%</b></div>
+      <div class="print-row"><span>Caractères saisis</span><b>${r.totalTyped}</b></div>
+      <div class="print-row"><span>Caractères corrects</span><b>${r.correctChars}</b></div>
+      <div class="print-row"><span>Erreurs</span><b>${r.errors}</b></div>
+      <div class="print-row"><span>Mots corrects / incorrects</span><b>${r.correctWords} / ${r.incorrectWords}</b></div>
+      <div class="print-grade">${fmtFR(r.note,1)} / 20</div>
+      <div style="text-align:center;font-weight:700;">${r.appreciation}</div>
+      <div class="print-sig">
+        <span>Date : ${r.date} — ${r.heure}</span>
+        <span>Signature du responsable : ______________________</span>
+      </div>
+    </div>`;
+  window.print();
+});
+
+/* --------------------------------------------------------------------------
+   23. ATTESTATION DE PERFORMANCE
+   -------------------------------------------------------------------------- */
+$("#btn-certificate").addEventListener("click", ()=>{
+  if(!LAST_RESULT) return;
+  const r = LAST_RESULT;
+  $("#certificate-preview").innerHTML = `
+    <div style="font-size:12px;letter-spacing:2px;color:#888;font-weight:700;">BRAINY AGENCY</div>
+    <div style="font-size:22px;font-weight:800;margin:10px 0 22px;">ATTESTATION DE PERFORMANCE</div>
+    <div style="font-size:13.5px;color:#444;">Nous attestons que</div>
+    <div style="font-size:24px;font-weight:800;margin:10px 0;">${escapeHTML(r.nom).toUpperCase()} ${escapeHTML(r.prenom).toUpperCase()}</div>
+    <div style="font-size:13.5px;color:#444;margin-bottom:18px;">a participé au Concours de Maîtrise du Clavier</div>
+    <div style="display:flex;justify-content:center;gap:34px;margin:22px 0;">
+      <div><div style="font-size:24px;font-weight:800;">${r.netWPM} MPM</div><div style="font-size:11px;color:#888;">PERFORMANCE</div></div>
+      <div><div style="font-size:24px;font-weight:800;">${fmtFR(r.accuracy,1)}%</div><div style="font-size:11px;color:#888;">PRÉCISION</div></div>
+      <div><div style="font-size:24px;font-weight:800;">${fmtFR(r.note,1)}/20</div><div style="font-size:11px;color:#888;">NOTE</div></div>
+    </div>
+    <div style="font-weight:800;color:#C8922E;margin-bottom:22px;">${r.appreciation}</div>
+    <div style="font-size:12px;color:#888;">Fait le ${r.date}</div>
+    <div style="margin-top:36px;display:flex;justify-content:space-between;font-size:11.5px;color:#888;">
+      <span>Brainy Agency</span><span>Signature du responsable : ____________</span>
+    </div>`;
+  $("#modal-certificate").classList.remove("hidden");
+});
+$("#btn-close-certificate").addEventListener("click", ()=> $("#modal-certificate").classList.add("hidden"));
+$("#btn-print-certificate").addEventListener("click", ()=>{
+  $("#print-area").innerHTML = '<div class="print-sheet">'+$("#certificate-preview").innerHTML+'</div>';
+  window.print();
+});
+
+/* --------------------------------------------------------------------------
+   24. DIALOGUE DE CONFIRMATION GÉNÉRIQUE
+   -------------------------------------------------------------------------- */
+let confirmCallback = null;
+function confirmDialog(title, text, onOk){
+  $("#confirm-title").textContent = title;
+  $("#confirm-text").textContent = text;
+  confirmCallback = onOk;
+  $("#modal-confirm").classList.remove("hidden");
+}
+$("#confirm-ok").addEventListener("click", ()=>{
+  $("#modal-confirm").classList.add("hidden");
+  if(confirmCallback) confirmCallback();
+  confirmCallback=null;
+});
+$("#confirm-cancel").addEventListener("click", ()=>{
+  $("#modal-confirm").classList.add("hidden"); confirmCallback=null;
+});
+
+/* --------------------------------------------------------------------------
+   25. PARAMÈTRES
+   -------------------------------------------------------------------------- */
+$("#btn-settings").addEventListener("click", ()=>{
+  $("#set-font-size").value = SETTINGS.fontSize;
+  $("#set-input-size").value = SETTINGS.inputSize;
+  $("#set-sound").checked = SETTINGS.sound;
+  $("#set-live-stats").checked = SETTINGS.liveStats;
+  $("#modal-settings").classList.remove("hidden");
+});
+$("#btn-close-settings").addEventListener("click", ()=> $("#modal-settings").classList.add("hidden"));
+$("#btn-save-settings").addEventListener("click", ()=>{
+  SETTINGS.fontSize = Number($("#set-font-size").value);
+  SETTINGS.inputSize = Number($("#set-input-size").value);
+  SETTINGS.sound = $("#set-sound").checked;
+  SETTINGS.liveStats = $("#set-live-stats").checked;
+  lsSet(LS_SETTINGS, SETTINGS);
+  $("#modal-settings").classList.add("hidden");
+  toast("Paramètres enregistrés.");
+  if(EXAM && EXAM.running) renderExamScreen();
+});
+
+/* --------------------------------------------------------------------------
+   26. MODE SOMBRE / CLAIR
+   -------------------------------------------------------------------------- */
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", SETTINGS.theme);
+  $("#btn-theme").textContent = SETTINGS.theme==="dark" ? "☀️" : "🌙";
+}
+$("#btn-theme").addEventListener("click", ()=>{
+  SETTINGS.theme = SETTINGS.theme==="dark" ? "light" : "dark";
+  lsSet(LS_SETTINGS, SETTINGS);
+  applyTheme();
+});
+
+/* --------------------------------------------------------------------------
+   27. RÉCUPÉRATION DE SESSION (rafraîchissement accidentel)
+   -------------------------------------------------------------------------- */
+function persistSession(){
+  if(!EXAM || EXAM.finished) return;
+  lsSet(LS_SESSION, EXAM);
+}
+function checkForRecoverableSession(){
+  const saved = lsGet(LS_SESSION, null);
+  if(saved && !saved.finished && saved.remainingSec>0){
+    EXAM = saved;
+    $("#modal-session").classList.remove("hidden");
+  }
+}
+$("#btn-session-resume").addEventListener("click", ()=>{
+  $("#modal-session").classList.add("hidden");
+  if(!EXAM) return;
+  EXAM.lastTickAt = Date.now();
+  renderExamScreen();
+  showScreen("exam", {force:true});
+  setupExamModeGuards();
+  examTickerStart();
+  examInput.disabled=false;
+  examInput.value = EXAM.typed.map(t=>t.ch).join("");
+  updateHeaderStatus(EXAM.paused ? "paused" : "live");
+  if(EXAM.paused) $("#pause-overlay").classList.remove("hidden");
+});
+$("#btn-session-discard").addEventListener("click", ()=>{
+  $("#modal-session").classList.add("hidden");
+  lsRemove(LS_SESSION);
+  EXAM = null;
+});
+
+/* --------------------------------------------------------------------------
+   28. RESPONSIVE — bannière mobile
+   -------------------------------------------------------------------------- */
+function checkMobile(){
+  const isSmall = window.matchMedia("(max-width: 760px)").matches;
+  $("#mobile-banner").classList.toggle("hidden", !isSmall);
+}
+window.addEventListener("resize", checkMobile);
+
+/* --------------------------------------------------------------------------
+   29. GESTION GLOBALE DES ERREURS — l'application ne doit jamais se bloquer
+   -------------------------------------------------------------------------- */
+window.addEventListener("error", (e)=>{
+  console.error("Erreur applicative :", e.error||e.message);
+  toast("Une erreur est survenue, mais l'application reste utilisable.");
+});
+
+/* --------------------------------------------------------------------------
+   30. INITIALISATION
+   -------------------------------------------------------------------------- */
+function init(){
+  applyTheme();
+  checkMobile();
+  buildConfigScreen();
+  buildVirtualKeyboard($("#kb-container"));
+  updateHeaderStatus("idle");
+  checkForRecoverableSession();
+  showScreen("config", {force:true});
+}
+document.addEventListener("DOMContentLoaded", init);
+if(document.readyState !== "loading") init();
+
+})();
+</script>
+</body>
+</html>
