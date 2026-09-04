@@ -259,21 +259,26 @@
             transition: box-shadow 0.2s var(--ease-out);
         }
         .bubble:hover { box-shadow: var(--brainy-shadow-sm); }
-        .sent {
+        /* ── IMPORTANT : ces règles de couleur ne doivent JAMAIS cibler .bubble-wrapper. ──
+           Avant, les sélecteurs génériques `.sent`/`.received` matchaient à la fois
+           `.bubble-wrapper.sent` (toute la largeur de la conversation) ET `.bubble.sent`
+           (la vraie bulle), ce qui créait les bandes bleues/blanches sur toute la largeur.
+           On les scope désormais explicitement à `.bubble.sent` / `.bubble.received`. */
+        .bubble.sent {
             background: linear-gradient(135deg, var(--wa-primary) 0%, var(--brainy-navy-light) 100%);
             border-bottom-right-radius: 5px;
             color: #f5f7ff;
         }
-        .sent a { color: #bfe9f2; }
-        .sent .sender-name { color: rgba(255,255,255,0.75); }
-        .received { background: var(--wa-bubble-received); border-bottom-left-radius: 5px; color: var(--brainy-text); border: 1px solid var(--brainy-border); }
+        .bubble.sent a { color: #bfe9f2; }
+        .bubble.sent .sender-name { color: rgba(255,255,255,0.75); }
+        .bubble.received { background: var(--wa-bubble-received); border-bottom-left-radius: 5px; color: var(--brainy-text); border: 1px solid var(--brainy-border); }
 
         .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.66rem; color: #8a93ab; margin-top: 5px; }
-        .sent .msg-meta { color: rgba(255,255,255,0.65); }
+        .bubble.sent .msg-meta { color: rgba(255,255,255,0.65); }
         .ticks { font-size: 0.85rem; line-height: 1; font-weight: bold; }
         .ticks.read { color: #4fd1e5; }
         .ticks.delivered { color: rgba(255,255,255,0.6); }
-        .received .ticks.delivered { color: #98a2b3; }
+        .bubble.received .ticks.delivered { color: #98a2b3; }
 
         .btn-delete {
             background: none; border: none; color: #ef4444; cursor: pointer;
@@ -298,7 +303,7 @@
             max-width: 100%;
             transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-out), box-shadow 0.2s var(--ease-out);
         }
-        .sent .msg-file-card { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+        .bubble.sent .msg-file-card { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
         .msg-file-card:hover { transform: translateY(-1px); box-shadow: var(--brainy-shadow-sm); }
         .msg-file-icon {
             width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px;
@@ -316,7 +321,7 @@
             flex-shrink: 0;
         }
         .msg-file-dl:hover { background: rgba(0,0,0,0.06); opacity: 1; }
-        .sent .msg-file-dl:hover { background: rgba(255,255,255,0.14); }
+        .bubble.sent .msg-file-dl:hover { background: rgba(255,255,255,0.14); }
 
         /* Les images s'adaptent à leur taille réelle (jusqu'à un plafond raisonnable),
            conservent leur ratio et ne dépassent jamais la largeur de la bulle ni de l'écran. */
@@ -363,7 +368,7 @@
             min-width: 210px;
             transition: transform 0.15s var(--ease-out), box-shadow 0.2s var(--ease-out);
         }
-        .sent .msg-location-card { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+        .bubble.sent .msg-location-card { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
         .msg-location-card:hover { transform: translateY(-1px); box-shadow: var(--brainy-shadow-sm); }
         .msg-location-icon {
             width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px;
@@ -399,7 +404,7 @@
             z-index: 2;
             pointer-events: none;
         }
-        .sent .select-indicator { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.18); }
+        .bubble.sent .select-indicator { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.18); }
         body.selection-mode .bubble .select-indicator { display: flex; }
         .bubble-wrapper.msg-selected .select-indicator { background: var(--brainy-accent); border-color: var(--brainy-accent); color: white; }
         .bubble-wrapper.msg-selected .bubble { box-shadow: 0 0 0 2px var(--brainy-accent); }
@@ -434,7 +439,7 @@
             margin-bottom: 6px;
             max-width: 100%;
         }
-        .sent .msg-reply-quote { background: rgba(255,255,255,0.1); border-left-color: rgba(255,255,255,0.55); }
+        .bubble.sent .msg-reply-quote { background: rgba(255,255,255,0.1); border-left-color: rgba(255,255,255,0.55); }
         .msg-reply-quote-icon { font-size: 0.72rem; opacity: 0.7; margin-top: 2px; flex-shrink: 0; }
         .msg-reply-quote-body { min-width: 0; }
         .msg-reply-quote-sender { font-size: 0.71rem; font-weight: 700; opacity: 0.85; }
@@ -480,6 +485,127 @@
         .msg-action-btn:hover { background: var(--brainy-surface); color: var(--wa-primary); transform: translateY(-1px); }
         .msg-action-btn.danger { color: #ef4444; }
         .msg-action-btn.danger:hover { background: rgba(239,68,68,0.1); color: #dc2626; }
+
+        /* ── RÉACTIONS AUX MESSAGES (👍 ❤️ 😂 …) ── */
+        /* Pastille(s) de réactions affichée(s) sous le message. Absent sur les anciens messages
+           sans champ `reactions` : simplement pas rendu, aucune erreur. */
+        .msg-reactions-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .bubble-wrapper.sent .msg-reactions-row { justify-content: flex-end; }
+        .msg-reaction-pill {
+            display: inline-flex; align-items: center; gap: 3px;
+            background: var(--brainy-surface);
+            border: 1px solid var(--brainy-border);
+            border-radius: 20px;
+            padding: 1px 7px 1px 6px;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            box-shadow: var(--brainy-shadow-xs);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.12s var(--ease-out), border-color 0.15s var(--ease-out);
+        }
+        .msg-reaction-pill:hover { transform: translateY(-1px); }
+        .msg-reaction-pill.mine { border-color: var(--brainy-accent); background: rgba(34,193,220,0.1); }
+        .msg-reaction-pill .count { font-size: 0.66rem; font-weight: 800; color: var(--brainy-text-soft); }
+        .bubble.sent .msg-reaction-pill { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+        .bubble.sent .msg-reaction-pill .count { color: rgba(255,255,255,0.8); }
+        .bubble.sent .msg-reaction-pill.mine { border-color: #ffffff; background: rgba(255,255,255,0.28); }
+
+        /* ── MENU CONTEXTUEL D'UN MESSAGE (appui long / clic droit) : réactions rapides + actions ── */
+        .msg-context-menu {
+            position: fixed; z-index: 5000;
+            background: var(--brainy-surface);
+            border: 1px solid var(--brainy-border);
+            border-radius: var(--brainy-radius-md);
+            box-shadow: var(--brainy-shadow-lg);
+            padding: 8px;
+            width: 240px;
+            max-width: calc(100vw - 24px);
+            animation: popupContentIn 0.16s var(--ease-out);
+        }
+        .msg-context-menu.hidden { display: none !important; }
+        .msg-context-reactions {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--brainy-surface-alt);
+            border-radius: 24px;
+            padding: 5px 7px;
+            margin-bottom: 6px;
+        }
+        .msg-context-reaction-btn {
+            background: none; border: none; cursor: pointer;
+            font-size: 1.25rem; line-height: 1; padding: 4px;
+            border-radius: 50%; transition: transform 0.14s var(--ease-out), background 0.14s var(--ease-out);
+        }
+        .msg-context-reaction-btn:hover { transform: scale(1.25); background: rgba(0,0,0,0.05); }
+        .msg-context-menu-items { display: flex; flex-direction: column; gap: 1px; }
+        .msg-context-menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 10px; border-radius: 10px;
+            font-size: 0.87rem; font-weight: 600; color: var(--brainy-text);
+            cursor: pointer; background: none; border: none; text-align: left; width: 100%;
+            font-family: inherit;
+            transition: background 0.14s var(--ease-out);
+        }
+        .msg-context-menu-item:hover { background: var(--brainy-surface-alt); }
+        .msg-context-menu-item i { width: 16px; text-align: center; color: var(--brainy-text-soft); }
+        .msg-context-menu-item.danger { color: #ef4444; }
+        .msg-context-menu-item.danger i { color: #ef4444; }
+
+        /* ── MESSAGE ÉPINGLÉ ── */
+        .pinned-banner {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--brainy-surface);
+            border-bottom: 1px solid var(--brainy-border);
+            padding: 9px 14px;
+            cursor: pointer;
+            position: relative; z-index: 4;
+            transition: background 0.15s var(--ease-out);
+        }
+        .pinned-banner:hover { background: var(--brainy-surface-alt); }
+        .pinned-banner.hidden { display: none !important; }
+        .pinned-banner-icon { color: var(--brainy-accent); font-size: 0.95rem; flex-shrink: 0; }
+        .pinned-banner-body { min-width: 0; flex: 1; }
+        .pinned-banner-label { font-size: 0.68rem; font-weight: 800; color: var(--wa-primary); text-transform: uppercase; letter-spacing: 0.02em; }
+        .pinned-banner-text { font-size: 0.82rem; color: var(--brainy-text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pinned-banner-close { background: none; border: none; color: var(--brainy-text-faint); cursor: pointer; padding: 6px; border-radius: 50%; flex-shrink: 0; transition: background 0.15s var(--ease-out); }
+        .pinned-banner-close:hover { background: rgba(0,0,0,0.06); color: var(--brainy-text); }
+        .bubble-wrapper.is-pinned-highlight .bubble { animation: pinnedHighlightPulse 1.4s var(--ease-out); }
+        @keyframes pinnedHighlightPulse {
+            0% { box-shadow: 0 0 0 3px rgba(34,193,220,0.55); }
+            100% { box-shadow: var(--brainy-shadow-xs); }
+        }
+        .msg-pinned-badge { font-size: 0.63rem; opacity: 0.8; display: inline-flex; align-items: center; gap: 3px; }
+
+        /* ── INDICATEUR « EN TRAIN D'ÉCRIRE » ── */
+        .typing-indicator-bar {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.78rem; font-weight: 600; color: var(--brainy-text-soft);
+            padding: 0 16px 6px 16px;
+            animation: attachMenuIn 0.18s var(--ease-out);
+        }
+        .typing-indicator-bar.hidden { display: none !important; }
+        .typing-dots { display: inline-flex; align-items: center; gap: 3px; }
+        .typing-dots span {
+            width: 5px; height: 5px; border-radius: 50%; background: var(--brainy-accent);
+            animation: typingDotBounce 1.1s infinite ease-in-out;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typingDotBounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-3px); opacity: 1; }
+        }
+
+        /* ── PETIT TOAST DE CONFIRMATION ── */
+        .mini-toast {
+            position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(8px);
+            background: rgba(16,24,45,0.92); color: white; font-size: 0.82rem; font-weight: 600;
+            padding: 9px 16px; border-radius: 24px; box-shadow: var(--brainy-shadow-md);
+            z-index: 4500; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+        }
+        .mini-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .mini-toast.hidden { display: none; }
 
         /* ── ZONE DE SAISIE ── */
         .input-area {
@@ -919,6 +1045,8 @@
             <div class="selection-bar-count" id="selectionBarCount">0 message sélectionné</div>
             <div class="selection-bar-actions">
                 <button type="button" id="selectionReplyBtn" class="selection-action-btn hidden" onclick="replySelectedMessage()" title="Répondre" aria-label="Répondre au message sélectionné"><i class="fas fa-reply"></i></button>
+                <button type="button" id="selectionCopyBtn" class="selection-action-btn hidden" onclick="copySelectedMessages()" title="Copier" aria-label="Copier les messages sélectionnés"><i class="fas fa-copy"></i></button>
+                <button type="button" id="selectionForwardBtn" class="selection-action-btn hidden" onclick="forwardSelectedMessages()" title="Transférer" aria-label="Transférer les messages sélectionnés"><i class="fas fa-share"></i></button>
                 <button type="button" id="selectionDeleteBtn" class="selection-action-btn danger hidden" onclick="confirmDeleteSelectedMessages()" title="Supprimer" aria-label="Supprimer les messages sélectionnés"><i class="fas fa-trash"></i></button>
             </div>
         </div>
@@ -935,16 +1063,36 @@
             <i class="fas fa-lock" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;" title="Sécurisé par Firebase"></i>
         </div>
 
+        <div id="pinnedBanner" class="pinned-banner hidden" onclick="scrollToPinnedMessage()">
+            <i class="fas fa-thumbtack pinned-banner-icon"></i>
+            <div class="pinned-banner-body">
+                <div class="pinned-banner-label">📌 Message épinglé</div>
+                <div class="pinned-banner-text" id="pinnedBannerText"></div>
+            </div>
+            <button type="button" class="pinned-banner-close" onclick="unpinCurrentMessage(event)" title="Désépingler" aria-label="Désépingler le message"><i class="fas fa-times"></i></button>
+        </div>
+
         <div class="chat-messages" id="chatBox">
             <div style="text-align:center; color:#888; padding:20px; font-size:0.85rem;">
                 Chargement de l'historique...
             </div>
         </div>
 
+        <div id="typingIndicatorBar" class="typing-indicator-bar hidden">
+            <span class="typing-dots"><span></span><span></span><span></span></span>
+            <span id="typingIndicatorText"></span>
+        </div>
+
         <button type="button" id="scrollToBottomBtn" class="scroll-bottom-btn hidden" onclick="scrollChatToBottom(true)" title="Revenir au dernier message" aria-label="Revenir au dernier message">
             <i class="fas fa-arrow-down"></i>
             <span id="scrollToBottomLabel">Nouveau message</span>
         </button>
+
+        <!-- Menu contextuel réutilisable : réactions rapides + actions (Répondre / Transférer / Copier / Épingler / Modifier / Sélectionner / Supprimer) -->
+        <div id="msgContextMenu" class="msg-context-menu hidden"></div>
+
+        <!-- Petit toast de confirmation (ex : "Message copié") -->
+        <div id="miniToast" class="mini-toast hidden"></div>
 
         <form id="chat-form" class="input-area" onsubmit="return false;">
             <div id="uploadProgressWrap" class="upload-progress-wrap hidden">
@@ -972,7 +1120,7 @@
 
             <div class="input-row">
                 <div class="input-wrapper">
-                    <textarea id="msgInput" placeholder="Écrivez un message..." rows="1" oninput="toggleInputIcons(); autoResizeInput(this);"></textarea>
+                    <textarea id="msgInput" placeholder="Écrivez un message..." rows="1" oninput="toggleInputIcons(); autoResizeInput(this); handleInputTyping();"></textarea>
 
                     <div class="attach-trigger-wrap">
                         <i class="fas fa-paperclip action-icon" id="attachTrigger" onclick="toggleAttachMenu()" title="Joindre un fichier"></i>
@@ -1068,7 +1216,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, limit, deleteDoc, doc, writeBatch, updateDoc, setDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
         
         const firebaseConfig = {
@@ -1194,6 +1342,16 @@
         let longPressTriggered = false;     // évite un double-basculement juste après un appui long
         let longPressStartX = 0, longPressStartY = 0;
         let pendingUploadCategory = 'auto'; // catégorie choisie dans le menu pièce jointe (image/video/pdf/other/auto)
+
+        // ── RÉACTIONS, MESSAGE ÉPINGLÉ, INDICATEUR DE SAISIE (nouvelles fonctionnalités, 100% rétrocompatibles) ──
+        let contextMenuOpenForMsgId = null; // id du message dont le menu contextuel (réactions + actions) est actuellement ouvert
+        let pinnedMessageId = null;         // id du message actuellement épinglé dans la discussion ouverte (le cas échéant)
+        let pinnedMessageData = null;       // données du message épinglé (pour l'aperçu du bandeau)
+        const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+        let unsubscribeTyping = null;       // écouteur temps réel de l'indicateur "en train d'écrire" de la discussion ouverte
+        let isTypingWritten = false;        // évite d'écrire dans Firestore à chaque frappe (on n'écrit qu'au changement d'état)
+        let typingStopTimer = null;         // minuteur d'expiration automatique de l'indicateur de saisie
 
         // Variables Enregistrement Audio
         let mediaRecorder = null;
@@ -2065,6 +2223,9 @@
             }
             activeChatPhotoURL = null;
             if (typeof exitSelectionMode === 'function') exitSelectionMode();
+            closeMessageContextMenu();
+            clearOwnTypingStatus();
+            teardownTypingListener();
         };
 
         // Cache des éléments DOM déjà rendus pour la conversation ouverte (id -> élément .bubble-wrapper).
@@ -2072,6 +2233,111 @@
         // reconstruire toute la conversation (fini les clignotements / sauts de scroll / pertes de coches).
         let renderedMessageEls = {};
         let pendingNewMessagesCount = 0;
+
+        // ── INDICATEUR « EN TRAIN D'ÉCRIRE » ──
+        // Collection Firestore dédiée et totalement indépendante ("typing_status") : n'a aucun
+        // impact sur les collections/messages existants. Un document par utilisateur par discussion,
+        // avec expiration automatique côté client (statuts trop anciens ignorés) pour rester robuste
+        // même si un onglet se ferme brutalement sans avoir pu nettoyer son propre statut.
+        function typingDocId(chatId, uid) {
+            return `${chatId}__${uid}`;
+        }
+
+        function teardownTypingListener() {
+            if (unsubscribeTyping) {
+                unsubscribeTyping();
+                unsubscribeTyping = null;
+            }
+            const bar = document.getElementById('typingIndicatorBar');
+            if (bar) bar.classList.add('hidden');
+        }
+
+        // Écoute les statuts de saisie des AUTRES utilisateurs de la discussion ouverte (jamais le sien).
+        function setupTypingListener(chatId) {
+            teardownTypingListener();
+            if (!chatId || !currentUser) return;
+            try {
+                const qTyping = query(collection(db, "typing_status"), where("chatId", "==", chatId));
+                unsubscribeTyping = onSnapshot(qTyping, (snapshot) => {
+                    const now = Date.now();
+                    const typingNames = [];
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (!data || data.uid === currentUser.uid || !data.typing) return;
+                        const updatedAt = data.updatedAt && data.updatedAt.toMillis ? data.updatedAt.toMillis() : 0;
+                        // Ignore les statuts périmés (> 8s) : évite un indicateur bloqué si l'utilisateur
+                        // a quitté la page sans que son statut n'ait pu être nettoyé proprement.
+                        if (updatedAt && (now - updatedAt) > 8000) return;
+                        typingNames.push(data.name || 'Quelqu\'un');
+                    });
+
+                    const bar = document.getElementById('typingIndicatorBar');
+                    const textEl = document.getElementById('typingIndicatorText');
+                    if (!bar || !textEl) return;
+                    if (typingNames.length === 0) {
+                        bar.classList.add('hidden');
+                        return;
+                    }
+                    const label = typingNames.length === 1
+                        ? `${typingNames[0]} est en train d'écrire...`
+                        : `${typingNames.slice(0, -1).join(', ')} et ${typingNames[typingNames.length - 1]} sont en train d'écrire...`;
+                    textEl.textContent = label;
+                    bar.classList.remove('hidden');
+                }, (error) => {
+                    console.warn("Écoute de l'indicateur de saisie interrompue :", error);
+                });
+            } catch (e) {
+                console.warn("Impossible d'initialiser l'indicateur de saisie :", e);
+            }
+        }
+
+        // Écrit (avec debounce/temporisation) le statut de saisie de l'utilisateur courant. N'écrit
+        // dans Firestore QUE lors d'un changement d'état (début/fin de saisie), jamais à chaque
+        // caractère tapé, afin de ne jamais surcharger Firestore.
+        window.handleInputTyping = () => {
+            if (!currentUser || !activeChatId) return;
+            const inputField = document.getElementById('msgInput');
+            const hasText = inputField && inputField.value.trim().length > 0;
+
+            if (hasText && !isTypingWritten) {
+                setOwnTypingStatus(true);
+            } else if (!hasText && isTypingWritten) {
+                setOwnTypingStatus(false);
+            }
+
+            if (typingStopTimer) clearTimeout(typingStopTimer);
+            if (hasText) {
+                // Expiration automatique après quelques secondes sans nouvelle frappe.
+                typingStopTimer = setTimeout(() => setOwnTypingStatus(false), 4000);
+            }
+        };
+
+        async function setOwnTypingStatus(isTyping) {
+            if (!currentUser || !activeChatId || !currentStagiaireData) return;
+            isTypingWritten = isTyping;
+            try {
+                const ref = doc(db, "typing_status", typingDocId(activeChatId, currentUser.uid));
+                if (isTyping) {
+                    await setDoc(ref, {
+                        chatId: activeChatId,
+                        uid: currentUser.uid,
+                        name: currentStagiaireData.nom || 'Un stagiaire',
+                        typing: true,
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    await setDoc(ref, { chatId: activeChatId, uid: currentUser.uid, typing: false, updatedAt: serverTimestamp() }, { merge: true });
+                }
+            } catch (e) {
+                console.warn("Erreur mise à jour de l'indicateur de saisie :", e);
+            }
+        }
+
+        // Arrête proprement d'indiquer que l'on écrit (message envoyé, champ vidé, changement de discussion).
+        function clearOwnTypingStatus() {
+            if (typingStopTimer) { clearTimeout(typingStopTimer); typingStopTimer = null; }
+            if (isTypingWritten) setOwnTypingStatus(false);
+        }
 
         // Construit (sans l'attacher au DOM) la bulle complète d'un message : avatar, citation de réponse,
         // contenu (texte / image / vidéo / audio / fichier / position), coches, badges et actions.
@@ -2200,23 +2466,34 @@
             const canDelete = isMe || isSpecialUser;
             const canEdit = isMe && msg.type === 'text';
 
-            // Bandeau "modifié" / "transféré" (rétrocompatible : absent sur les anciens messages)
+            // Bandeau "modifié" / "transféré" / "épinglé" (rétrocompatible : absent sur les anciens messages)
             const editedBadgeHTML = msg.edited ? `<span class="msg-edited-badge" title="Message modifié">modifié</span>` : '';
             const forwardedBadgeHTML = msg.forwarded ? `<span class="msg-forwarded-badge" title="Message transféré"><i class="fas fa-share"></i> Transféré</span>` : '';
+            const pinnedBadgeHTML = msg.pinned ? `<span class="msg-pinned-badge" title="Message épinglé"><i class="fas fa-thumbtack"></i></span>` : '';
 
-            // Actions sous le message : Répondre / Transférer / Modifier / Supprimer
+            // Seul l'administrateur (compte spécial existant) peut épingler/désépingler.
+            const canPin = isSpecialUser;
+            const canCopy = (!msg.type || msg.type === 'text') && !!msg.texte;
+
+            // Actions sous le message : Répondre / Transférer / Copier / Modifier / Supprimer
             // (utilise les fonctions existantes deleteMessage() et les nouvelles fonctions dédiées)
             const actionsHTML = `
                 <div class="msg-actions">
                     <button type="button" class="msg-action-btn" onclick="startReply('${docSnapId}')" title="Répondre"><i class="fas fa-reply"></i><span>Répondre</span></button>
                     <button type="button" class="msg-action-btn" onclick="openForwardModal('${docSnapId}')" title="Transférer"><i class="fas fa-share"></i><span>Transférer</span></button>
+                    ${canCopy ? `<button type="button" class="msg-action-btn" onclick="copyMessageText('${docSnapId}')" title="Copier"><i class="fas fa-copy"></i><span>Copier</span></button>` : ''}
                     ${canEdit ? `<button type="button" class="msg-action-btn" onclick="openEditModal('${docSnapId}')" title="Modifier"><i class="fas fa-pen"></i><span>Modifier</span></button>` : ''}
+                    ${canPin ? `<button type="button" class="msg-action-btn" onclick="togglePinMessage('${docSnapId}')" title="${msg.pinned ? 'Désépingler' : 'Épingler'}"><i class="fas fa-thumbtack"></i><span>${msg.pinned ? 'Désépingler' : 'Épingler'}</span></button>` : ''}
                     ${canDelete ? `<button type="button" class="msg-action-btn danger" onclick="deleteMessage('${docSnapId}')" title="Supprimer"><i class="fas fa-trash"></i><span>Supprimer</span></button>` : ''}
                 </div>
             `;
 
             const isSelectedForReply = replyingTo && replyingTo.id === docSnapId;
             const isSelectedForDeletion = typeof selectedMessageIds !== 'undefined' && selectedMessageIds.has(docSnapId);
+
+            // Réactions (👍❤️😂…) : champ `reactions` nouveau et facultatif -> absent sur les anciens
+            // messages, dans ce cas simplement aucune réaction n'est affichée, sans erreur.
+            const reactionsHTML = renderReactionsHTML(msg, docSnapId);
 
             const bubbleWrapper = document.createElement('div');
             bubbleWrapper.className = `bubble-wrapper ${isMe ? 'sent' : 'received'} ${isSelectedForDeletion ? 'msg-selected' : ''}`;
@@ -2229,16 +2506,42 @@
                     ${replyQuoteHTML}
                     ${contentHTML}
                     <div class="msg-meta">
+                        ${pinnedBadgeHTML}
                         ${forwardedBadgeHTML}
                         ${editedBadgeHTML}
                         <span>${timeString}</span>
                         ${ticksHTML}
                     </div>
+                    ${reactionsHTML}
                 </div>
                 ${actionsHTML}
             `;
 
             return bubbleWrapper;
+        }
+
+        // Construit la rangée de pastilles de réactions (👍 2  ❤️ 1 …) sous un message, en regroupant
+        // par emoji. `msg.reactions` est un objet { uid: emoji }, totalement facultatif et rétrocompatible :
+        // les anciens messages qui ne l'ont pas continuent de s'afficher normalement (aucune réaction).
+        function renderReactionsHTML(msg, docSnapId) {
+            const reactions = msg && msg.reactions && typeof msg.reactions === 'object' ? msg.reactions : null;
+            if (!reactions) return '';
+            const counts = {};
+            Object.keys(reactions).forEach(uid => {
+                const emoji = reactions[uid];
+                if (!emoji) return;
+                if (!counts[emoji]) counts[emoji] = { count: 0, mine: false };
+                counts[emoji].count++;
+                if (currentUser && uid === currentUser.uid) counts[emoji].mine = true;
+            });
+            const emojiKeys = Object.keys(counts);
+            if (emojiKeys.length === 0) return '';
+            const pills = emojiKeys.map(emoji => `
+                <span class="msg-reaction-pill ${counts[emoji].mine ? 'mine' : ''}" onclick="toggleReaction('${docSnapId}', '${emoji}')" title="Réagir">
+                    <span>${emoji}</span>${counts[emoji].count > 1 ? `<span class="count">${counts[emoji].count}</span>` : ''}
+                </span>
+            `).join('');
+            return `<div class="msg-reactions-row">${pills}</div>`;
         }
 
         // Retire le message d'accueil / de chargement (le cas échéant) dès qu'il faut afficher de vrais messages.
@@ -2296,6 +2599,11 @@
             hideScrollToBottomBtn();
             if (typeof exitSelectionMode === 'function') exitSelectionMode();
 
+            // Réinitialise l'indicateur "en train d'écrire" pour la discussion nouvellement ouverte
+            // (nettoie le statut de l'ancienne discussion et écoute celui de la nouvelle).
+            clearOwnTypingStatus();
+            setupTypingListener(activeChatId);
+
             if (unsubscribeChat) unsubscribeChat();
 
             let qChat;
@@ -2343,6 +2651,7 @@
                     renderedMessageEls = {};
                     renderedMessagesMap = {};
                     hideScrollToBottomBtn();
+                    updatePinnedBanner([]);
                     return;
                 }
 
@@ -2384,6 +2693,10 @@
                     }
                 }
                 if (currentTab === 'discussions') renderList();
+
+                // Bandeau "📌 Message épinglé" : mis à jour à partir des messages actuellement chargés,
+                // lecture seule (aucune écriture Firestore ici).
+                updatePinnedBanner(docsList);
 
                 clearChatPlaceholder(chatBox);
 
@@ -2455,6 +2768,8 @@
             const bar = document.getElementById('selectionBar');
             const countEl = document.getElementById('selectionBarCount');
             const replyBtn = document.getElementById('selectionReplyBtn');
+            const copyBtn = document.getElementById('selectionCopyBtn');
+            const forwardBtn = document.getElementById('selectionForwardBtn');
             const deleteBtn = document.getElementById('selectionDeleteBtn');
             if (!bar) return;
 
@@ -2469,6 +2784,11 @@
             const n = selectedMessageIds.size;
             if (countEl) countEl.textContent = n === 1 ? '1 message sélectionné' : `${n} messages sélectionnés`;
             if (replyBtn) replyBtn.classList.toggle('hidden', n !== 1);
+            if (forwardBtn) forwardBtn.classList.remove('hidden');
+            if (copyBtn) {
+                const hasText = Array.from(selectedMessageIds).some(id => renderedMessagesMap[id] && renderedMessagesMap[id].texte);
+                copyBtn.classList.toggle('hidden', !hasText);
+            }
             if (deleteBtn) deleteBtn.classList.remove('hidden');
         }
 
@@ -2584,8 +2904,14 @@
                     longPressTimer = null;
                     longPressTriggered = true;
                     const msgId = wrapper.dataset.msgId;
-                    if (!selectionMode) enterSelectionMode(msgId);
-                    else toggleMessageSelection(msgId);
+                    if (!selectionMode) {
+                        // Appui long : ouvre le menu contextuel (réactions rapides + actions),
+                        // façon WhatsApp. "Sélectionner" dans ce menu permet d'entrer dans le
+                        // mode sélection multiple si l'utilisateur le souhaite.
+                        openMessageContextMenu(msgId, e.clientX, e.clientY);
+                    } else {
+                        toggleMessageSelection(msgId);
+                    }
                     if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e2) {} }
                 }, 480);
             }, { passive: true });
@@ -2601,13 +2927,13 @@
                 }
             }, { passive: true });
 
-            // Clic droit ordinateur : équivalent de l'appui long.
+            // Clic droit ordinateur : équivalent de l'appui long -> menu contextuel (réactions + actions).
             chatBox.addEventListener('contextmenu', (e) => {
                 const wrapper = e.target.closest('.bubble-wrapper');
                 if (!wrapper) return;
                 e.preventDefault();
                 const msgId = wrapper.dataset.msgId;
-                if (!selectionMode) enterSelectionMode(msgId);
+                if (!selectionMode) openMessageContextMenu(msgId, e.clientX, e.clientY);
                 else toggleMessageSelection(msgId);
             });
 
@@ -2631,6 +2957,9 @@
         // 11. Fonction principale d'envoi de message (avec statuts sent/delivered/seen)
         async function sendMessageToDb(textVal, fileUrl = null, msgType = 'text', replyData = null, fileMeta = null) {
             if (!currentStagiaireData) return;
+
+            // Dès qu'un message part, on arrête immédiatement d'indiquer "en train d'écrire".
+            clearOwnTypingStatus();
 
             const messageData = {
                 texte: textVal || '',
@@ -2686,6 +3015,258 @@
                 alert("Erreur lors de la suppression.");
             }
         };
+
+        // ── PETIT TOAST DE CONFIRMATION (ex : "Message copié") ──
+        let miniToastTimer = null;
+        function showMiniToast(text) {
+            const el = document.getElementById('miniToast');
+            if (!el) return;
+            el.textContent = text;
+            el.classList.remove('hidden');
+            // Force reflow pour rejouer la transition si le toast était déjà affiché juste avant.
+            void el.offsetWidth;
+            el.classList.add('show');
+            if (miniToastTimer) clearTimeout(miniToastTimer);
+            miniToastTimer = setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.classList.add('hidden'), 200);
+            }, 1600);
+        }
+
+        // ── COPIER UN MESSAGE (texte uniquement, sans coches ni heure) ──
+        async function copyPlainText(text) {
+            if (!text) return false;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch (e) { /* repli ci-dessous */ }
+            // Repli compatible anciens navigateurs / contextes non sécurisés (execCommand)
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                ta.remove();
+                return ok;
+            } catch (e2) {
+                return false;
+            }
+        }
+
+        window.copyMessageText = async (msgId) => {
+            const data = renderedMessagesMap[msgId];
+            if (!data || !data.texte) return;
+            const ok = await copyPlainText(data.texte);
+            showMiniToast(ok ? 'Message copié' : "Impossible de copier");
+        };
+
+        window.copySelectedMessages = async () => {
+            if (selectedMessageIds.size === 0) return;
+            // Copie dans l'ordre chronologique d'affichage, texte uniquement.
+            const ids = Array.from(selectedMessageIds).filter(id => renderedMessageEls[id]);
+            ids.sort((a, b) => (Number(renderedMessageEls[a].dataset.ts) || 0) - (Number(renderedMessageEls[b].dataset.ts) || 0));
+            const parts = ids.map(id => renderedMessagesMap[id] && renderedMessagesMap[id].texte).filter(Boolean);
+            if (parts.length === 0) { showMiniToast("Aucun texte à copier"); return; }
+            const ok = await copyPlainText(parts.join('\n'));
+            showMiniToast(ok ? 'Message copié' : "Impossible de copier");
+            exitSelectionMode();
+        };
+
+        window.forwardSelectedMessages = () => {
+            if (selectedMessageIds.size === 0) return;
+            const ids = Array.from(selectedMessageIds).filter(id => renderedMessageEls[id]);
+            ids.sort((a, b) => (Number(renderedMessageEls[a].dataset.ts) || 0) - (Number(renderedMessageEls[b].dataset.ts) || 0));
+            openForwardModal(ids); // openForwardModal accepte un seul id (chaîne) ou un tableau d'ids
+        };
+
+        // ── RÉACTIONS AUX MESSAGES (👍 ❤️ 😂 …) ──
+        // Bascule (ajoute/retire/change) la réaction de l'utilisateur courant sur un message.
+        // Écrit UNIQUEMENT le champ `reactions.<uid>`, sans jamais toucher aux autres champs du
+        // document (texte, dates, statuts, etc.) : totalement rétrocompatible avec les anciens messages.
+        window.toggleReaction = async (msgId, emoji) => {
+            if (!currentUser || !msgId || !emoji) return;
+            closeMessageContextMenu();
+            try {
+                const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
+                const data = renderedMessagesMap[msgId];
+                const existing = data && data.reactions ? data.reactions[currentUser.uid] : null;
+                const fieldPath = `reactions.${currentUser.uid}`;
+                if (existing === emoji) {
+                    // Appui sur la même réaction : on la retire.
+                    await updateDoc(doc(db, colName, msgId), { [fieldPath]: deleteField() });
+                } else {
+                    await updateDoc(doc(db, colName, msgId), { [fieldPath]: emoji });
+                }
+            } catch (error) {
+                console.error("Erreur réaction :", error);
+            }
+        };
+
+        // ── MESSAGE ÉPINGLÉ ──
+        // Seul l'administrateur (compte spécial existant, même logique que la suppression globale)
+        // peut épingler/désépingler. Un seul message épingle à la fois par discussion : épingler un
+        // nouveau message désépingle automatiquement l'ancien (sans toucher à ses autres champs).
+        window.togglePinMessage = async (msgId) => {
+            if (!currentUserCanBulkDelete()) return;
+            try {
+                const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
+                const data = renderedMessagesMap[msgId];
+                const alreadyPinned = data && data.pinned === true;
+
+                if (alreadyPinned) {
+                    await updateDoc(doc(db, colName, msgId), { pinned: false });
+                    return;
+                }
+
+                // Désépingle l'ancien message épinglé de cette discussion (le cas échéant), puis épingle le nouveau.
+                if (pinnedMessageId && pinnedMessageId !== msgId) {
+                    try { await updateDoc(doc(db, colName, pinnedMessageId), { pinned: false }); } catch (e) { /* déjà supprimé/modifié, sans gravité */ }
+                }
+                await updateDoc(doc(db, colName, msgId), {
+                    pinned: true,
+                    pinnedAt: serverTimestamp(),
+                    pinnedBy: currentUser.uid
+                });
+            } catch (error) {
+                console.error("Erreur épinglage :", error);
+                alert("Erreur lors de l'épinglage du message.");
+            }
+        };
+
+        window.unpinCurrentMessage = async (evt) => {
+            if (evt) evt.stopPropagation();
+            if (!pinnedMessageId) return;
+            if (!currentUserCanBulkDelete()) { showMiniToast("Action réservée à l'administrateur"); return; }
+            try {
+                const colName = activeChatId === 'groupe' ? "messages_groupe" : "messages_prives";
+                await updateDoc(doc(db, colName, pinnedMessageId), { pinned: false });
+            } catch (error) {
+                console.error("Erreur désépinglage :", error);
+            }
+        };
+
+        // Met à jour le bandeau "📌 Message épinglé" en haut de la conversation à partir de la liste
+        // de messages actuellement chargée. N'écrit rien dans Firestore : lecture seule.
+        function updatePinnedBanner(docsList) {
+            let latestPinned = null;
+            docsList.forEach(item => {
+                if (item.data && item.data.pinned === true) {
+                    const ts = item.data.pinnedAt && item.data.pinnedAt.toMillis ? item.data.pinnedAt.toMillis() : 0;
+                    if (!latestPinned || ts >= latestPinned.ts) latestPinned = { id: item.id, data: item.data, ts };
+                }
+            });
+
+            const banner = document.getElementById('pinnedBanner');
+            const textEl = document.getElementById('pinnedBannerText');
+            if (!banner || !textEl) return;
+
+            if (!latestPinned) {
+                pinnedMessageId = null;
+                pinnedMessageData = null;
+                banner.classList.add('hidden');
+                return;
+            }
+
+            pinnedMessageId = latestPinned.id;
+            pinnedMessageData = latestPinned.data;
+
+            let preview = latestPinned.data.texte || '';
+            if (latestPinned.data.type === 'image') preview = '📷 Photo';
+            else if (latestPinned.data.type === 'video') preview = '🎥 Vidéo';
+            else if (latestPinned.data.type === 'audio') preview = '🎤 Message vocal';
+            else if (latestPinned.data.type === 'location') preview = '📍 Position partagée';
+            else if (latestPinned.data.type === 'file') preview = '📄 ' + (latestPinned.data.texte ? latestPinned.data.texte.replace('[Fichier: ', '').replace(']', '') : 'Fichier');
+
+            textEl.textContent = preview || 'Message';
+            banner.classList.remove('hidden');
+        }
+
+        // Fait défiler la conversation jusqu'au message épinglé et le met brièvement en surbrillance.
+        window.scrollToPinnedMessage = () => {
+            if (!pinnedMessageId) return;
+            scrollToMessage(pinnedMessageId);
+        };
+
+        function scrollToMessage(msgId) {
+            const el = renderedMessageEls[msgId];
+            const chatBox = document.getElementById('chatBox');
+            if (!el || !chatBox) return;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('is-pinned-highlight');
+            setTimeout(() => el.classList.remove('is-pinned-highlight'), 1500);
+        }
+
+        // ── MENU CONTEXTUEL D'UN MESSAGE (appui long mobile / clic droit ordinateur) ──
+        // Combine la barre de réactions rapides et les actions du message (Répondre, Transférer,
+        // Copier, Épingler, Modifier, Sélectionner, Supprimer), façon WhatsApp.
+        window.closeMessageContextMenu = () => {
+            const menu = document.getElementById('msgContextMenu');
+            if (menu) menu.classList.add('hidden');
+            contextMenuOpenForMsgId = null;
+        };
+
+        function openMessageContextMenu(msgId, clientX, clientY) {
+            const menu = document.getElementById('msgContextMenu');
+            const data = renderedMessagesMap[msgId];
+            if (!menu || !data || !currentUser) return;
+
+            const isMe = data.senderUid === currentUser.uid;
+            const isAdmin = currentUserCanBulkDelete();
+            const canDelete = isMe || isAdmin;
+            const canEdit = isMe && data.type === 'text';
+            const canCopy = (!data.type || data.type === 'text') && !!data.texte;
+            const canPin = isAdmin;
+            const isPinned = data.pinned === true;
+
+            const reactionsRowHTML = REACTION_EMOJIS.map(emoji =>
+                `<button type="button" class="msg-context-reaction-btn" onclick="toggleReaction('${msgId}', '${emoji}')" title="Réagir avec ${emoji}">${emoji}</button>`
+            ).join('');
+
+            menu.innerHTML = `
+                <div class="msg-context-reactions">${reactionsRowHTML}</div>
+                <div class="msg-context-menu-items">
+                    <button type="button" class="msg-context-menu-item" onclick="startReply('${msgId}'); closeMessageContextMenu();"><i class="fas fa-reply"></i>Répondre</button>
+                    <button type="button" class="msg-context-menu-item" onclick="openForwardModal('${msgId}'); closeMessageContextMenu();"><i class="fas fa-share"></i>Transférer</button>
+                    ${canCopy ? `<button type="button" class="msg-context-menu-item" onclick="copyMessageText('${msgId}'); closeMessageContextMenu();"><i class="fas fa-copy"></i>Copier</button>` : ''}
+                    ${canEdit ? `<button type="button" class="msg-context-menu-item" onclick="openEditModal('${msgId}'); closeMessageContextMenu();"><i class="fas fa-pen"></i>Modifier</button>` : ''}
+                    ${canPin ? `<button type="button" class="msg-context-menu-item" onclick="togglePinMessage('${msgId}'); closeMessageContextMenu();"><i class="fas fa-thumbtack"></i>${isPinned ? 'Désépingler' : 'Épingler'}</button>` : ''}
+                    <button type="button" class="msg-context-menu-item" onclick="closeMessageContextMenu(); enterSelectionMode('${msgId}');"><i class="fas fa-check-circle"></i>Sélectionner</button>
+                    ${canDelete ? `<button type="button" class="msg-context-menu-item danger" onclick="deleteMessage('${msgId}'); closeMessageContextMenu();"><i class="fas fa-trash"></i>Supprimer</button>` : ''}
+                </div>
+            `;
+
+            menu.classList.remove('hidden');
+            contextMenuOpenForMsgId = msgId;
+
+            // Positionnement intelligent : ancré au point d'appui/clic, toujours dans l'écran.
+            menu.style.left = '0px';
+            menu.style.top = '0px';
+            const menuRect = menu.getBoundingClientRect();
+            const margin = 10;
+            let left = clientX;
+            let top = clientY;
+            if (left + menuRect.width + margin > window.innerWidth) left = window.innerWidth - menuRect.width - margin;
+            if (left < margin) left = margin;
+            if (top + menuRect.height + margin > window.innerHeight) top = window.innerHeight - menuRect.height - margin;
+            if (top < margin) top = margin;
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+        }
+
+        // Fermeture du menu contextuel au clic extérieur / à la molette / au redimensionnement.
+        document.addEventListener('pointerdown', (e) => {
+            const menu = document.getElementById('msgContextMenu');
+            if (!menu || menu.classList.contains('hidden')) return;
+            if (!menu.contains(e.target)) closeMessageContextMenu();
+        });
+        window.addEventListener('scroll', () => closeMessageContextMenu(), true);
+        window.addEventListener('resize', () => closeMessageContextMenu());
 
         // 12. Gestion du bouton Action (Microphone vs Envoi Texte)
         // Protégé contre le double-envoi (double clic/tap accidentel) : le bouton est désactivé
@@ -3029,11 +3610,13 @@
             const forwardModal = document.getElementById('forwardModal');
             const deleteSelectionModal = document.getElementById('deleteSelectionModal');
             const attachMenu = document.getElementById('attachMenu');
+            const contextMenu = document.getElementById('msgContextMenu');
             if (profileViewer && !profileViewer.classList.contains('hidden')) { closeProfilePhotoView(); return; }
             if (filePopup && !filePopup.classList.contains('hidden')) { closeFilePopup(); return; }
             if (editModal && !editModal.classList.contains('hidden')) { closeEditModal(); return; }
             if (deleteSelectionModal && !deleteSelectionModal.classList.contains('hidden')) { closeDeleteSelectionModal(); return; }
             if (forwardModal && !forwardModal.classList.contains('hidden')) { closeForwardModal(); return; }
+            if (contextMenu && !contextMenu.classList.contains('hidden')) { closeMessageContextMenu(); return; }
             if (attachMenu && !attachMenu.classList.contains('hidden')) { attachMenu.classList.add('hidden'); return; }
             if (selectionMode) { exitSelectionMode(); return; }
         });
@@ -3108,11 +3691,15 @@
             }
         };
 
-        // 21. Transfert d'un message vers une autre discussion
-        window.openForwardModal = (msgId) => {
-            const data = renderedMessagesMap[msgId];
-            if (!data) return;
-            forwardingMessageId = msgId;
+        // 21. Transfert d'un ou plusieurs messages vers une autre discussion
+        // `msgIdOrIds` accepte soit un seul id (chaîne, comportement d'origine), soit un tableau
+        // d'ids (nouvelle sélection multiple) : dans les deux cas on transfère chaque message
+        // sélectionné individuellement, sans jamais modifier les messages d'origine.
+        window.openForwardModal = (msgIdOrIds) => {
+            const ids = Array.isArray(msgIdOrIds) ? msgIdOrIds.slice() : [msgIdOrIds];
+            const validIds = ids.filter(id => renderedMessagesMap[id]);
+            if (validIds.length === 0) return;
+            forwardingMessageId = validIds;
 
             const listEl = document.getElementById('forwardTargetList');
             listEl.innerHTML = '';
@@ -3146,36 +3733,49 @@
         };
 
         window.doForwardMessage = async (targetChatId) => {
-            const data = renderedMessagesMap[forwardingMessageId];
-            if (!data || !currentStagiaireData) { closeForwardModal(); return; }
+            const ids = Array.isArray(forwardingMessageId) ? forwardingMessageId : (forwardingMessageId ? [forwardingMessageId] : []);
+            if (ids.length === 0 || !currentStagiaireData) { closeForwardModal(); return; }
+
+            // Ordre chronologique d'affichage pour que les messages transférés arrivent dans le bon ordre.
+            const orderedIds = ids.slice().sort((a, b) => {
+                const tsA = renderedMessageEls[a] ? Number(renderedMessageEls[a].dataset.ts) || 0 : 0;
+                const tsB = renderedMessageEls[b] ? Number(renderedMessageEls[b].dataset.ts) || 0 : 0;
+                return tsA - tsB;
+            });
 
             try {
-                const messageData = {
-                    texte: data.texte || '',
-                    senderUid: currentUser.uid,
-                    senderName: currentStagiaireData.nom || 'Inconnu',
-                    senderMatricule: currentStagiaireData.matricule || '',
-                    date: serverTimestamp(),
-                    type: data.type || 'text',
-                    sent: true,
-                    delivered: false,
-                    seen: false,
-                    seenAt: null,
-                    forwarded: true
-                };
-                if (data.url) messageData.url = data.url;
-                if (data.fileSize) messageData.fileSize = data.fileSize;
+                for (const id of orderedIds) {
+                    const data = renderedMessagesMap[id];
+                    if (!data) continue;
 
-                if (targetChatId === 'groupe') {
-                    await addDoc(collection(db, "messages_groupe"), messageData);
-                } else {
-                    messageData.chatId = targetChatId;
-                    await addDoc(collection(db, "messages_prives"), messageData);
+                    const messageData = {
+                        texte: data.texte || '',
+                        senderUid: currentUser.uid,
+                        senderName: currentStagiaireData.nom || 'Inconnu',
+                        senderMatricule: currentStagiaireData.matricule || '',
+                        date: serverTimestamp(),
+                        type: data.type || 'text',
+                        sent: true,
+                        delivered: false,
+                        seen: false,
+                        seenAt: null,
+                        forwarded: true
+                    };
+                    if (data.url) messageData.url = data.url;
+                    if (data.fileSize) messageData.fileSize = data.fileSize;
+
+                    if (targetChatId === 'groupe') {
+                        await addDoc(collection(db, "messages_groupe"), messageData);
+                    } else {
+                        messageData.chatId = targetChatId;
+                        await addDoc(collection(db, "messages_prives"), messageData);
+                    }
                 }
                 closeForwardModal();
+                if (typeof exitSelectionMode === 'function') exitSelectionMode();
             } catch (error) {
                 console.error("Erreur transfert message :", error);
-                alert("Erreur lors du transfert du message.");
+                alert("Erreur lors du transfert du/des message(s).");
             }
         };
     </script>
